@@ -1,0 +1,15 @@
+.layout { display: flex; min-height: 100vh; }
+
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  background-color: var(--bg-body);
+  min-height: 100vh;
+}
+
+.content-wrapper { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+@media (max-width: 768px) {
+  .main-content { margin-left: 0; }
+  .content-wrapper { padding: 1rem; }
+}
