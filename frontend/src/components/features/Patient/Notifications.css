@@ -1,0 +1,144 @@
+.notifications-container {
+  position: relative;
+}
+
+.notification-bell {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  color: #64748B;
+}
+
+.notification-bell:hover {
+  background: #F1F5F9;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #EF4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  width: 350px;
+  max-height: 400px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.notification-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+.notification-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+.notification-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  transition: background 0.2s;
+}
+
+.notification-item.unread {
+  background: #EFF6FF;
+}
+
+.notification-item:hover {
+  background: #F8FAFC;
+}
+
+.notification-icon {
+  width: 28px;
+  height: 28px;
+  background: #F1F5F9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3B82F6;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-content p {
+  margin: 0;
+  font-size: 13px;
+  color: #1E293B;
+  line-height: 1.4;
+}
+
+.notification-time {
+  font-size: 10px;
+  color: #94A3B8;
+  margin-top: 4px;
+  display: block;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.approve-btn, .reject-btn, .mark-read-btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  border: none;
+}
+
+.approve-btn {
+  background: #10B981;
+  color: white;
+}
+
+.reject-btn {
+  background: #EF4444;
+  color: white;
+}
+
+.mark-read-btn {
+  background: none;
+  color: #3B82F6;
+}
+
+.no-notifications {
+  text-align: center;
+  padding: 20px;
+  color: #94A3B8;
+  font-size: 13px;
+}

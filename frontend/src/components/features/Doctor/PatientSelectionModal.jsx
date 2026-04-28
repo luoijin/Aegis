@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Check, Stethoscope, X } from 'lucide-react';
+import { Search, Check, Stethoscope, X, AlertCircle } from 'lucide-react';
 import api from '../../../utils/api';
 import './PatientSelectionModal.css';
 
@@ -10,6 +10,7 @@ const PatientSelectionModal = ({ onClose, onSuccess }) => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
 
   useEffect(() => {
     fetchAvailablePatients();
@@ -32,6 +33,7 @@ const PatientSelectionModal = ({ onClose, onSuccess }) => {
   const handleSelectPatient = (patient) => {
     setSelectedPatient(patient);
     setError('');
+    setInfoMessage('');
   };
 
   const handleAddPatient = async () => {
@@ -42,15 +44,23 @@ const PatientSelectionModal = ({ onClose, onSuccess }) => {
 
     setSubmitting(true);
     setError('');
+    setInfoMessage('');
 
     try {
-      // Use the assign-doctor endpoint
-      await api.post(`/patients/${selectedPatient._id}/assign-doctor`);
-      
-      console.log('Patient assigned successfully:', selectedPatient);
-      onSuccess(selectedPatient);
+      if (selectedPatient.assignedDoctor) {
+        // Patient already has a doctor - send change request
+        const response = await api.post(`/patients/${selectedPatient._id}/request-doctor-change`);
+        setInfoMessage(`Request sent to patient. They will need to approve the change.`);
+        setTimeout(() => {
+          onSuccess(selectedPatient);
+        }, 2000);
+      } else {
+        // No existing doctor - assign directly
+        await api.post(`/patients/${selectedPatient._id}/assign-doctor`);
+        onSuccess(selectedPatient);
+      }
     } catch (error) {
-      console.error('Error adding patient:', error);
+      console.error('Error:', error);
       setError(error.response?.data?.message || 'Failed to add patient');
     } finally {
       setSubmitting(false);
@@ -86,11 +96,13 @@ const PatientSelectionModal = ({ onClose, onSuccess }) => {
           </div>
 
           {error && <div className="error-message">{error}</div>}
+          {infoMessage && <div className="info-message">{infoMessage}</div>}
 
           {loading ? (
             <div className="loading-state">Loading patients...</div>
           ) : filteredPatients.length === 0 ? (
             <div className="empty-state">
+              <AlertCircle size={32} />
               <p>No registered patients found.</p>
               <p className="hint">Patients need to register an account first.</p>
             </div>
@@ -119,12 +131,12 @@ const PatientSelectionModal = ({ onClose, onSuccess }) => {
                         {hasAssignedDoctor && (
                           <span className="doctor-assigned">
                             <Stethoscope size={12} />
-                            Has assigned doctor
+                            Has primary doctor
                           </span>
                         )}
                         {!hasAssignedDoctor && (
                           <span className="no-doctor">
-                            No assigned doctor
+                            No primary doctor assigned
                           </span>
                         )}
                       </div>
@@ -148,7 +160,7 @@ const PatientSelectionModal = ({ onClose, onSuccess }) => {
             onClick={handleAddPatient}
             disabled={!selectedPatient || submitting}
           >
-            {submitting ? 'Adding...' : 'Add to My Practice'}
+            {submitting ? 'Processing...' : (selectedPatient?.assignedDoctor ? 'Request Change' : 'Add to My Practice')}
           </button>
         </div>
       </div>

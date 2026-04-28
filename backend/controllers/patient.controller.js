@@ -240,3 +240,176 @@ exports.getPatientDoctors = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Doctor requests to become patient's primary doctor
+exports.requestDoctorChange = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const doctorId = req.user._id;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if already assigned to this doctor
+    if (patient.assignedDoctor?.toString() === doctorId.toString()) {
+      return res.status(400).json({ message: 'You are already the primary doctor' });
+    }
+    
+    // Check if there's already a pending request
+    if (patient.pendingDoctorChange?.status === 'pending') {
+      return res.status(400).json({ message: 'There is already a pending request from another doctor' });
+    }
+    
+    const requestingDoctor = await User.findById(doctorId);
+    
+    // Create pending request
+    patient.pendingDoctorChange = {
+      requestedDoctor: doctorId,
+      requestedAt: new Date(),
+      status: 'pending'
+    };
+    
+    // Add notification for patient
+    patient.notifications.push({
+      type: 'doctor_change_request',
+      message: `Dr. ${requestingDoctor.profile?.firstName} ${requestingDoctor.profile?.lastName} has requested to become your primary care physician.`,
+      data: {
+        doctorId: doctorId,
+        doctorName: `Dr. ${requestingDoctor.profile?.firstName} ${requestingDoctor.profile?.lastName}`,
+        doctorEmail: requestingDoctor.email,
+        currentDoctor: patient.assignedDoctor
+      },
+      isRead: false,
+      createdAt: new Date()
+    });
+    
+    await patient.save();
+    
+    res.json({ 
+      message: 'Request sent to patient for approval',
+      pendingRequest: patient.pendingDoctorChange
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Patient approves doctor change request
+exports.approveDoctorChange = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    if (!patient.pendingDoctorChange || patient.pendingDoctorChange.status !== 'pending') {
+      return res.status(400).json({ message: 'No pending doctor change request' });
+    }
+    
+    const newDoctorId = patient.pendingDoctorChange.requestedDoctor;
+    const oldDoctorId = patient.assignedDoctor;
+    
+    // Update assigned doctor
+    patient.assignedDoctor = newDoctorId;
+    patient.pendingDoctorChange.status = 'approved';
+    
+    // Add notification for patient
+    patient.notifications.push({
+      type: 'doctor_change_approved',
+      message: `Your primary care physician has been updated successfully.`,
+      data: {
+        newDoctorId: newDoctorId,
+        oldDoctorId: oldDoctorId
+      },
+      isRead: false,
+      createdAt: new Date()
+    });
+    
+    await patient.save();
+    
+    res.json({ 
+      message: 'Doctor change approved successfully',
+      newDoctor: patient.assignedDoctor
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Patient rejects doctor change request
+exports.rejectDoctorChange = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    if (!patient.pendingDoctorChange || patient.pendingDoctorChange.status !== 'pending') {
+      return res.status(400).json({ message: 'No pending doctor change request' });
+    }
+    
+    patient.pendingDoctorChange.status = 'rejected';
+    
+    // Add notification for patient
+    patient.notifications.push({
+      type: 'doctor_change_rejected',
+      message: `You have rejected the doctor change request.`,
+      isRead: false,
+      createdAt: new Date()
+    });
+    
+    await patient.save();
+    
+    res.json({ message: 'Doctor change request rejected' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get patient notifications
+exports.getNotifications = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    res.json({
+      notifications: patient.notifications || [],
+      unreadCount: (patient.notifications || []).filter(n => !n.isRead).length,
+      pendingDoctorChange: patient.pendingDoctorChange
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Mark notification as read
+exports.markNotificationRead = async (req, res) => {
+  try {
+    const { patientId, notificationId } = req.params;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    const notification = patient.notifications.id(notificationId);
+    if (notification) {
+      notification.isRead = true;
+      await patient.save();
+    }
+    
+    res.json({ message: 'Notification marked as read' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

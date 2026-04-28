@@ -23,4 +23,11 @@ router.put('/:id', authorize('doctor'), patientController.updatePatient);
 router.delete('/:id', authorize('doctor'), patientController.deletePatient);
 router.delete('/:patientId/remove-from-list', authorize('doctor'), patientController.removePatientFromDoctorList);
 
+// Doctor change request routes
+router.post('/:patientId/request-doctor-change', authorize('doctor'), patientController.requestDoctorChange);
+router.post('/:patientId/approve-doctor-change', authenticate, patientController.approveDoctorChange);
+router.post('/:patientId/reject-doctor-change', authenticate, patientController.rejectDoctorChange);
+router.get('/:patientId/notifications', authenticate, patientController.getNotifications);
+router.patch('/:patientId/notifications/:notificationId/read', authenticate, patientController.markNotificationRead);
+
 module.exports = router;
