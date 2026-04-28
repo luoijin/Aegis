@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 import Button from '../../common/Button/Button';
 import Input from '../../common/Input/Input';
 import api from '../../../utils/api';
@@ -10,44 +11,71 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', password: '', role: 'doctor'
+    firstName: '', 
+    lastName: '', 
+    email: '', 
+    password: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      let response;
       if (isLogin) {
-        response = await api.post('/auth/login', {
+        // Login - role is determined by backend
+        const response = await api.post('/auth/login', {
           email: formData.email,
           password: formData.password
         });
+        
+        if (response.data.token) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          localStorage.setItem('userRole', response.data.user.role);
+          
+          // Redirect based on role
+          if (response.data.user.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (response.data.user.role === 'doctor') {
+            navigate('/doctor/dashboard');
+          } else {
+            navigate('/patient/dashboard');
+          }
+        }
       } else {
-        response = await api.post('/auth/register', {
+        // Register - always creates a patient account
+        const response = await api.post('/auth/register', {
           email: formData.email,
           password: formData.password,
-          role: formData.role,
+          role: 'patient',  // Force role to patient
           profile: {
             firstName: formData.firstName,
             lastName: formData.lastName,
             phone: '1234567890'
           }
         });
-      }
-
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/dashboard');
+        
+        if (response.data.token) {
+          setSuccess('Account created successfully! Redirecting to login...');
+          setTimeout(() => {
+            setIsLogin(true);
+            setFormData({ firstName: '', lastName: '', email: '', password: '' });
+            setSuccess('');
+          }, 2000);
+        }
       }
     } catch (err) {
+      console.error('Auth error:', err);
       setError(err.response?.data?.message || 'Authentication failed');
     } finally {
       setLoading(false);
@@ -69,22 +97,31 @@ const Auth = () => {
       >
         <div className="auth-header">
           <div className="logo-wrapper">
-            <span className="logo-icon">⚕️</span>
+            <Heart size={32} strokeWidth={1.5} />
             <h1 className="auth-title">AEGIS</h1>
           </div>
-          <p className="auth-subtitle">Advanced Health Intelligence Platform</p>
+          <p className="auth-subtitle">Health Monitoring System</p>
         </div>
 
+        {/* Toggle Buttons */}
         <div className="auth-toggle">
           <button 
             className={`toggle-btn ${isLogin ? 'active' : ''}`} 
-            onClick={() => setIsLogin(true)}
+            onClick={() => {
+              setIsLogin(true);
+              setError('');
+              setSuccess('');
+            }}
           >
             Sign In
           </button>
           <button 
             className={`toggle-btn ${!isLogin ? 'active' : ''}`} 
-            onClick={() => setIsLogin(false)}
+            onClick={() => {
+              setIsLogin(false);
+              setError('');
+              setSuccess('');
+            }}
           >
             Create Account
           </button>
@@ -100,7 +137,19 @@ const Auth = () => {
             className="auth-form" 
             onSubmit={handleSubmit}
           >
-            {error && <div className="alert alert-error">{error}</div>}
+            {error && (
+              <div className="alert alert-error">
+                <AlertCircle size={16} />
+                {error}
+              </div>
+            )}
+            
+            {success && (
+              <div className="alert alert-success">
+                <CheckCircle size={16} />
+                {success}
+              </div>
+            )}
 
             {!isLogin && (
               <div className="name-row">
@@ -125,10 +174,10 @@ const Auth = () => {
               type="email"
               name="email"
               label="Email Address"
-              placeholder="doctor@aegis.com"
+              placeholder="your@email.com"
               value={formData.email}
               onChange={handleChange}
-              icon="📧"
+              icon={<Mail size={16} />}
               required
             />
 
@@ -139,47 +188,41 @@ const Auth = () => {
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
-              icon="🔒"
+              icon={<Lock size={16} />}
               required
             />
 
             {!isLogin && (
-              <div className="input-group">
-                <label className="input-label">Account Type</label>
-                <div className="role-selector">
-                  <label className={`role-option ${formData.role === 'doctor' ? 'active' : ''}`}>
-                    <input
-                      type="radio"
-                      name="role"
-                      value="doctor"
-                      checked={formData.role === 'doctor'}
-                      onChange={handleChange}
-                    />
-                    <span>👨‍⚕️ Doctor</span>
-                  </label>
-                  <label className={`role-option ${formData.role === 'patient' ? 'active' : ''}`}>
-                    <input
-                      type="radio"
-                      name="role"
-                      value="patient"
-                      checked={formData.role === 'patient'}
-                      onChange={handleChange}
-                    />
-                    <span>👤 Patient</span>
-                  </label>
-                </div>
-              </div>
+              <p className="register-note">
+                By creating an account, you'll be able to:
+                <br />• View your health records
+                <br />• Track your vitals over time
+                <br />• Share data with your healthcare providers
+              </p>
             )}
 
             <Button type="submit" variant="primary" fullWidth loading={loading}>
-              {isLogin ? 'Access Dashboard' : 'Create Account'}
+              {isLogin ? 'Sign In' : 'Create Patient Account'}
             </Button>
           </motion.form>
         </AnimatePresence>
 
         <div className="auth-footer">
           <p className="footer-text">
-            {isLogin ? 'Secure access for medical professionals' : 'Join the future of healthcare'}
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <button 
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError('');
+                setSuccess('');
+              }}
+              className="switch-btn"
+            >
+              {isLogin ? 'Create Account' : 'Sign In'}
+            </button>
+          </p>
+          <p className="doctor-note">
+            👨‍⚕️ Are you a doctor? Accounts are created by hospital administrators.
           </p>
         </div>
       </motion.div>

@@ -1,0 +1,684 @@
+.admin-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+}
+
+/* Header */
+.admin-header {
+  background: white;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 0 32px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0A0F1D;
+}
+
+.header-logo svg {
+  color: #3B82F6;
+}
+
+.header-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-btn {
+  padding: 8px 20px;
+  background: none;
+  border: none;
+  border-radius: 40px;
+  font-weight: 500;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  color: #3B82F6;
+  background: #F1F5F9;
+}
+
+.nav-btn.active {
+  background: #0A0F1D;
+  color: white;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+/* Main Content */
+.admin-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.welcome-section {
+  margin-bottom: 32px;
+}
+
+.welcome-section h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0A0F1D;
+  margin-bottom: 8px;
+}
+
+.welcome-section p {
+  color: #64748B;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-left: 4px solid;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  background: #F8FAFC;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-info h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748B;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0A0F1D;
+}
+
+/* Quick Actions */
+.recent-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+}
+
+.recent-section h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.quick-action-btn:hover {
+  background: #2563EB;
+}
+
+/* Doctors Section */
+.doctors-section, .hospitals-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.section-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0A0F1D;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #F8FAFC;
+  border-radius: 40px;
+  border: 1px solid #E2E8F0;
+}
+
+.search-bar input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 14px;
+  width: 200px;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.add-btn:hover {
+  background: #2563EB;
+}
+
+/* Doctors Table */
+.doctors-table-container {
+  overflow-x: auto;
+}
+
+.doctors-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.doctors-table th {
+  text-align: left;
+  padding: 12px;
+  color: #64748B;
+  font-weight: 500;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.doctors-table td {
+  padding: 12px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.doctor-name {
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+.specialization-badge {
+  background: #EFF6FF;
+  color: #3B82F6;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-badge.inactive {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.action-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.icon-btn.edit:hover {
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+
+.icon-btn.deactivate:hover {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+.icon-btn.activate {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 4px 10px;
+}
+
+/* Hospitals Grid */
+.hospitals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.hospital-card {
+  background: #F8FAFC;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+}
+
+.hospital-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.hospital-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+.hospital-details p {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.hospital-departments {
+  margin-top: 12px;
+}
+
+.dept-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.dept-tag {
+  background: #E2E8F0;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #1E293B;
+}
+
+.hospital-actions {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #E2E8F0;
+  text-align: right;
+}
+
+.delete-btn {
+  background: none;
+  border: 1px solid #FEE2E2;
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: #EF4444;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.delete-btn:hover {
+  background: #FEE2E2;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0A0F1D;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #94A3B8;
+}
+
+.modal-content input, .modal-content select {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.modal-content input:focus, .modal-content select:focus {
+  outline: none;
+  border-color: #3B82F6;
+}
+
+.qualifications-section, .departments-section {
+  margin-bottom: 16px;
+}
+
+.qualification-input, .department-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.qualification-input input, .department-input input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.qualification-input button, .department-input button {
+  padding: 0 16px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.qualifications-list, .departments-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.qual-tag, .dept-tag {
+  background: #F1F5F9;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qual-tag button, .dept-tag button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #EF4444;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.modal-actions button:first-child {
+  background: none;
+  border: 1px solid #E2E8F0;
+}
+
+.modal-actions button:last-child {
+  background: #3B82F6;
+  border: none;
+  color: white;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  color: #94A3B8;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 0 16px;
+  }
+  
+  .admin-main {
+    padding: 20px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hospitals-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header-nav {
+    display: none;
+  }
+}
+
+/* Messages */
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #DCFCE7;
+  color: #166534;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border-left: 3px solid #10B981;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border-left: 3px solid #EF4444;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #94A3B8;
+  background: #F8FAFC;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+/* Info Note */
+.info-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #EFF6FF;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: #3B82F6;
+}
+
+/* Specializations Tab */
+.specializations-tab .tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.specializations-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.specialization-card {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border-radius: 40px;
+  color: #1E40AF;
+  font-weight: 500;
+  font-size: 14px;
+  border: 1px solid #BFDBFE;
+}
+
+/* Charts Row */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+}
+
+.chart-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 20px;
+}
+
+/* Status Toggle Button */
+.status-toggle {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+}
+
+.status-toggle.activate {
+  background: #10B981;
+  color: white;
+}
+
+.status-toggle.deactivate {
+  background: #EF4444;
+  color: white;
+}

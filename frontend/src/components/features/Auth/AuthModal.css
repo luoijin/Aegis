@@ -160,42 +160,6 @@
   margin-bottom: 20px;
 }
 
-/* Role Selector */
-.role-selector-modal {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.role-option-modal {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  border: 2px solid #E2E8F0;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: border-color 0.2s;
-  background: white;
-}
-
-.role-option-modal input {
-  display: none;
-}
-
-.role-option-modal.active {
-  border-color: #3B82F6;
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  color: white;
-}
-
-.role-option-modal span {
-  font-weight: 600;
-  font-size: 14px;
-}
-
 /* Submit Button */
 .btn-submit {
   width: 100%;
@@ -304,3 +268,55 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
+
+/* Add these styles to existing AuthModal.css */
+
+.alert-error-modal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEE2E2;
+  color: #DC2626;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  text-align: left;
+  border-left: 3px solid #EF4444;
+}
+
+.alert-success-modal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #DCFCE7;
+  color: #166534;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  text-align: left;
+  border-left: 3px solid #10B981;
+}
+
+.register-note-modal {
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  line-height: 1.6;
+}
+
+.doctor-note-modal {
+  margin-top: 16px;
+  font-size: 11px;
+  color: #94A3B8;
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid #E2E8F0;
+}
+
+/* Remove role selector styles since it's no longer needed */
+/* .role-selector-modal can be deleted or kept for reference */

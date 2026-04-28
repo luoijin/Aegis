@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Lock, User, Stethoscope, UserCircle, X } from 'lucide-react';
+import { Heart, Mail, Lock, User, X, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '../../../utils/api';
 import './AuthModal.css';
 
@@ -12,10 +12,10 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
     firstName: '', 
     lastName: '', 
     email: '', 
-    password: '', 
-    role: 'patient'
+    password: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -26,41 +26,59 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       let response;
       if (isLogin) {
+        // Login - role is determined by backend
         response = await api.post('/auth/login', {
           email: formData.email,
           password: formData.password
         });
+        
+        if (response.data.token) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          localStorage.setItem('userRole', response.data.user.role);
+          onClose();
+          
+          // Redirect based on role
+          if (response.data.user.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (response.data.user.role === 'doctor') {
+            navigate('/doctor/dashboard');
+          } else {
+            navigate('/patient/dashboard');
+          }
+        }
       } else {
+        // Register - always creates a patient account (no role selection)
         response = await api.post('/auth/register', {
           email: formData.email,
           password: formData.password,
-          role: formData.role,
+          role: 'patient',  // Force role to patient
           profile: {
             firstName: formData.firstName,
             lastName: formData.lastName,
             phone: '1234567890'
           }
         });
-      }
-
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        localStorage.setItem('userRole', response.data.user.role);
-        onClose();
         
-        // Redirect based on role
-        if (response.data.user.role === 'doctor') {
-          navigate('/doctor/dashboard');
-        } else {
-          navigate('/patient/dashboard');
+        if (response.data.token) {
+          setSuccess('Account created successfully! Please sign in.');
+          // Clear form
+          setFormData({ firstName: '', lastName: '', email: '', password: '' });
+          // Switch to login mode after 2 seconds
+          setTimeout(() => {
+            setIsLogin(true);
+            onSwitchMode('login');
+            setSuccess('');
+          }, 2000);
         }
       }
     } catch (err) {
+      console.error('Auth error:', err);
       setError(err.response?.data?.message || 'Authentication failed');
     } finally {
       setLoading(false);
@@ -101,6 +119,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
               setIsLogin(true);
               onSwitchMode('login');
               setError('');
+              setSuccess('');
             }}
           >
             Sign In
@@ -111,6 +130,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
               setIsLogin(false);
               onSwitchMode('register');
               setError('');
+              setSuccess('');
             }}
           >
             Create Account
@@ -118,56 +138,41 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {error && <div className="alert-error-modal">{error}</div>}
+          {error && (
+            <div className="alert-error-modal">
+              <AlertCircle size={16} />
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="alert-success-modal">
+              <CheckCircle size={16} />
+              {success}
+            </div>
+          )}
 
           {!isLogin && (
-            <>
-              <div className="name-row-modal">
-                <input 
-                  type="text" 
-                  name="firstName" 
-                  placeholder="First Name" 
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="input-field-modal"
-                  required
-                />
-                <input 
-                  type="text" 
-                  name="lastName" 
-                  placeholder="Last Name" 
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="input-field-modal"
-                  required
-                />
-              </div>
-              
-              <div className="role-selector-modal">
-                <label className={`role-option-modal ${formData.role === 'doctor' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="role"
-                    value="doctor"
-                    checked={formData.role === 'doctor'}
-                    onChange={handleChange}
-                  />
-                  <Stethoscope size={20} />
-                  <span>Doctor</span>
-                </label>
-                <label className={`role-option-modal ${formData.role === 'patient' ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="role"
-                    value="patient"
-                    checked={formData.role === 'patient'}
-                    onChange={handleChange}
-                  />
-                  <UserCircle size={20} />
-                  <span>Patient</span>
-                </label>
-              </div>
-            </>
+            <div className="name-row-modal">
+              <input 
+                type="text" 
+                name="firstName" 
+                placeholder="First Name" 
+                value={formData.firstName}
+                onChange={handleChange}
+                className="input-field-modal"
+                required
+              />
+              <input 
+                type="text" 
+                name="lastName" 
+                placeholder="Last Name" 
+                value={formData.lastName}
+                onChange={handleChange}
+                className="input-field-modal"
+                required
+              />
+            </div>
           )}
 
           <div className="input-group-modal">
@@ -177,7 +182,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
               <input 
                 type="email" 
                 name="email" 
-                placeholder="doctor@aegis.com" 
+                placeholder="your@email.com" 
                 value={formData.email}
                 onChange={handleChange}
                 className="input-field-modal"
@@ -203,8 +208,17 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
             </div>
           </div>
 
+          {!isLogin && (
+            <p className="register-note-modal">
+              By creating an account, you'll be able to:
+              <br />• View your health records
+              <br />• Track your vitals over time
+              <br />• Share data with your healthcare providers
+            </p>
+          )}
+
           <button type="submit" className="btn-submit" disabled={loading}>
-            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Patient Account')}
           </button>
         </form>
 
@@ -218,6 +232,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
                 setIsLogin(!isLogin);
                 onSwitchMode(!isLogin ? 'login' : 'register');
                 setError('');
+                setSuccess('');
               }}
             >
               {isLogin ? 'Register Now' : 'Sign In'}

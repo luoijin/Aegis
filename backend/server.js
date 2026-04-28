@@ -11,6 +11,8 @@ const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth.routes');
 const patientRoutes = require('./routes/patient.routes');
 const healthLogRoutes = require('./routes/healthLog.routes');
+const adminRoutes = require('./routes/admin.routes');
+
 
 const app = express();
 
@@ -54,6 +56,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/health-logs', healthLogRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {

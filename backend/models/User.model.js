@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['doctor', 'patient'],
+    enum: ['doctor', 'patient', 'admin'],
     required: true
   },
   profile: {
@@ -26,6 +26,14 @@ const userSchema = new mongoose.Schema({
     dateOfBirth: Date,
     gender: String
   },
+  // Doctor-specific fields
+  licenseNumber: String,
+  specialization: String,
+  hospital: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Hospital'
+  },
+  consultationFee: Number,
   isActive: {
     type: Boolean,
     default: true

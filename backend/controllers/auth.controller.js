@@ -142,3 +142,54 @@ exports.fixMissingPatientRecords = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Admin-only: Create doctor account
+exports.createDoctorByAdmin = async (req, res) => {
+  try {
+    // Verify admin role
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+    
+    const { email, password, profile, licenseNumber, specialization, hospital } = req.body;
+    
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+    
+    // Create doctor user
+    const user = new User({
+      email,
+      password: password || 'doctor123',
+      role: 'doctor',
+      profile: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone
+      },
+      licenseNumber,
+      specialization,
+      hospital,
+      isActive: true
+    });
+    
+    await user.save();
+    console.log(`✅ Doctor account created by admin: ${email}`);
+    
+    res.status(201).json({
+      message: 'Doctor account created successfully',
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        profile: user.profile,
+        specialization,
+        licenseNumber
+      }
+    });
+  } catch (error) {
+    console.error('Doctor creation error:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
