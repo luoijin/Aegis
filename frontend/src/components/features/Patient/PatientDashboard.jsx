@@ -8,11 +8,14 @@ import {
   Clock, 
   TrendingUp, 
   Download, 
-  Share2, 
   AlertCircle,
   LogOut,
-  FileText,
-  User
+  Stethoscope,
+  ChevronRight,
+  User,
+  Mail,
+  Phone,
+  FileText
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import Button from '../../common/Button/Button';
@@ -24,9 +27,14 @@ const PatientDashboard = () => {
   const [healthLogs, setHealthLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [shareEmail, setShareEmail] = useState('');
+  const [assignedDoctor, setAssignedDoctor] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({
+    totalRecords: 0,
+    averageHeartRate: 0,
+    lastCheckup: null,
+    healthStatus: 'Good'
+  });
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -37,14 +45,41 @@ const PatientDashboard = () => {
   }, []);
 
   const fetchPatientData = async () => {
+    setLoading(true);
     try {
+      // Get patient record
       const patientsRes = await api.get('/patients');
       const patientRecord = patientsRes.data.find(p => p.user?._id === user?.id);
       
       if (patientRecord) {
         setPatientData(patientRecord);
+        
+        // Get assigned doctor info
+        if (patientRecord.assignedDoctor) {
+          try {
+            const doctorRes = await api.get(`/users/${patientRecord.assignedDoctor}`);
+            setAssignedDoctor(doctorRes.data);
+          } catch (err) {
+            console.error('Error fetching doctor:', err);
+          }
+        }
+        
+        // Get health logs
         const logsRes = await api.get(`/health-logs?patientId=${patientRecord._id}`);
         setHealthLogs(logsRes.data);
+        
+        // Calculate stats
+        const heartRates = logsRes.data.map(log => log.vitals?.heartRate).filter(v => v);
+        const avgHeartRate = heartRates.length > 0 
+          ? Math.round(heartRates.reduce((a, b) => a + b, 0) / heartRates.length) 
+          : 0;
+        
+        setStats({
+          totalRecords: logsRes.data.length,
+          averageHeartRate: avgHeartRate,
+          lastCheckup: logsRes.data[0]?.createdAt || null,
+          healthStatus: determineHealthStatus(logsRes.data)
+        });
       }
     } catch (error) {
       console.error('Error fetching patient data:', error);
@@ -53,18 +88,25 @@ const PatientDashboard = () => {
     }
   };
 
-  const handleShareWithDoctor = () => {
-    alert(`Data sharing request sent to ${shareEmail}`);
-    setShowShareModal(false);
-    setShareEmail('');
+  const determineHealthStatus = (logs) => {
+    if (logs.length === 0) return 'No Data';
+    const recentLogs = logs.slice(0, 5);
+    const hasWarning = recentLogs.some(log => log.status === 'warning');
+    const hasCritical = recentLogs.some(log => log.status === 'critical');
+    if (hasCritical) return 'Critical - Needs Attention';
+    if (hasWarning) return 'Monitor Required';
+    return 'Stable - Good';
   };
 
   const downloadReport = () => {
     const reportData = {
       patient: `${user?.profile?.firstName} ${user?.profile?.lastName}`,
       email: user?.email,
+      primaryDoctor: assignedDoctor ? `Dr. ${assignedDoctor.profile?.firstName} ${assignedDoctor.profile?.lastName}` : 'None assigned',
+      healthSummary: stats,
       healthRecords: healthLogs.map(log => ({
         date: new Date(log.createdAt).toLocaleDateString(),
+        recordedBy: `Dr. ${log.recordedBy?.profile?.firstName} ${log.recordedBy?.profile?.lastName}`,
         heartRate: log.vitals?.heartRate,
         bloodPressure: log.vitals?.bloodPressure,
         temperature: log.vitals?.temperature,
@@ -112,7 +154,8 @@ const PatientDashboard = () => {
       unit: 'bpm', 
       icon: <Heart size={24} />,
       normal: '60-100',
-      status: latestVitals.heartRate >= 60 && latestVitals.heartRate <= 100 ? 'normal' : 'warning'
+      status: latestVitals.heartRate >= 60 && latestVitals.heartRate <= 100 ? 'normal' : 'warning',
+      color: '#3B82F6'
     },
     { 
       title: 'Blood Pressure', 
@@ -120,7 +163,8 @@ const PatientDashboard = () => {
       unit: 'mmHg', 
       icon: <Activity size={24} />,
       normal: '120/80',
-      status: latestVitals.bloodPressure?.systolic <= 120 ? 'normal' : 'warning'
+      status: latestVitals.bloodPressure?.systolic <= 120 ? 'normal' : 'warning',
+      color: '#10B981'
     },
     { 
       title: 'Temperature', 
@@ -128,7 +172,8 @@ const PatientDashboard = () => {
       unit: '°C', 
       icon: <Thermometer size={24} />,
       normal: '36.5-37.5',
-      status: latestVitals.temperature >= 36.5 && latestVitals.temperature <= 37.5 ? 'normal' : 'warning'
+      status: latestVitals.temperature >= 36.5 && latestVitals.temperature <= 37.5 ? 'normal' : 'warning',
+      color: '#F59E0B'
     },
     { 
       title: 'O₂ Saturation', 
@@ -136,9 +181,16 @@ const PatientDashboard = () => {
       unit: '%', 
       icon: <Droplet size={24} />,
       normal: '95-100',
-      status: latestVitals.oxygenSaturation >= 95 ? 'normal' : 'warning'
+      status: latestVitals.oxygenSaturation >= 95 ? 'normal' : 'warning',
+      color: '#8B5CF6'
     }
   ];
+
+  const getHealthStatusColor = () => {
+    if (stats.healthStatus.includes('Critical')) return '#EF4444';
+    if (stats.healthStatus.includes('Monitor')) return '#F59E0B';
+    return '#10B981';
+  };
 
   return (
     <div className="patient-dashboard">
@@ -153,10 +205,10 @@ const PatientDashboard = () => {
             Overview
           </button>
           <button className={`nav-btn ${activeTab === 'vitals' ? 'active' : ''}`} onClick={() => setActiveTab('vitals')}>
-            Vitals
+            Health Data
           </button>
           <button className={`nav-btn ${activeTab === 'records' ? 'active' : ''}`} onClick={() => setActiveTab('records')}>
-            Records
+            Medical Records
           </button>
         </nav>
         <div className="header-user">
@@ -169,22 +221,68 @@ const PatientDashboard = () => {
 
       {/* Main Content */}
       <main className="dashboard-main">
+        {/* Welcome Section */}
         <div className="dashboard-welcome">
-          <h1>Welcome back, {user?.profile?.firstName || 'Patient'}</h1>
-          <p>Track your health journey and stay informed about your wellness.</p>
+          <div>
+            <h1>Welcome back, {user?.profile?.firstName || 'Patient'}</h1>
+            <p>Track your health journey and view your medical records.</p>
+          </div>
+          <div className="health-status-badge" style={{ background: getHealthStatusColor() + '20', color: getHealthStatusColor() }}>
+            <span className="status-dot" style={{ background: getHealthStatusColor() }}></span>
+            {stats.healthStatus}
+          </div>
         </div>
+
+        {/* Stats Overview Cards */}
+        <div className="patient-stats-grid">
+          <div className="patient-stat-card">
+            <div className="stat-icon blue"><FileText size={20} /></div>
+            <div className="stat-info">
+              <h4>Total Records</h4>
+              <p className="stat-number">{stats.totalRecords}</p>
+            </div>
+          </div>
+          <div className="patient-stat-card">
+            <div className="stat-icon green"><Heart size={20} /></div>
+            <div className="stat-info">
+              <h4>Avg Heart Rate</h4>
+              <p className="stat-number">{stats.averageHeartRate || '--'} bpm</p>
+            </div>
+          </div>
+          <div className="patient-stat-card">
+            <div className="stat-icon purple"><Calendar size={20} /></div>
+            <div className="stat-info">
+              <h4>Last Checkup</h4>
+              <p className="stat-number">{stats.lastCheckup ? new Date(stats.lastCheckup).toLocaleDateString() : '--'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Assigned Doctor Info */}
+        {assignedDoctor && (
+          <div className="doctor-info-card">
+            <div className="doctor-info-content">
+              <Stethoscope size={24} className="doctor-icon" />
+              <div>
+                <div className="doctor-label">Your Primary Care Physician</div>
+                <div className="doctor-name">Dr. {assignedDoctor.profile?.firstName} {assignedDoctor.profile?.lastName}</div>
+                <div className="doctor-email">{assignedDoctor.email}</div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Vitals Grid */}
         <div className="vitals-grid">
           {vitalCards.map((vital, index) => (
             <div key={index} className={`vital-card ${vital.status}`}>
-              <div className="vital-icon">{vital.icon}</div>
+              <div className="vital-icon" style={{ color: vital.color }}>{vital.icon}</div>
               <div className="vital-info">
                 <h3>{vital.title}</h3>
                 <div className="vital-value">
                   {vital.value} <span className="vital-unit">{vital.unit}</span>
                 </div>
-                <div className="vital-normal">Normal: {vital.normal}</div>
+                <div className="vital-normal">Normal Range: {vital.normal}</div>
               </div>
             </div>
           ))}
@@ -192,20 +290,16 @@ const PatientDashboard = () => {
 
         {/* Action Buttons */}
         <div className="action-buttons">
-          <Button variant="outline" size="md" onClick={downloadReport}>
+          <Button variant="outline" onClick={downloadReport}>
             <Download size={16} />
             Download Health Report
-          </Button>
-          <Button variant="primary" size="md" onClick={() => setShowShareModal(true)}>
-            <Share2 size={16} />
-            Share with Healthcare Provider
           </Button>
         </div>
 
         {/* Health Trends Chart */}
         <div className="chart-card">
           <div className="chart-header">
-            <h3>Health Trends (Last 30 Days)</h3>
+            <h3>Heart Rate Trends (Last 30 Days)</h3>
             <TrendingUp size={18} className="trend-icon" />
           </div>
           {chartData.length > 0 ? (
@@ -222,7 +316,7 @@ const PatientDashboard = () => {
             <div className="no-data">
               <AlertCircle size={48} />
               <p>No health data available yet</p>
-              <p className="small">Share your health records with your doctor to start tracking</p>
+              <p className="small">Your doctor will add health records during your consultations</p>
             </div>
           )}
         </div>
@@ -231,27 +325,62 @@ const PatientDashboard = () => {
         <div className="recent-logs">
           <div className="section-header">
             <h3>Recent Health Records</h3>
-            <Calendar size={18} />
+            <div className="header-stats">
+              <span className="total-records">📋 Total: {healthLogs.length} records</span>
+              <Calendar size={18} />
+            </div>
           </div>
-          {healthLogs.length === 0 ? (
+          {loading ? (
+            <div className="loading-state">Loading your health records...</div>
+          ) : healthLogs.length === 0 ? (
             <div className="empty-state">
               <p>No health records found</p>
+              <p className="small">When your doctor records your vitals, they will appear here</p>
             </div>
           ) : (
             <div className="logs-list">
-              {healthLogs.slice(0, 5).map(log => (
-                <div key={log._id} className="log-item">
-                  <div className="log-date">
-                    {new Date(log.createdAt).toLocaleDateString()}
+              {healthLogs.slice(0, 10).map(log => (
+                <div key={log._id} className={`log-item log-status-${log.status || 'normal'}`}>
+                  <div className="log-header">
+                    <div className="log-date">
+                      <Calendar size={14} />
+                      {new Date(log.createdAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </div>
+                    <div className="log-doctor">
+                      <Stethoscope size={12} />
+                      Dr. {log.recordedBy?.profile?.firstName} {log.recordedBy?.profile?.lastName}
+                    </div>
+                    <div className={`log-status status-${log.status || 'normal'}`}>
+                      {log.status === 'critical' ? '⚠️ Critical' : log.status === 'warning' ? '⚠️ Warning' : '✅ Normal'}
+                    </div>
                   </div>
                   <div className="log-vitals">
-                    <span>❤️ {log.vitals?.heartRate || '--'} bpm</span>
-                    <span>💓 {log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'}</span>
-                    <span>🌡️ {log.vitals?.temperature || '--'}°C</span>
-                    <span>🫁 {log.vitals?.oxygenSaturation || '--'}%</span>
+                    <div className="vital-detail">
+                      <Heart size={14} />
+                      <span>HR: {log.vitals?.heartRate || '--'} bpm</span>
+                    </div>
+                    <div className="vital-detail">
+                      <Activity size={14} />
+                      <span>BP: {log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'}</span>
+                    </div>
+                    <div className="vital-detail">
+                      <Thermometer size={14} />
+                      <span>Temp: {log.vitals?.temperature || '--'}°C</span>
+                    </div>
+                    <div className="vital-detail">
+                      <Droplet size={14} />
+                      <span>O2: {log.vitals?.oxygenSaturation || '--'}%</span>
+                    </div>
                   </div>
                   {log.notes && (
-                    <div className="log-notes">{log.notes}</div>
+                    <div className="log-notes">
+                      <FileText size={14} />
+                      <span>{log.notes}</span>
+                    </div>
                   )}
                 </div>
               ))}
@@ -259,31 +388,6 @@ const PatientDashboard = () => {
           )}
         </div>
       </main>
-
-      {/* Share Modal */}
-      {showShareModal && (
-        <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Share Health Data</h3>
-              <button className="close-btn" onClick={() => setShowShareModal(false)}>×</button>
-            </div>
-            <div className="share-info">
-              <p>Your health records will be shared securely with your healthcare provider.</p>
-            </div>
-            <input 
-              type="email" 
-              placeholder="Doctor's Email Address" 
-              value={shareEmail}
-              onChange={(e) => setShareEmail(e.target.value)}
-            />
-            <div className="modal-actions">
-              <button onClick={() => setShowShareModal(false)}>Cancel</button>
-              <button onClick={handleShareWithDoctor}>Share Data</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

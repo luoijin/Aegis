@@ -1,0 +1,192 @@
+.connected-doctors {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  margin-top: 24px;
+  border: 1px solid #E2E8F0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0A0F1D;
+  margin: 0;
+}
+
+.pending-requests {
+  margin-bottom: 24px;
+}
+
+.pending-requests h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #F59E0B;
+  margin-bottom: 12px;
+}
+
+.doctors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.doctor-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #F8FAFC;
+  border-radius: 16px;
+  transition: all 0.2s;
+}
+
+.doctor-card.pending {
+  background: #FEF3C7;
+  border-left: 4px solid #F59E0B;
+}
+
+.doctor-avatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #0A0F1D 0%, #1A2335 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+}
+
+.doctor-info {
+  flex: 1;
+}
+
+.doctor-name {
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 4px;
+}
+
+.doctor-email, .doctor-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748B;
+  margin-right: 12px;
+}
+
+.doctor-specialty {
+  font-size: 12px;
+  color: #D97706;
+}
+
+.doctor-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge.connected {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.remove-btn {
+  background: none;
+  border: 1px solid #FEE2E2;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #EF4444;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  background: #FEE2E2;
+}
+
+.request-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.accept-btn, .decline-btn {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.accept-btn {
+  background: #10B981;
+  border: none;
+  color: white;
+}
+
+.accept-btn:hover {
+  background: #059669;
+}
+
+.decline-btn {
+  background: none;
+  border: 1px solid #EF4444;
+  color: #EF4444;
+}
+
+.decline-btn:hover {
+  background: #FEE2E2;
+}
+
+.loading-doctors, .empty-doctors {
+  text-align: center;
+  padding: 40px;
+  color: #94A3B8;
+}
+
+.empty-doctors svg {
+  margin-bottom: 16px;
+  color: #CBD5E1;
+}
+
+.hint {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.info-note {
+  background: #F8FAFC;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.info-note p {
+  font-size: 12px;
+  color: #64748B;
+  margin: 4px 0;
+}

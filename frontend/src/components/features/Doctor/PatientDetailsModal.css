@@ -1,0 +1,293 @@
+.patient-details-modal {
+  background: white;
+  border-radius: 24px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0A0F1D;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #94A3B8;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #EF4444;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.info-section {
+  margin-bottom: 28px;
+}
+
+.info-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #E2E8F0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.info-grid div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.vitals-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.vital-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 12px;
+}
+
+.vital-item svg {
+  color: #3B82F6;
+}
+
+.doctor-info {
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 12px;
+}
+
+.doctor-name {
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 4px;
+}
+
+.doctor-email {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.action-buttons {
+  margin-bottom: 28px;
+}
+
+.health-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.history-item {
+  padding: 16px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  border-left: 3px solid #3B82F6;
+}
+
+.history-date, .history-doctor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 8px;
+}
+
+.history-vitals {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+.history-vitals span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.history-notes {
+  margin-top: 8px;
+  padding: 8px;
+  background: white;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #64748B;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: #94A3B8;
+}
+
+/* Submodal */
+.submodal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.submodal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.submodal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.submodal-header h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0A0F1D;
+  margin: 0;
+}
+
+.submodal-header button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #94A3B8;
+}
+
+.vitals-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.vitals-row input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 16px;
+}
+
+.submodal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.submodal-actions button {
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.submodal-actions button:first-child {
+  background: none;
+  border: 1px solid #E2E8F0;
+  color: #64748B;
+}
+
+.submodal-actions button:last-child {
+  background: #3B82F6;
+  border: none;
+  color: white;
+}
+
+.submodal-actions button:last-child:hover {
+  background: #2563EB;
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .vitals-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .vitals-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .history-vitals {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

@@ -2,6 +2,7 @@ cd C:\Work\GitHub\MedMatrix\backend
 npm install express mongoose jsonwebtoken dotenv cors helmet express-rate-limit bcrypt
 npm install -D nodemon jest supertest
 npm install crypto-js
+npm install firebase-admin
 
 cd C:\Work\GitHub\MedMatrix\frontend
 npm install axios react-router-dom chart.js react-chartjs-2 jwt-decode
@@ -10,6 +11,7 @@ npm install chart.js
 npm install framer-motion
 npm install lucide-react    
 npm install recharts
+npm install firebase
 
 ## Folder Structure
 src/

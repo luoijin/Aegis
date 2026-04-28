@@ -159,7 +159,7 @@ const Landing = () => {
                 </p>
                 <div className="about-stats">
                   <div className="about-stat">
-                    <div className="about-stat-number">2019</div>
+                    <div className="about-stat-number">2026</div>
                     <div className="about-stat-label">Founded</div>
                   </div>
                   <div className="about-stat">

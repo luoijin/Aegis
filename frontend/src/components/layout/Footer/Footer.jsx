@@ -33,7 +33,7 @@ const Footer = () => {
             </button>
           </div>
           <div className="footer-copyright">
-            © 2024 Aegis Health Monitoring. All rights reserved.
+            © 2026 Aegis Health Monitoring. All rights reserved.
           </div>
         </div>
       </footer>

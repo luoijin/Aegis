@@ -80,7 +80,7 @@ const LegalModal = ({ type, onClose }) => {
               </section>
 
               <div className="legal-footer">
-                <p>Last Updated: January 15, 2024</p>
+                <p>Last Updated: April 20, 2026</p>
                 <p>Version 2.0</p>
               </div>
             </>
@@ -149,7 +149,7 @@ const LegalModal = ({ type, onClose }) => {
               </section>
 
               <div className="legal-footer">
-                <p>Last Updated: January 15, 2024</p>
+                <p>Last Updated: April 20, 2026</p>
                 <p>Version 2.0</p>
               </div>
             </>

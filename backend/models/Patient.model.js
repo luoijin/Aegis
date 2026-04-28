@@ -19,13 +19,15 @@ const patientSchema = new mongoose.Schema({
   allergies: [String],
   bloodType: {
     type: String,
-    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', ''],
+    default: ''
   },
   emergencyContact: {
     name: String,
     relationship: String,
     phone: String
   },
+  // THIS FIELD WAS MISSING - ADD IT
   assignedDoctor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
