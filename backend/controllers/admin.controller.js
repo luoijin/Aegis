@@ -135,13 +135,19 @@ exports.deleteDoctorByAdmin = async (req, res) => {
 };
 
 // Patient Management - ONLY ONE VERSION OF EACH
+// Get all patients
 exports.getAllPatients = async (req, res) => {
   try {
     const patients = await Patient.find({})
-      .populate('user', 'email profile')
+      .populate('user', 'email profile isActive')  // Make sure isActive is included
       .populate('assignedDoctor', 'email profile');
     
     console.log(`📊 Admin fetched ${patients.length} patients`);
+    console.log('Patient statuses:', patients.map(p => ({
+      name: p.user?.profile?.firstName,
+      email: p.user?.email,
+      isActive: p.user?.isActive
+    })));
     
     res.json(patients);
   } catch (error) {
@@ -215,6 +221,52 @@ exports.updatePatientByAdmin = async (req, res) => {
   } catch (error) {
     console.error('Update patient error:', error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Update patient status (activate/deactivate)
+// Update patient status (activate/deactivate)
+exports.updatePatientStatus = async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    const { id } = req.params;
+    
+    console.log(`📝 Updating patient status - Patient ID: ${id}, isActive: ${isActive}`);
+    
+    // Find the patient record
+    const patient = await Patient.findById(id);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    console.log(`   Found patient, user ID: ${patient.user}`);
+    
+    // Update the user's isActive status
+    const updatedUser = await User.findByIdAndUpdate(
+      patient.user,
+      { isActive: isActive === true || isActive === 'true' },
+      { new: true }  // This returns the updated document
+    );
+    
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    console.log(`✅ User updated: ${updatedUser.email} is now ${updatedUser.isActive ? 'ACTIVE' : 'INACTIVE'}`);
+    
+    // Return the updated patient with fresh user data
+    const updatedPatient = await Patient.findById(id)
+      .populate('user', 'email profile isActive')
+      .populate('assignedDoctor', 'email profile');
+    
+    res.json({ 
+      success: true,
+      message: `Patient ${isActive ? 'activated' : 'deactivated'} successfully`,
+      patient: updatedPatient
+    });
+  } catch (error) {
+    console.error('Update patient status error:', error);
+    res.status(400).json({ message: error.message });
   }
 };
 

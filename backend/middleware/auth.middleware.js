@@ -15,6 +15,11 @@ const authenticate = async (req, res, next) => {
     if (!user) {
       throw new Error();
     }
+    
+    // ✅ ADD THIS CHECK
+    if (!user.isActive) {
+      return res.status(401).json({ message: 'Account deactivated. Please contact administrator.' });
+    }
 
     req.user = user;
     next();
@@ -22,6 +27,7 @@ const authenticate = async (req, res, next) => {
     res.status(401).json({ message: 'Please authenticate' });
   }
 };
+
 
 const authorize = (...roles) => {
   return (req, res, next) => {

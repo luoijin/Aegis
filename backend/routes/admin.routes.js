@@ -25,6 +25,7 @@ router.delete('/doctors/:id', adminController.deleteDoctorByAdmin);
 router.get('/patients', adminController.getAllPatients);
 router.delete('/patients/:id', adminController.deletePatientByAdmin);
 router.put('/patients/:id', adminController.updatePatientByAdmin);
+router.patch('/patients/:id/status', adminController.updatePatientStatus);
 
 // Specializations CRUD routes
 router.get('/specializations', adminController.getSpecializations);
