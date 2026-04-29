@@ -219,6 +219,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleToggleDoctorStatus = async (doctorId, currentStatus, doctorName) => {
+    try {
+      const response = await api.patch(`/admin/doctors/${doctorId}/status`, { isActive: !currentStatus });
+      
+      if (response.data) {
+        // Update local state
+        setDoctors(prevDoctors => 
+          prevDoctors.map(doc => 
+            doc._id === doctorId ? { ...doc, isActive: !currentStatus } : doc
+          )
+        );
+        setSuccessMsg(`Dr. ${doctorName} has been ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+        setTimeout(() => setSuccessMsg(''), 3000);
+      }
+    } catch (error) {
+      setErrorMsg('Failed to update doctor status');
+      setTimeout(() => setErrorMsg(''), 3000);
+    }
+  };
+
   const handleDeleteDoctor = async (doctorId, doctorName) => {
     if (window.confirm(`Are you sure you want to permanently delete Dr. ${doctorName}? This action cannot be undone.`)) {
       try {
@@ -228,16 +248,6 @@ const AdminDashboard = () => {
       } catch (error) {
         setErrorMsg(error.response?.data?.message || 'Failed to delete doctor');
       }
-    }
-  };
-
-  const handleToggleDoctorStatus = async (doctorId, currentStatus) => {
-    try {
-      await api.patch(`/admin/doctors/${doctorId}/status`, { isActive: !currentStatus });
-      setSuccessMsg(`Doctor ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-      fetchAllData();
-    } catch (error) {
-      setErrorMsg('Failed to update doctor status');
     }
   };
 
@@ -259,6 +269,7 @@ const AdminDashboard = () => {
           assignedDoctor: patientForm.assignedDoctor || null
         });
         setSuccessMsg('Patient updated successfully');
+        fetchAllData();
       } else {
         const userRes = await api.post('/auth/register', {
           email: patientForm.email,
@@ -277,17 +288,42 @@ const AdminDashboard = () => {
           assignedDoctor: patientForm.assignedDoctor || null
         });
         setSuccessMsg('Patient created successfully');
+        fetchAllData();
       }
       setShowPatientModal(false);
       setEditingPatient(null);
       setPatientForm({ firstName: '', lastName: '', email: '', phone: '', bloodType: '', allergies: '', assignedDoctor: '' });
-      fetchAllData();
     } catch (error) {
       setErrorMsg(error.response?.data?.message || 'Failed to save patient');
     } finally {
       setLoadingSubmit(false);
     }
   };
+
+const handleTogglePatientStatus = async (userId, currentStatus, patientName) => {
+  try {
+    // Using the new direct endpoint with USER ID
+    const response = await api.patch(`/admin/patients/status/${userId}`, { 
+      isActive: !currentStatus 
+    });
+    
+    if (response.data) {
+      setAllPatients(prevPatients => 
+        prevPatients.map(patient => 
+          patient.user?._id === userId 
+            ? { ...patient, user: { ...patient.user, isActive: !currentStatus } }
+            : patient
+        )
+      );
+      
+      setSuccessMsg(`${patientName} has been ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+    }
+  } catch (error) {
+    setErrorMsg(error.response?.data?.message || 'Failed to update patient status');
+    setTimeout(() => setErrorMsg(''), 3000);
+  }
+};
 
   const handleDeletePatient = async (patientId, patientName) => {
     if (window.confirm(`Are you sure you want to permanently delete ${patientName}? This will also delete all their health records.`)) {
@@ -551,7 +587,11 @@ const AdminDashboard = () => {
                         <td>{doc.email}</td>
                         <td>{doc.specialization || 'N/A'}</td>
                         <td>{doc.licenseNumber || 'N/A'}</td>
-                        <td><span className={`status-badge ${doc.isActive ? 'active' : 'inactive'}`}>{doc.isActive ? 'Active' : 'Inactive'}</span></td>
+                        <td>
+                          <span className={`status-badge ${doc.isActive ? 'active' : 'inactive'}`}>
+                            {doc.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
                         <td className="action-buttons-cell">
                           <button className="edit-btn" onClick={() => {
                             setEditingDoctor(doc);
@@ -567,7 +607,12 @@ const AdminDashboard = () => {
                             });
                             setShowEditDoctorModal(true);
                           }}><Edit size={16} /> Edit</button>
-                          <button className={`status-toggle ${doc.isActive ? 'deactivate' : 'activate'}`} onClick={() => handleToggleDoctorStatus(doc._id, doc.isActive)}>{doc.isActive ? 'Deactivate' : 'Activate'}</button>
+                          <button 
+                            className={`status-toggle ${doc.isActive ? 'deactivate' : 'activate'}`}
+                            onClick={() => handleToggleDoctorStatus(doc._id, doc.isActive, `${doc.profile?.firstName} ${doc.profile?.lastName}`)}
+                          >
+                            {doc.isActive ? 'Deactivate' : 'Activate'}
+                          </button>
                           <button className="delete-btn" onClick={() => handleDeleteDoctor(doc._id, `${doc.profile?.firstName} ${doc.profile?.lastName}`)}><Trash2 size={16} /> Delete</button>
                         </td>
                       </tr>
@@ -597,7 +642,9 @@ const AdminDashboard = () => {
                 <div className="empty-state">No patients found.</div>
               ) : (
                 <table className="doctors-table">
-                  <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Blood Type</th><th>Assigned Doctor</th><th>Actions</th></tr></thead>
+                  <thead>
+                    <tr><th>Name</th><th>Email</th><th>Phone</th><th>Blood Type</th><th>Assigned Doctor</th><th>Status</th><th>Actions</th></tr>
+                  </thead>
                   <tbody>
                     {allPatients.map(patient => (
                       <tr key={patient._id}>
@@ -606,6 +653,11 @@ const AdminDashboard = () => {
                         <td>{patient.user?.profile?.phone || 'N/A'}</td>
                         <td>{patient.bloodType || 'N/A'}</td>
                         <td>{patient.assignedDoctor?.profile?.firstName ? `Dr. ${patient.assignedDoctor.profile.firstName} ${patient.assignedDoctor.profile.lastName}` : 'None'}</td>
+                        <td className="action-buttons-cell">
+                          <span className={`status-badge ${patient.user?.isActive === true ? 'active' : 'inactive'}`}>
+                            {patient.user?.isActive === true ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
                         <td className="action-buttons-cell">
                           <button className="edit-btn" onClick={() => {
                             setEditingPatient(patient);
@@ -620,6 +672,12 @@ const AdminDashboard = () => {
                             });
                             setShowPatientModal(true);
                           }}><Edit size={16} /> Edit</button>
+                          <button 
+                            className={`status-toggle ${patient.user?.isActive !== false ? 'deactivate' : 'activate'}`}
+                            onClick={() => handleTogglePatientStatus(patient._id, patient.user?.isActive !== false, `${patient.user?.profile?.firstName} ${patient.user?.profile?.lastName}`)}
+                          >
+                            {patient.user?.isActive !== false ? 'Deactivate' : 'Activate'}
+                          </button>
                           <button className="delete-btn" onClick={() => handleDeletePatient(patient._id, `${patient.user?.profile?.firstName} ${patient.user?.profile?.lastName}`)}><Trash2 size={16} /> Delete</button>
                         </td>
                       </tr>
@@ -690,7 +748,7 @@ const AdminDashboard = () => {
               <button className="close-btn" onClick={() => setShowHospitalModal(false)}>×</button>
             </div>
             <form onSubmit={handleAddHospital}>
-              <input type="text" placeholder="Hospital Name *" value={hospitalForm.name} onChange={(e) => setHospitalForm({...hospitalForm, name: e.target.value})} required />
+              <input type="text" placeholder="Hospital Name" value={hospitalForm.name} onChange={(e) => setHospitalForm({...hospitalForm, name: e.target.value})} required />
               <input type="text" placeholder="Address" value={hospitalForm.address} onChange={(e) => setHospitalForm({...hospitalForm, address: e.target.value})} />
               <input type="text" placeholder="City" value={hospitalForm.city} onChange={(e) => setHospitalForm({...hospitalForm, city: e.target.value})} />
               <input type="text" placeholder="Pincode" value={hospitalForm.pincode} onChange={(e) => setHospitalForm({...hospitalForm, pincode: e.target.value})} />
@@ -711,12 +769,15 @@ const AdminDashboard = () => {
           <div className="modal-content doctor-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header"><h3>Create New Doctor Account</h3><button className="close-btn" onClick={() => setShowDoctorModal(false)}>×</button></div>
             <form onSubmit={handleCreateDoctor}>
-              <div className="form-row"><input type="text" placeholder="First Name *" value={doctorForm.firstName} onChange={(e) => setDoctorForm({...doctorForm, firstName: e.target.value})} required /><input type="text" placeholder="Last Name *" value={doctorForm.lastName} onChange={(e) => setDoctorForm({...doctorForm, lastName: e.target.value})} required /></div>
-              <input type="email" placeholder="Email *" value={doctorForm.email} onChange={(e) => setDoctorForm({...doctorForm, email: e.target.value})} required />
-              <input type="password" placeholder="Password *" value={doctorForm.password} onChange={(e) => setDoctorForm({...doctorForm, password: e.target.value})} required />
+              <div className="form-row"><input type="text" placeholder="First Name" value={doctorForm.firstName} onChange={(e) => setDoctorForm({...doctorForm, firstName: e.target.value})} required /><input type="text" placeholder="Last Name" value={doctorForm.lastName} onChange={(e) => setDoctorForm({...doctorForm, lastName: e.target.value})} required /></div>
+              <input type="email" placeholder="Email" value={doctorForm.email} onChange={(e) => setDoctorForm({...doctorForm, email: e.target.value})} required />
+              <input type="password" placeholder="Password" value={doctorForm.password} onChange={(e) => setDoctorForm({...doctorForm, password: e.target.value})} required />
               <input type="tel" placeholder="Phone" value={doctorForm.phone} onChange={(e) => setDoctorForm({...doctorForm, phone: e.target.value})} />
               <input type="text" placeholder="License Number" value={doctorForm.licenseNumber} onChange={(e) => setDoctorForm({...doctorForm, licenseNumber: e.target.value})} />
-              <select value={doctorForm.specialization} onChange={(e) => setDoctorForm({...doctorForm, specialization: e.target.value})} required><option value="">Select Specialization</option>{specializations.map(spec => <option key={spec._id} value={spec.name}>{spec.name}</option>)}</select>
+              <select value={doctorForm.specialization} onChange={(e) => setDoctorForm({...doctorForm, specialization: e.target.value})} required>
+                <option value="">Select Specialization</option>
+                {specializations.map(spec => <option key={spec._id} value={spec.name}>{spec.name}</option>)}
+              </select>
               <select value={doctorForm.hospitalId} onChange={(e) => setDoctorForm({...doctorForm, hospitalId: e.target.value})}><option value="">Select Hospital</option>{hospitals.map(h => <option key={h._id} value={h._id}>{h.name}</option>)}</select>
               <div className="info-note"><AlertCircle size={14} /> Doctor will use this email and password to log in.</div>
               <div className="modal-actions"><button type="button" onClick={() => setShowDoctorModal(false)}>Cancel</button><button type="submit" disabled={loadingSubmit}>{loadingSubmit ? 'Creating...' : 'Create Doctor'}</button></div>
@@ -735,10 +796,13 @@ const AdminDashboard = () => {
               <input type="email" placeholder="Email" value={editDoctorForm.email} disabled className="disabled-input" />
               <input type="tel" placeholder="Phone" value={editDoctorForm.phone} onChange={(e) => setEditDoctorForm({...editDoctorForm, phone: e.target.value})} />
               <input type="text" placeholder="License Number" value={editDoctorForm.licenseNumber} onChange={(e) => setEditDoctorForm({...editDoctorForm, licenseNumber: e.target.value})} />
-              <select value={editDoctorForm.specialization} onChange={(e) => setEditDoctorForm({...editDoctorForm, specialization: e.target.value})}><option value="">Select Specialization</option>{specializations.map(spec => <option key={spec._id} value={spec.name}>{spec.name}</option>)}</select>
+              <select value={editDoctorForm.specialization} onChange={(e) => setEditDoctorForm({...editDoctorForm, specialization: e.target.value})} required>
+                <option value="">Select Specialization</option>
+                {specializations.map(spec => <option key={spec._id} value={spec.name}>{spec.name}</option>)}
+              </select>
               <select value={editDoctorForm.hospitalId} onChange={(e) => setEditDoctorForm({...editDoctorForm, hospitalId: e.target.value})}><option value="">Select Hospital</option>{hospitals.map(h => <option key={h._id} value={h._id}>{h.name}</option>)}</select>
               <label className="checkbox-label"><input type="checkbox" checked={editDoctorForm.isActive} onChange={(e) => setEditDoctorForm({...editDoctorForm, isActive: e.target.checked})} /> Active Account</label>
-              <div className="info-note"><AlertCircle size={14} /> Email cannot be changed. To change email, delete and recreate the doctor account.</div>
+              <div className="info-note"><AlertCircle size={14} /> Email cannot be changed.</div>
               <div className="modal-actions"><button type="button" onClick={() => setShowEditDoctorModal(false)}>Cancel</button><button type="submit" disabled={loadingSubmit}>{loadingSubmit ? 'Saving...' : 'Update Doctor'}</button></div>
             </form>
           </div>

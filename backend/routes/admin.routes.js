@@ -21,12 +21,14 @@ router.put('/doctors/:id', adminController.updateDoctorByAdmin);
 router.patch('/doctors/:id/status', adminController.updateDoctorStatus);
 router.delete('/doctors/:id', adminController.deleteDoctorByAdmin);
 
-// Patients 
+// Patients
 router.get('/patients', adminController.getAllPatients);
-router.delete('/patients/:id', adminController.deletePatientByAdmin);
 router.put('/patients/:id', adminController.updatePatientByAdmin);
+router.patch('/patients/:id/status', adminController.updatePatientStatus);
+router.patch('/patients/status/:userId', adminController.updatePatientStatusDirect); // NEW DIRECT ENDPOINT
+router.delete('/patients/:id', adminController.deletePatientByAdmin);
 
-// Specializations CRUD routes
+// Specializations
 router.get('/specializations', adminController.getSpecializations);
 router.post('/specializations', adminController.createSpecialization);
 router.put('/specializations/:id', adminController.updateSpecialization);

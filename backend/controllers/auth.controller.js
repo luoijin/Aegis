@@ -59,6 +59,7 @@ exports.register = async (req, res) => {
   }
 };
 
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -66,6 +67,11 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    
+    // CHECK IF ACCOUNT IS ACTIVE
+    if (!user.isActive) {
+      return res.status(401).json({ message: 'Your account has been deactivated. Please contact your administrator.' });
     }
     
     const isPasswordValid = await user.comparePassword(password);
@@ -190,6 +196,74 @@ exports.createDoctorByAdmin = async (req, res) => {
     });
   } catch (error) {
     console.error('Doctor creation error:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.updateDoctorStatus = async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    const doctor = await User.findByIdAndUpdate(
+      req.params.id,
+      { isActive },
+      { new: true }
+    ).select('-password');
+    
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+    
+    res.json({ 
+      message: `Doctor ${isActive ? 'activated' : 'deactivated'} successfully`,
+      doctor 
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Update patient status (activate/deactivate)
+// Update patient status (activate/deactivate)
+exports.updatePatientStatus = async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    const { id } = req.params;
+    
+    console.log(`🔧 Updating patient status - Patient ID: ${id}, isActive: ${isActive}`);
+    
+    // First, find the patient record to get the user ID
+    const patient = await Patient.findById(id);
+    if (!patient) {
+      console.log(`❌ Patient not found with ID: ${id}`);
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    console.log(`📝 Found patient, user ID: ${patient.user}`);
+    
+    // Update the user's isActive status
+    const user = await User.findByIdAndUpdate(
+      patient.user,
+      { isActive: isActive === true || isActive === 'true' },
+      { new: true }
+    );
+    
+    if (!user) {
+      console.log(`❌ User not found with ID: ${patient.user}`);
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    console.log(`✅ Patient status updated: ${user.email} is now ${user.isActive ? 'ACTIVE' : 'INACTIVE'}`);
+    
+    res.json({ 
+      message: `Patient ${isActive ? 'activated' : 'deactivated'} successfully`,
+      user: {
+        id: user._id,
+        email: user.email,
+        isActive: user.isActive
+      }
+    });
+  } catch (error) {
+    console.error('❌ Update patient status error:', error);
     res.status(400).json({ message: error.message });
   }
 };
