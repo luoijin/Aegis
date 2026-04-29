@@ -11,24 +11,51 @@ exports.register = async (req, res) => {
   try {
     const { email, password, role, profile } = req.body;
     
+    console.log('Registration request received:');
+    console.log('- Email:', email);
+    console.log('- Role from body:', role);
+    console.log('- Auth header present:', !!req.headers.authorization);
+    console.log('- User from token:', req.user ? { id: req.user.id, role: req.user.role } : 'No user token');
+    
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
+    }
+    
+    // Determine if this is an admin creating an account
+    const isAdmin = req.user && req.user.role === 'admin';
+    
+    // Determine the role
+    let userRole = 'patient'; // Default role
+    
+    if (isAdmin) {
+      // Admin can create any role, but we'll default to what's provided or patient
+      userRole = role === 'doctor' ? 'doctor' : 'patient';
+      console.log('Admin creating account with role:', userRole);
+    } else {
+      // Public registration - only patients allowed
+      if (role === 'doctor') {
+        return res.status(403).json({ 
+          message: 'Doctor accounts can only be created by administrators.' 
+        });
+      }
+      userRole = 'patient';
     }
     
     // Create user
     const user = new User({
       email,
       password,
-      role,
-      profile
+      role: userRole,
+      profile: profile || {}
     });
     
     await user.save();
-    console.log(`✅ User created: ${email} as ${role}`);
+    console.log(`✅ User created: ${email} as ${user.role} ${isAdmin ? '(by admin)' : '(self-registered)'}`);
     
-    // CRITICAL: If role is patient, create patient record
-    if (role === 'patient') {
+    // If role is patient, create patient record
+    if (user.role === 'patient') {
       const patient = new Patient({
         user: user._id,
         medicalHistory: [],
@@ -41,7 +68,11 @@ exports.register = async (req, res) => {
       console.log(`✅ Auto-created patient record for: ${email}`);
     }
     
-    const token = generateToken(user._id);
+    // Only return token for self-registration, not for admin-created accounts
+    let token = null;
+    if (!isAdmin) {
+      token = generateToken(user._id);
+    }
     
     res.status(201).json({
       message: 'User registered successfully',

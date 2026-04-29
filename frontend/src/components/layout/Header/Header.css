@@ -14,7 +14,7 @@
 .header.scrolled {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--gray-200);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .header-container {
@@ -26,49 +26,53 @@
   align-items: center;
 }
 
-/* Logo - Left */
+/* Logo Styles */
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  flex-shrink: 0;
 }
 
-.logo-icon {
-  font-size: 28px;
+.logo-image {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .logo-text {
   font-size: 22px;
   font-weight: 800;
-  background: var(--gradient-accent);
+  background: #0A0F1D;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: 1px;
 }
 
-/* Navigation - Center */
+/* For transparent header (landing page hero) */
+.header.transparent .logo-text {
+  background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Navigation Links */
 .nav-links {
   display: flex;
   align-items: center;
   gap: 40px;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
 .nav-links a {
   text-decoration: none;
-  color: var(--gray-600);
+  color: #475569;
   font-weight: 500;
   font-size: 15px;
   transition: color 0.2s ease;
   position: relative;
 }
 
-/* Professional underline effect */
+/* Underline effect on hover */
 .nav-links a::after {
   content: '';
   position: absolute;
@@ -76,7 +80,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: var(--accent);
+  background: #3B82F6;
   transition: width 0.2s ease;
 }
 
@@ -85,12 +89,30 @@
 }
 
 .nav-links a:hover {
-  color: var(--accent);
+  color: #3B82F6;
 }
 
-/* Sign In Button - Right */
+/* Header Buttons */
 .header-buttons {
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #475569;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.mobile-menu-btn:hover {
+  background: #F1F5F9;
 }
 
 /* Mobile Responsive */
@@ -100,15 +122,22 @@
   }
   
   .nav-links {
-    display: none;  /* Hide on mobile, can add hamburger menu later */
+    display: none;
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .logo-text {
     font-size: 18px;
   }
   
-  .logo-icon {
-    font-size: 24px;
+  .logo-image {
+    width: 28px;
+    height: 28px;
   }
 }
 
@@ -116,5 +145,55 @@
 @media (max-width: 1024px) {
   .nav-links {
     gap: 24px;
+  }
+  
+  .header-container {
+    padding: 16px 24px;
+  }
+}
+
+/* Mobile Menu */
+.mobile-menu {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-bottom: 1px solid #E2E8F0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease;
+}
+
+.mobile-menu a {
+  text-decoration: none;
+  color: #1E293B;
+  font-weight: 500;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.mobile-menu a:hover {
+  background: #F1F5F9;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu {
+    display: none;
   }
 }

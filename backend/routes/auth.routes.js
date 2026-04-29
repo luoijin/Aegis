@@ -3,8 +3,8 @@ const router = express.Router();
 const { register, login, getProfile, createDoctorByAdmin } = require('../controllers/auth.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-// Public routes
-router.post('/register', register);
+// Public routes - no authentication required
+router.post('/register', authenticate, register);
 router.post('/login', login);
 
 // Protected routes

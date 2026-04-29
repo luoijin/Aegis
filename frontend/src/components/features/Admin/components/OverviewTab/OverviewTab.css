@@ -1,0 +1,74 @@
+.overview-tab {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.recent-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+}
+
+.recent-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #0A0F1D;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 12px;
+}
+
+.recent-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+}
+
+.recent-info {
+  flex: 1;
+}
+
+.recent-name {
+  font-weight: 500;
+  color: #0A0F1D;
+}
+
+.recent-email {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.recent-date {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+@media (max-width: 1024px) {
+  .overview-tab {
+    grid-template-columns: 1fr;
+  }
+}

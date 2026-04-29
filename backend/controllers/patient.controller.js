@@ -7,7 +7,7 @@ const calculateAverage = (numbers) => {
   return validNumbers.reduce((a, b) => a + b, 0) / validNumbers.length;
 };
 
-// CREATE - Doctor creates a new patient record
+// CREATE - Doctor or Admin creates a new patient record
 exports.createPatient = async (req, res) => {
   try {
     const patientData = {
@@ -16,7 +16,7 @@ exports.createPatient = async (req, res) => {
       allergies: req.body.allergies || [],
       bloodType: req.body.bloodType || '',
       emergencyContact: req.body.emergencyContact || {},
-      assignedDoctor: req.user._id
+      assignedDoctor: req.body.assignedDoctor || null  // Admin can assign doctor
     };
 
     const patient = new Patient(patientData);
@@ -24,6 +24,7 @@ exports.createPatient = async (req, res) => {
     
     res.status(201).json(patient);
   } catch (error) {
+    console.error('Create patient error:', error);
     res.status(400).json({ message: error.message });
   }
 };

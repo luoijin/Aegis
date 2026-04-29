@@ -270,7 +270,9 @@ exports.updatePatientStatus = async (req, res) => {
   }
 };
 
-// Specializations CRUD
+// ============================================
+// SPECIALIZATIONS CRUD
+// ============================================
 exports.getSpecializations = async (req, res) => {
   try {
     const specializations = await Specialization.find({});
@@ -282,11 +284,78 @@ exports.getSpecializations = async (req, res) => {
 
 exports.createSpecialization = async (req, res) => {
   try {
-    const specialization = new Specialization(req.body);
+    const { name, description, isActive } = req.body;
+    
+    const existing = await Specialization.findOne({ name });
+    if (existing) {
+      return res.status(400).json({ message: 'Specialization already exists' });
+    }
+    
+    const specialization = new Specialization({
+      name,
+      description: description || '',
+      isActive: isActive !== false
+    });
     await specialization.save();
+    
     res.status(201).json(specialization);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+exports.updateSpecialization = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, isActive } = req.body;
+    
+    const specialization = await Specialization.findByIdAndUpdate(
+      id,
+      { name, description, isActive },
+      { new: true, runValidators: true }
+    );
+    
+    if (!specialization) {
+      return res.status(404).json({ message: 'Specialization not found' });
+    }
+    
+    res.json(specialization);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Delete specialization and remove it from all doctors
+exports.deleteSpecialization = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find the specialization to get its name
+    const specialization = await Specialization.findById(id);
+    if (!specialization) {
+      return res.status(404).json({ message: 'Specialization not found' });
+    }
+    
+    const specName = specialization.name;
+    
+    // Remove this specialization from all doctors who have it
+    const updateResult = await User.updateMany(
+      { role: 'doctor', specialization: specName },
+      { $set: { specialization: '' } }
+    );
+    
+    console.log(`Removed specialization "${specName}" from ${updateResult.modifiedCount} doctors`);
+    
+    // Delete the specialization
+    await Specialization.findByIdAndDelete(id);
+    
+    res.json({ 
+      message: `Specialization "${specName}" deleted successfully`,
+      doctorsUpdated: updateResult.modifiedCount
+    });
+  } catch (error) {
+    console.error('Delete specialization error:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -301,20 +370,23 @@ exports.updateDoctorByAdmin = async (req, res) => {
       return res.status(404).json({ message: 'Doctor not found' });
     }
     
-    // Update profile fields
     if (firstName) doctor.profile.firstName = firstName;
     if (lastName) doctor.profile.lastName = lastName;
     if (phone) doctor.profile.phone = phone;
     if (licenseNumber) doctor.licenseNumber = licenseNumber;
-    if (specialization) doctor.specialization = specialization;
+    
+    // Handle specialization - store the name, not the ID
+    if (specialization !== undefined) {
+      doctor.specialization = specialization || '';
+    }
+    
     if (hospital !== undefined) doctor.hospital = hospital;
     if (isActive !== undefined) doctor.isActive = isActive;
     
     await doctor.save();
     
-    console.log(`✅ Admin updated doctor: ${doctor.email}`);
+    console.log(`✅ Admin updated doctor: ${doctor.email} - Specialization: ${doctor.specialization || 'None'}`);
     
-    // Return updated doctor without password
     const updatedDoctor = await User.findById(id).select('-password');
     res.json(updatedDoctor);
   } catch (error) {
@@ -357,43 +429,94 @@ exports.createSpecialization = async (req, res) => {
   }
 };
 
-// Update specialization
+// Update specialization and cascade to all doctors
 exports.updateSpecialization = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, isActive } = req.body;
     
+    // Find the original specialization
+    const originalSpec = await Specialization.findById(id);
+    if (!originalSpec) {
+      return res.status(404).json({ message: 'Specialization not found' });
+    }
+    
+    const oldName = originalSpec.name;
+    const newName = name;
+    
+    // Update the specialization
     const specialization = await Specialization.findByIdAndUpdate(
       id,
-      { name, description, isActive },
+      { name: newName, description, isActive },
       { new: true, runValidators: true }
     );
     
-    if (!specialization) {
-      return res.status(404).json({ message: 'Specialization not found' });
+    // If the name changed, update all doctors who had this specialization
+    if (oldName !== newName) {
+      const updateResult = await User.updateMany(
+        { role: 'doctor', specialization: oldName },
+        { $set: { specialization: newName } }
+      );
+      console.log(`✅ Updated ${updateResult.modifiedCount} doctors from "${oldName}" to "${newName}"`);
     }
     
     res.json(specialization);
   } catch (error) {
+    console.error('Update specialization error:', error);
     res.status(400).json({ message: error.message });
   }
 };
 
-// Delete specialization
+// Delete specialization - only allowed if no doctors are using it
 exports.deleteSpecialization = async (req, res) => {
   try {
     const { id } = req.params;
     
+    const specialization = await Specialization.findById(id);
+    if (!specialization) {
+      return res.status(404).json({ message: 'Specialization not found' });
+    }
+    
     // Check if any doctors use this specialization
-    const doctorsUsing = await User.countDocuments({ specialization: id, role: 'doctor' });
+    const doctorsUsing = await User.countDocuments({ 
+      role: 'doctor', 
+      specialization: specialization.name 
+    });
+    
     if (doctorsUsing > 0) {
       return res.status(400).json({ 
-        message: `Cannot delete: ${doctorsUsing} doctor(s) are using this specialization` 
+        message: `Cannot delete: ${doctorsUsing} doctor(s) are using this specialization. Please reassign them first.` 
       });
     }
     
     await Specialization.findByIdAndDelete(id);
     res.json({ message: 'Specialization deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Clean up orphaned specializations from doctors
+exports.cleanupOrphanedSpecializations = async (req, res) => {
+  try {
+    // Get all active specialization names
+    const activeSpecializations = await Specialization.find({ isActive: true });
+    const activeSpecNames = activeSpecializations.map(s => s.name);
+    
+    // Find doctors with specializations that no longer exist
+    const doctors = await User.find({ role: 'doctor', specialization: { $nin: activeSpecNames, $ne: '' } });
+    
+    let cleaned = 0;
+    for (const doctor of doctors) {
+      doctor.specialization = '';
+      await doctor.save();
+      cleaned++;
+    }
+    
+    res.json({ 
+      message: `Cleaned up ${cleaned} doctors with invalid specializations`,
+      cleaned
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
