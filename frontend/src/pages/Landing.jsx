@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Shield, Clock, Activity, Bell, Users, ChevronRight } from 'lucide-react';
 import useAuthStore from '../stores/authStore';
 
+const logo = '/images/logo-dark.png'; 
+
 const Landing = () => {
   const navigate = useNavigate();
   const { registerPatient, isLoading } = useAuthStore();
@@ -31,7 +33,6 @@ const Landing = () => {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Heart className="text-primary-600" size={28} />
-            <span className="text-2xl font-bold text-primary-900">AEGIS</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-gray-600 hover:text-primary-600 transition">Features</a>

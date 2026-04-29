@@ -1,0 +1,89 @@
+.hospitals-tab .tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.hospitals-tab .tab-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0A0F1D;
+}
+
+.hospitals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.hospital-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+}
+
+.hospital-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.hospital-header h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+.hospital-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hospital-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  color: #64748B;
+  transition: all 0.2s;
+}
+
+.hospital-actions button:hover {
+  background: #F1F5F9;
+  color: #3B82F6;
+}
+
+.hospital-details p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748B;
+  margin-bottom: 8px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  color: #94A3B8;
+}
+
+@media (max-width: 768px) {
+  .hospitals-grid {
+    grid-template-columns: 1fr;
+  }
+}

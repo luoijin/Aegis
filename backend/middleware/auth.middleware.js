@@ -6,32 +6,38 @@ const authenticate = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      throw new Error();
+      req.user = null;
+      return next();
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {
-      throw new Error();
+      req.user = null;
+      return next();
     }
     
-    // ✅ ADD THIS CHECK
     if (!user.isActive) {
-      return res.status(401).json({ message: 'Account deactivated. Please contact administrator.' });
+      return res.status(401).json({ message: 'Account deactivated' });
     }
 
     req.user = user;
+    console.log('Authenticated user:', { id: user._id, role: user.role });
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Please authenticate' });
+    req.user = null;
+    next();
   }
 };
 
-
 const authorize = (...roles) => {
   return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
     if (!roles.includes(req.user.role)) {
+      console.log(`Access denied for role: ${req.user.role}. Required roles: ${roles}`);
       return res.status(403).json({ message: 'Access denied' });
     }
     next();

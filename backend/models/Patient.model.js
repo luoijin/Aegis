@@ -16,22 +16,40 @@ const patientSchema = new mongoose.Schema({
       default: 'active'
     }
   }],
-  allergies: [String],
+  allergies: [{
+    type: String,
+    trim: true
+  }],
   bloodType: {
     type: String,
     enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', ''],
     default: ''
   },
   emergencyContact: {
-    name: String,
-    relationship: String,
-    phone: String
+    name: {
+      type: String,
+      trim: true
+    },
+    relationship: {
+      type: String,
+      trim: true
+    },
+    phone: {
+      type: String,
+      trim: true
+    }
   },
-  // THIS FIELD WAS MISSING - ADD IT
   assignedDoctor: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    default: null
   }
-}, { timestamps: true });
+}, { 
+  timestamps: true 
+});
+
+// Index for efficient queries
+patientSchema.index({ user: 1 });
+patientSchema.index({ assignedDoctor: 1 });
 
 module.exports = mongoose.model('Patient', patientSchema);

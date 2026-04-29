@@ -23,6 +23,8 @@ import Button from '../../common/Button/Button';
 import AuthModal from '../Auth/AuthModal';
 import './Landing.css';
 
+const logo = '/images/logo-dark.png'; 
+
 const Landing = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [modalMode, setModalMode] = useState('login');

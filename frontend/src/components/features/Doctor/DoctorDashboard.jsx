@@ -1,34 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, Activity, AlertTriangle, Search, Eye, TrendingUp, Clock,
-  UserPlus, FileText, LogOut, Heart, Trash2, Download,
-  Calendar, CheckCircle, AlertCircle, Thermometer, Droplet,
-  Stethoscope, Mail, Phone, User, Plus, X, Edit
+  Users, Activity, Heart, Thermometer, Droplet, 
+  Calendar, Clock, TrendingUp, FileText, LogOut,
+  Stethoscope, Search, Plus, Eye, Trash2,
+  AlertCircle, CheckCircle, Download
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import Button from '../../common/Button/Button';
 import api from '../../../utils/api';
-import PatientSelectionModal from './PatientSelectionModal';
-import PatientDetailsModal from './PatientDetailsModal';
 import './DoctorDashboard.css';
 
 const DoctorDashboard = () => {
   const [patients, setPatients] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const [healthLogs, setHealthLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showVitalsForm, setShowVitalsForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [showAddPatient, setShowAddPatient] = useState(false);
-  const [showHealthLogForm, setShowHealthLogForm] = useState(false);
-  const [showPatientDetails, setShowPatientDetails] = useState(false);
   const [user, setUser] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [healthLog, setHealthLog] = useState({
-    heartRate: '', systolicBP: '', diastolicBP: '', temperature: '', oxygenSaturation: '', notes: ''
+  
+  const [vitals, setVitals] = useState({
+    heartRate: '',
+    systolicBP: '',
+    diastolicBP: '',
+    temperature: '',
+    oxygenSaturation: '',
+    notes: ''
   });
 
   useEffect(() => {
@@ -38,7 +35,6 @@ const DoctorDashboard = () => {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
       const [patientsRes, logsRes] = await Promise.all([
         api.get('/patients'),
@@ -46,108 +42,51 @@ const DoctorDashboard = () => {
       ]);
       setPatients(patientsRes.data);
       setHealthLogs(logsRes.data);
-      console.log('Patients loaded:', patientsRes.data);
-      console.log('Health logs loaded:', logsRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
-      setError('Failed to load data');
     } finally {
       setLoading(false);
     }
   };
 
-  const getWeeklyActivityData = () => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const weeklyMap = new Map();
-    days.forEach(day => weeklyMap.set(day, 0));
-    
-    healthLogs.forEach(log => {
-      if (log.createdAt) {
-        const date = new Date(log.createdAt);
-        const dayName = days[date.getDay()];
-        weeklyMap.set(dayName, (weeklyMap.get(dayName) || 0) + 1);
-      }
-    });
-    
-    return days.map(day => ({
-      day: day,
-      patients: weeklyMap.get(day) || 0
-    }));
-  };
-
-  const getStatusDistribution = () => {
-    const critical = healthLogs.filter(l => l.status === 'critical').length;
-    const warning = healthLogs.filter(l => l.status === 'warning').length;
-    const stable = patients.length - critical - warning;
-    
-    return [
-      { name: 'Critical', value: Math.max(0, critical), color: '#EF4444' },
-      { name: 'Warning', value: Math.max(0, warning), color: '#F59E0B' },
-      { name: 'Stable', value: Math.max(0, stable), color: '#10B981' }
-    ];
-  };
-
-  const getRealStats = () => {
-    const criticalLogs = healthLogs.filter(l => l.status === 'critical').length;
-    const warningLogs = healthLogs.filter(l => l.status === 'warning').length;
-    const totalHeartRate = healthLogs.reduce((sum, log) => sum + (log.vitals?.heartRate || 0), 0);
-    
-    return {
-      totalPatients: patients.length,
-      criticalAlerts: criticalLogs,
-      warningAlerts: warningLogs,
-      avgHeartRate: healthLogs.length > 0 ? Math.round(totalHeartRate / healthLogs.length) : 0
-    };
-  };
-
-  const weeklyData = getWeeklyActivityData();
-  const statusData = getStatusDistribution();
-  const stats = getRealStats();
-
-  const handleRemovePatient = async (patientId) => {
+  const handleSelectPatient = async (patient) => {
+    setSelectedPatient(patient);
     try {
-      await api.delete(`/patients/${patientId}/remove-from-list`);
-      setSuccess('Patient removed from your list successfully');
-      setShowDeleteConfirm(null);
-      fetchData();
-      setTimeout(() => setSuccess(''), 3000);
+      const logsRes = await api.get(`/health-logs?patientId=${patient._id}`);
+      setHealthLogs(logsRes.data);
     } catch (error) {
-      setError('Failed to remove patient');
+      console.error('Error fetching health logs:', error);
     }
   };
 
-  const handleAddHealthLog = async (e) => {
+  const handleRecordVitals = async (e) => {
     e.preventDefault();
     if (!selectedPatient) return;
-    setError('');
-    
-    if (!healthLog.heartRate || !healthLog.systolicBP || !healthLog.diastolicBP) {
-      setError('Please fill in required vitals');
-      return;
-    }
     
     try {
       await api.post('/health-logs', {
         patient: selectedPatient._id,
         vitals: {
-          heartRate: parseInt(healthLog.heartRate),
+          heartRate: parseInt(vitals.heartRate),
           bloodPressure: {
-            systolic: parseInt(healthLog.systolicBP),
-            diastolic: parseInt(healthLog.diastolicBP)
+            systolic: parseInt(vitals.systolicBP),
+            diastolic: parseInt(vitals.diastolicBP)
           },
-          temperature: healthLog.temperature ? parseFloat(healthLog.temperature) : null,
-          oxygenSaturation: healthLog.oxygenSaturation ? parseInt(healthLog.oxygenSaturation) : null
+          temperature: vitals.temperature ? parseFloat(vitals.temperature) : null,
+          oxygenSaturation: vitals.oxygenSaturation ? parseInt(vitals.oxygenSaturation) : null
         },
-        notes: healthLog.notes
+        notes: vitals.notes
       });
-
-      setSuccess('Vitals recorded successfully!');
-      setShowHealthLogForm(false);
-      setHealthLog({ heartRate: '', systolicBP: '', diastolicBP: '', temperature: '', oxygenSaturation: '', notes: '' });
-      fetchData();
-      setTimeout(() => setSuccess(''), 3000);
+      
+      setShowVitalsForm(false);
+      setVitals({ heartRate: '', systolicBP: '', diastolicBP: '', temperature: '', oxygenSaturation: '', notes: '' });
+      
+      // Refresh health logs
+      const logsRes = await api.get(`/health-logs?patientId=${selectedPatient._id}`);
+      setHealthLogs(logsRes.data);
+      
     } catch (error) {
-      setError('Failed to record vitals');
+      console.error('Error recording vitals:', error);
     }
   };
 
@@ -158,339 +97,239 @@ const DoctorDashboard = () => {
     window.location.href = '/';
   };
 
-  const filteredPatients = patients.filter(p => 
+  const filteredPatients = patients.filter(p =>
     p.user?.profile?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    p.user?.profile?.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const exportData = () => {
-    const exportData = {
-      patients: patients.map(p => ({
-        name: `${p.user?.profile?.firstName} ${p.user?.profile?.lastName}`,
-        email: p.user?.email,
-        bloodType: p.bloodType,
-        allergies: p.allergies,
-        createdAt: p.createdAt
-      })),
-      healthLogs: healthLogs.map(l => ({
-        patient: `${l.patient?.user?.profile?.firstName} ${l.patient?.user?.profile?.lastName}`,
-        heartRate: l.vitals?.heartRate,
-        bloodPressure: l.vitals?.bloodPressure,
-        temperature: l.vitals?.temperature,
-        status: l.status,
-        date: l.createdAt
-      })),
-      summary: stats
-    };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', `aegis_export_${new Date().toISOString().split('T')[0]}.json`);
-    linkElement.click();
-  };
+  // Prepare chart data
+  const chartData = healthLogs.slice().reverse().slice(0, 30).map(log => ({
+    date: new Date(log.createdAt).toLocaleDateString(),
+    heartRate: log.vitals?.heartRate || 0,
+    systolic: log.vitals?.bloodPressure?.systolic || 0,
+    diastolic: log.vitals?.bloodPressure?.diastolic || 0
+  }));
+
+  const latestVitals = healthLogs[0]?.vitals;
 
   return (
     <div className="doctor-dashboard">
-      <header className="dashboard-header-bar">
-        <div className="header-logo"><Heart size={28} strokeWidth={1.5} /><span>AEGIS</span></div>
+      {/* Header */}
+      <header className="dashboard-header">
+        <div className="header-logo">
+          <Stethoscope size={28} />
+          <span>AEGIS</span>
+        </div>
         <div className="header-user">
-          <button className="export-btn" onClick={exportData} title="Export Data">
-            <Download size={18} /> Export
+          <span>Dr. {user?.profile?.firstName || 'Doctor'}</span>
+          <button className="logout-btn" onClick={handleLogout}>
+            <LogOut size={18} />
           </button>
-          <span className="user-name">Dr. {user?.profile?.firstName || 'Smith'}</span>
-          <button className="logout-btn" onClick={handleLogout}><LogOut size={18} /></button>
         </div>
       </header>
 
-      <main className="dashboard-main">
-        {success && <div className="success-message">{success}</div>}
-        {error && <div className="error-message">{error}</div>}
-
-        <div className="dashboard-welcome">
-          <h1>Welcome back, Dr. {user?.profile?.firstName || 'Smith'}</h1>
-        </div>
-
-        <div className="stats-grid">
-          <div className="stat-card"><div className="stat-icon blue"><Users size={24} /></div><div className="stat-info"><h3>Total Patients</h3><div className="stat-value">{stats.totalPatients}</div></div></div>
-          <div className="stat-card"><div className="stat-icon red"><AlertTriangle size={24} /></div><div className="stat-info"><h3>Critical Alerts</h3><div className="stat-value">{stats.criticalAlerts}</div></div></div>
-          <div className="stat-card"><div className="stat-icon yellow"><Activity size={24} /></div><div className="stat-info"><h3>Warning Signs</h3><div className="stat-value">{stats.warningAlerts}</div></div></div>
-          <div className="stat-card"><div className="stat-icon green"><TrendingUp size={24} /></div><div className="stat-info"><h3>Avg Heart Rate</h3><div className="stat-value">{stats.avgHeartRate} bpm</div></div></div>
-        </div>
-
-        <div className="charts-row">
-          <div className="chart-card">
-            <h3>Weekly Patient Activity</h3>
-            {weeklyData.some(d => d.patients > 0) ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                  <XAxis dataKey="day" stroke="#64748B" />
-                  <YAxis stroke="#64748B" />
-                  <Tooltip />
-                  <Bar dataKey="patients" fill="#3B82F6" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="no-data-chart">No data yet. Add health records to see charts.</div>
-            )}
-          </div>
-
-          <div className="chart-card">
-            <h3>Patient Status Distribution</h3>
-            {statusData.some(d => d.value > 0) ? (
-              <>
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value">
-                      {statusData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="pie-legend">
-                  {statusData.map((item, idx) => (
-                    <div key={idx} className="legend-item">
-                      <div className="legend-color" style={{ background: item.color }}></div>
-                      <span>{item.name}: {item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="no-data-chart">No patient data available yet.</div>
-            )}
-          </div>
-        </div>
-
-        <div className="patients-section">
-          <div className="section-header">
+      <div className="dashboard-container">
+        {/* Patients Sidebar */}
+        <div className="patients-sidebar">
+          <div className="sidebar-header">
             <h3>My Patients</h3>
-            <div className="header-actions">
-              <div className="search-bar"><Search size={18} /><input type="text" placeholder="Search patients..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
-              <Button variant="primary" size="sm" onClick={() => setShowAddPatient(true)}><UserPlus size={16} /> Add Patient</Button>
+            <div className="search-box">
+              <Search size={16} />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
           </div>
-
-          {loading ? (
-            <div className="loading-state">Loading patients...</div>
-          ) : filteredPatients.length === 0 ? (
-            <div className="empty-state"><p>No patients found. Click "Add Patient" to get started.</p></div>
-          ) : (
-            <div className="patients-grid">
-              {filteredPatients.map(patient => (
-                <div key={patient._id} className="patient-card">
-                  <div className="patient-avatar">{patient.user?.profile?.firstName?.[0]}{patient.user?.profile?.lastName?.[0]}</div>
-                  <div className="patient-details">
-                    <h4>{patient.user?.profile?.firstName} {patient.user?.profile?.lastName}</h4>
-                    <p>{patient.user?.email}</p>
-                    <div className="patient-meta"><span className="blood-type">Blood: {patient.bloodType || 'N/A'}</span></div>
+          <div className="patients-list">
+            {loading ? (
+              <div className="loading">Loading...</div>
+            ) : filteredPatients.length === 0 ? (
+              <div className="empty">No patients found</div>
+            ) : (
+              filteredPatients.map(patient => (
+                <div 
+                  key={patient._id} 
+                  className={`patient-item ${selectedPatient?._id === patient._id ? 'active' : ''}`}
+                  onClick={() => handleSelectPatient(patient)}
+                >
+                  <div className="patient-avatar">
+                    {patient.user?.profile?.firstName?.[0]}{patient.user?.profile?.lastName?.[0]}
                   </div>
-                  <div className="patient-actions">
-                    <button className="action-btn" onClick={() => {
-                      setSelectedPatient(patient);
-                      setShowPatientDetails(true);
-                    }}>
-                      <Eye size={16} /> View
-                    </button>
-                    <button className="action-btn" onClick={() => { 
-                      setSelectedPatient(patient); 
-                      setShowHealthLogForm(true); 
-                    }}>
-                      <FileText size={16} /> Record Vitals
-                    </button>
-                    <button className="action-btn delete" onClick={() => setShowDeleteConfirm(patient)}>
-                      <Trash2 size={16} /> Remove
-                    </button>
+                  <div className="patient-info">
+                    <div className="patient-name">
+                      {patient.user?.profile?.firstName} {patient.user?.profile?.lastName}
+                    </div>
+                    <div className="patient-last-visit">
+                      Last: {healthLogs.find(l => l.patient?._id === patient._id)?.createdAt 
+                        ? new Date(healthLogs.find(l => l.patient?._id === patient._id).createdAt).toLocaleDateString() 
+                        : 'No records'}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </div>
 
-        <div className="recent-logs">
-          <div className="section-header">
-            <h3>Recent Health Records</h3>
-            <div className="header-stats">
-              <span className="total-records">
-                <FileText size={14} /> Total: {healthLogs.length} records
-              </span>
-            </div>
-          </div>
-          
-          {healthLogs.length === 0 ? (
-            <div className="empty-state">
-              <AlertCircle size={48} />
-              <p>No health records yet. Record vitals for your patients.</p>
-            </div>
-          ) : (
-            <div className="logs-list">
-              {healthLogs.slice(0, 10).map(log => (
-                <div key={log._id} className="log-card">
-                  {/* Patient Header */}
-                  <div className="log-patient-header">
-                    <div className="patient-avatar-sm">
-                      {log.patient?.user?.profile?.firstName?.[0]}{log.patient?.user?.profile?.lastName?.[0]}
-                    </div>
-                    <div className="patient-info-header">
-                      <div className="patient-name-header">
-                        {log.patient?.user?.profile?.firstName} {log.patient?.user?.profile?.lastName}
-                      </div>
-                      <div className="patient-email-header">
-                        <Mail size={12} /> {log.patient?.user?.email}
-                      </div>
-                    </div>
-                    <div className="log-date-header">
-                      <Calendar size={14} />
-                      <span>{new Date(log.createdAt).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}</span>
-                      <span className="log-time">at {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        {/* Main Content */}
+        <div className="main-content">
+          {selectedPatient ? (
+            <>
+              {/* Patient Header */}
+              <div className="patient-header">
+                <div className="patient-header-info">
+                  <div className="patient-header-avatar">
+                    {selectedPatient.user?.profile?.firstName?.[0]}{selectedPatient.user?.profile?.lastName?.[0]}
+                  </div>
+                  <div>
+                    <h2>{selectedPatient.user?.profile?.firstName} {selectedPatient.user?.profile?.lastName}</h2>
+                    <p>{selectedPatient.user?.email}</p>
+                  </div>
+                </div>
+                <Button variant="primary" onClick={() => setShowVitalsForm(true)}>
+                  <Plus size={16} /> Record Vitals
+                </Button>
+              </div>
+
+              {/* Latest Vitals */}
+              <div className="vitals-grid">
+                <div className="vital-card">
+                  <Heart size={24} />
+                  <div>
+                    <div className="vital-label">Heart Rate</div>
+                    <div className="vital-value">{latestVitals?.heartRate || '--'} <span>bpm</span></div>
+                  </div>
+                </div>
+                <div className="vital-card">
+                  <Activity size={24} />
+                  <div>
+                    <div className="vital-label">Blood Pressure</div>
+                    <div className="vital-value">
+                      {latestVitals?.bloodPressure?.systolic || '--'}/{latestVitals?.bloodPressure?.diastolic || '--'} <span>mmHg</span>
                     </div>
                   </div>
-
-                  {/* Vitals Grid */}
-                  <div className="log-vitals-grid">
-                    <div className="log-vital-item">
-                      <Heart size={18} className="vital-icon-red" />
-                      <div>
-                        <div className="vital-label-sm">Heart Rate</div>
-                        <div className="vital-value-sm">{log.vitals?.heartRate || '--'} <span>bpm</span></div>
-                      </div>
-                    </div>
-                    <div className="log-vital-item">
-                      <Activity size={18} className="vital-icon-blue" />
-                      <div>
-                        <div className="vital-label-sm">Blood Pressure</div>
-                        <div className="vital-value-sm">{log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'} <span>mmHg</span></div>
-                      </div>
-                    </div>
-                    <div className="log-vital-item">
-                      <Thermometer size={18} className="vital-icon-orange" />
-                      <div>
-                        <div className="vital-label-sm">Temperature</div>
-                        <div className="vital-value-sm">{log.vitals?.temperature || '--'} <span>°C</span></div>
-                      </div>
-                    </div>
-                    <div className="log-vital-item">
-                      <Droplet size={18} className="vital-icon-purple" />
-                      <div>
-                        <div className="vital-label-sm">O₂ Saturation</div>
-                        <div className="vital-value-sm">{log.vitals?.oxygenSaturation || '--'} <span>%</span></div>
-                      </div>
-                    </div>
+                </div>
+                <div className="vital-card">
+                  <Thermometer size={24} />
+                  <div>
+                    <div className="vital-label">Temperature</div>
+                    <div className="vital-value">{latestVitals?.temperature || '--'} <span>°C</span></div>
                   </div>
+                </div>
+                <div className="vital-card">
+                  <Droplet size={24} />
+                  <div>
+                    <div className="vital-label">O2 Saturation</div>
+                    <div className="vital-value">{latestVitals?.oxygenSaturation || '--'} <span>%</span></div>
+                  </div>
+                </div>
+              </div>
 
-                  {/* Notes & Footer */}
-                  {log.notes && (
-                    <div className="log-notes-simple">
-                      <FileText size={14} />
-                      <span>{log.notes}</span>
-                    </div>
+              {/* Health Trends Chart */}
+              <div className="chart-container">
+                <h3>Heart Rate Trends (Last 30 Days)</h3>
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                      <XAxis dataKey="date" stroke="#64748B" />
+                      <YAxis stroke="#64748B" />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="heartRate" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.1} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="no-data">No health data available</div>
+                )}
+              </div>
+
+              {/* Health History Table */}
+              <div className="history-container">
+                <h3>Health History</h3>
+                <div className="history-table">
+                  {healthLogs.length === 0 ? (
+                    <div className="no-data">No health records found</div>
+                  ) : (
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Heart Rate</th>
+                          <th>Blood Pressure</th>
+                          <th>Temperature</th>
+                          <th>O2 Sat</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {healthLogs.slice(0, 10).map(log => (
+                          <tr key={log._id}>
+                            <td>{new Date(log.createdAt).toLocaleDateString()}</td>
+                            <td>{log.vitals?.heartRate || '--'} bpm</td>
+                            <td>{log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'}</td>
+                            <td>{log.vitals?.temperature || '--'} °C</td>
+                            <td>{log.vitals?.oxygenSaturation || '--'}%</td>
+                            <td className="notes-cell">{log.notes || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   )}
-
-                  <div className="log-footer-simple">
-                    <div className="recorded-by-simple">
-                      <Stethoscope size={14} />
-                      Dr. {log.recordedBy?.profile?.firstName} {log.recordedBy?.profile?.lastName}
-                    </div>
-                    <div className={`status-badge-simple ${log.status || 'normal'}`}>
-                      {log.status === 'critical' ? 'Critical' : log.status === 'warning' ? 'Warning' : 'Normal'}
-                    </div>
-                  </div>
                 </div>
-              ))}
+              </div>
+            </>
+          ) : (
+            <div className="no-selection">
+              <Stethoscope size={64} />
+              <h3>Select a Patient</h3>
+              <p>Choose a patient from the list to view their health records and record vitals.</p>
             </div>
           )}
         </div>
-      </main>
+      </div>
 
-      {/* Patient Selection Modal - This is the correct Add Patient modal */}
-      {showAddPatient && (
-        <PatientSelectionModal 
-          onClose={() => setShowAddPatient(false)}
-          onSuccess={(selectedPatient) => {
-            setSuccess(`Patient ${selectedPatient.user?.profile?.firstName} ${selectedPatient.user?.profile?.lastName} added successfully!`);
-            setShowAddPatient(false);
-            fetchData();
-            setTimeout(() => setSuccess(''), 3000);
-          }}
-        />
-      )}
-
-      {/* Patient Details Modal */}
-      {showPatientDetails && selectedPatient && (
-        <PatientDetailsModal 
-          patient={selectedPatient}
-          onClose={() => {
-            setShowPatientDetails(false);
-            setSelectedPatient(null);
-          }}
-          onRefresh={fetchData}
-        />
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(null)}>
-          <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Remove Patient</h3>
-              <button className="close-btn" onClick={() => setShowDeleteConfirm(null)}>×</button>
-            </div>
-            <p>Are you sure you want to remove <strong>{showDeleteConfirm.user?.profile?.firstName} {showDeleteConfirm.user?.profile?.lastName}</strong> from your patient list?</p>
-            <p className="warning-text">This only removes them from your list. Their health records remain in the system.</p>
-            <div className="modal-actions">
-              <button onClick={() => setShowDeleteConfirm(null)}>Cancel</button>
-              <button className="delete-btn" onClick={() => handleRemovePatient(showDeleteConfirm._id)}>Remove Patient</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Health Log Modal */}
-      {showHealthLogForm && selectedPatient && (
-        <div className="modal-overlay" onClick={() => setShowHealthLogForm(false)}>
+      {/* Record Vitals Modal */}
+      {showVitalsForm && selectedPatient && (
+        <div className="modal-overlay" onClick={() => setShowVitalsForm(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3><Heart size={20} /> Record Vitals for {selectedPatient.user?.profile?.firstName}</h3>
-              <button className="close-btn" onClick={() => setShowHealthLogForm(false)}>×</button>
+              <h3>Record Vitals for {selectedPatient.user?.profile?.firstName}</h3>
+              <button className="close-btn" onClick={() => setShowVitalsForm(false)}>×</button>
             </div>
-            <form onSubmit={handleAddHealthLog}>
-              <div className="vitals-row">
-                <div className="input-group">
-                  <Heart size={16} className="input-icon" />
-                  <input type="number" placeholder="Heart Rate (bpm) *" value={healthLog.heartRate} onChange={(e) => setHealthLog({ ...healthLog, heartRate: e.target.value })} required />
+            <form onSubmit={handleRecordVitals}>
+              <div className="vitals-form-row">
+                <div className="form-group">
+                  <label>Heart Rate (bpm)</label>
+                  <input type="number" placeholder="60-100" value={vitals.heartRate} onChange={(e) => setVitals({...vitals, heartRate: e.target.value})} required />
                 </div>
-                <div className="input-group">
-                  <Activity size={16} className="input-icon" />
-                  <input type="number" placeholder="Systolic BP *" value={healthLog.systolicBP} onChange={(e) => setHealthLog({ ...healthLog, systolicBP: e.target.value })} required />
+                <div className="form-group">
+                  <label>Systolic BP</label>
+                  <input type="number" placeholder="120" value={vitals.systolicBP} onChange={(e) => setVitals({...vitals, systolicBP: e.target.value})} required />
                 </div>
-                <div className="input-group">
-                  <Activity size={16} className="input-icon" />
-                  <input type="number" placeholder="Diastolic BP *" value={healthLog.diastolicBP} onChange={(e) => setHealthLog({ ...healthLog, diastolicBP: e.target.value })} required />
-                </div>
-              </div>
-              <div className="vitals-row">
-                <div className="input-group">
-                  <Thermometer size={16} className="input-icon" />
-                  <input type="number" step="0.1" placeholder="Temperature (°C)" value={healthLog.temperature} onChange={(e) => setHealthLog({ ...healthLog, temperature: e.target.value })} />
-                </div>
-                <div className="input-group">
-                  <Droplet size={16} className="input-icon" />
-                  <input type="number" placeholder="O2 Saturation (%)" value={healthLog.oxygenSaturation} onChange={(e) => setHealthLog({ ...healthLog, oxygenSaturation: e.target.value })} />
+                <div className="form-group">
+                  <label>Diastolic BP</label>
+                  <input type="number" placeholder="80" value={vitals.diastolicBP} onChange={(e) => setVitals({...vitals, diastolicBP: e.target.value})} required />
                 </div>
               </div>
-              <div className="input-group">
-                <FileText size={16} className="input-icon" />
-                <textarea placeholder="Additional Notes" value={healthLog.notes} onChange={(e) => setHealthLog({ ...healthLog, notes: e.target.value })} rows="3" />
+              <div className="vitals-form-row">
+                <div className="form-group">
+                  <label>Temperature (°C)</label>
+                  <input type="number" step="0.1" placeholder="36.5" value={vitals.temperature} onChange={(e) => setVitals({...vitals, temperature: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>O2 Saturation (%)</label>
+                  <input type="number" placeholder="95-100" value={vitals.oxygenSaturation} onChange={(e) => setVitals({...vitals, oxygenSaturation: e.target.value})} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Notes</label>
+                <textarea placeholder="Additional notes..." value={vitals.notes} onChange={(e) => setVitals({...vitals, notes: e.target.value})} rows="3" />
               </div>
               <div className="modal-actions">
-                <button type="button" onClick={() => setShowHealthLogForm(false)}>Cancel</button>
+                <button type="button" onClick={() => setShowVitalsForm(false)}>Cancel</button>
                 <button type="submit">Save Vitals</button>
               </div>
             </form>

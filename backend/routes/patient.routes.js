@@ -12,8 +12,14 @@ router.get('/:id', patientController.getPatientById);
 router.get('/:id/summary', patientController.getPatientHealthSummary);
 router.get('/:id/doctors', patientController.getPatientDoctors);
 
-// POST routes
-router.post('/', authorize('doctor'), patientController.createPatient);
+// POST routes - Allow doctors AND admins to create patients
+router.post('/', (req, res, next) => {
+  if (req.user.role === 'doctor' || req.user.role === 'admin') {
+    return patientController.createPatient(req, res, next);
+  }
+  return res.status(403).json({ message: 'Access denied. Only doctors and admins can create patients.' });
+});
+
 router.post('/:patientId/assign-doctor', authorize('doctor'), patientController.assignDoctorToPatient);
 
 // PUT routes

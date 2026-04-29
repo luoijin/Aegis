@@ -14,41 +14,50 @@ npm install recharts
 npm install firebase
 
 ## Folder Structure
-src/
-├── components/
-│   ├── common/
-│   │   ├── Button/
-│   │   │   ├── Button.jsx
-│   │   │   └── Button.css
-│   │   ├── Card/
-│   │   │   ├── Card.jsx
-│   │   │   └── Card.css
-│   │   └── Input/
-│   │       ├── Input.jsx
-│   │       └── Input.css
-│   ├── layout/
-│   │   ├── Header/
-│   │   │   └── Header.jsx
-│   │   ├── Sidebar/
-│   │   │   └── Sidebar.jsx
-│   │   └── Layout/
-│   │       └── Layout.jsx
-│   └── features/
-│       ├── Auth/
-│       │   └── Login.jsx
-│       ├── Dashboard/
-│       │   └── Dashboard.jsx
-│       └── Patients/
-│           └── PatientList.jsx
-├── pages/
-│   ├── LoginPage.jsx
-│   └── DashboardPage.jsx
-├── contexts/
-│   └── AuthContext.jsx
-├── utils/
-│   └── api.js
-├── styles/
-│   ├── global.css
-│   └── variables.css
-├── App.js
-└── index.js
+Aegis/
+├── backend/
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   ├── admin.controller.js
+│   │   ├── patient.controller.js
+│   │   └── healthLog.controller.js
+│   ├── models/
+│   │   ├── User.model.js
+│   │   ├── Patient.model.js
+│   │   ├── HealthLog.model.js
+│   │   ├── Hospital.model.js
+│   │   └── Specialization.model.js
+│   ├── routes/
+│   │   ├── auth.routes.js
+│   │   ├── admin.routes.js
+│   │   ├── patient.routes.js
+│   │   └── healthLog.routes.js
+│   ├── middleware/
+│   │   └── auth.middleware.js
+│   └── server.js
+└── frontend/
+    └── src/
+        ├── components/
+        │   ├── features/
+        │   │   ├── Landing/
+        │   │   ├── Auth/
+        │   │   ├── Doctor/
+        │   │   ├── Patient/
+        │   │   └── Admin/
+        │   │       ├── AdminDashboard.jsx
+        │   │       └── components/
+        │   │           ├── AdminSidebar/
+        │   │           ├── AdminHeader/
+        │   │           ├── AdminStats/
+        │   │           ├── OverviewTab/
+        │   │           ├── HospitalsTab/
+        │   │           ├── DoctorsTab/
+        │   │           ├── PatientsTab/
+        │   │           ├── SpecializationsTab/
+        │   │           └── modals/
+        │   └── common/
+        │       └── Button, Input, Card
+        ├── styles/
+        │   ├── global.css
+        │   └── variables.css
+        └── App.js

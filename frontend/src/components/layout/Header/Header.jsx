@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Heart } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Button from '../../common/Button/Button';
 import './Header.css';
 
-const Header = ({ transparent = false, onLoginClick }) => {
+// Logo from public folder
+const logo = '/images/logo-dark.png';
+
+const Header = ({ onLoginClick }) => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,16 +19,16 @@ const Header = ({ transparent = false, onLoginClick }) => {
   }, []);
 
   return (
-    <header className={`header ${!isScrolled && transparent ? 'transparent' : 'scrolled'}`}>
+    <header className={`header ${!isScrolled ? 'transparent' : 'scrolled'}`}>
       <div className="header-container">
         <div className="logo">
-          <Heart size={28} strokeWidth={1.5} />
+          <img src={logo} alt="AEGIS Logo" className="logo-image" />
           <span className="logo-text">AEGIS</span>
         </div>
         
-        <nav className="nav-links">
-          <a href="#features">Features</a>
+        <nav className={`nav-links ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           <a href="#about">About</a>
+          <a href="#features">Features</a>
           <a href="#security">Security</a>
         </nav>
         
@@ -36,8 +40,35 @@ const Header = ({ transparent = false, onLoginClick }) => {
           >
             Sign In
           </Button>
+          <button 
+            className="mobile-menu-btn"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Menu"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
+      
+      {/* Mobile Menu - Optional, you can add if needed */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu">
+          <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</a>
+          <a href="#features" onClick={() => setIsMobileMenuOpen(false)}>Features</a>
+          <a href="#security" onClick={() => setIsMobileMenuOpen(false)}>Security</a>
+          <Button 
+            variant="primary" 
+            size="sm"
+            fullWidth
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              onLoginClick();
+            }}
+          >
+            Sign In
+          </Button>
+        </div>
+      )}
     </header>
   );
 };
