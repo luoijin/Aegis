@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, Activity, Building, FileText, LogOut, Heart,
-  Plus, Edit, Trash2, Search, X, UserPlus,
+  Users, Activity, Building, FileText, Heart,
+  Plus, Edit, Trash2, Search, UserPlus,
   Stethoscope, Mail, Phone, Calendar, TrendingUp,
-  CheckCircle, AlertCircle, Hospital, Award, Eye
+  CheckCircle, AlertCircle, Hospital, Award, X,
+  LayoutDashboard
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Button from '../../common/Button/Button';
@@ -54,6 +55,13 @@ const AdminDashboard = () => {
   });
   
   const [newSpecialization, setNewSpecialization] = useState('');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+    fetchAllData();
+  }, [initialTab]);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');

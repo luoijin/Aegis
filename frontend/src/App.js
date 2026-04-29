@@ -4,6 +4,7 @@ import Landing from './components/features/Landing/Landing';
 import DoctorDashboard from './components/features/Doctor/DoctorDashboard';
 import PatientDashboard from './components/features/Patient/PatientDashboard';
 import AdminDashboard from './components/features/Admin/AdminDashboard';
+import AdminLayout from './components/layout/AdminLayout/AdminLayout';
 import './styles/global.css';
 
 const PrivateRoute = ({ children, allowedRole }) => {
@@ -31,6 +32,13 @@ function App() {
     }
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
+    window.location.href = '/';
+  };
+
   return (
     <Router>
       <Routes>
@@ -55,7 +63,50 @@ function App() {
           path="/admin/dashboard" 
           element={
             <PrivateRoute allowedRole="admin">
-              <AdminDashboard />
+              <AdminLayout onLogout={handleLogout}>
+                <AdminDashboard />
+              </AdminLayout>
+            </PrivateRoute>
+          } 
+        />
+        {/* Admin sub-routes */}
+        <Route 
+          path="/admin/hospitals" 
+          element={
+            <PrivateRoute allowedRole="admin">
+              <AdminLayout onLogout={handleLogout}>
+                <AdminDashboard initialTab="hospitals" />
+              </AdminLayout>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/admin/doctors" 
+          element={
+            <PrivateRoute allowedRole="admin">
+              <AdminLayout onLogout={handleLogout}>
+                <AdminDashboard initialTab="doctors" />
+              </AdminLayout>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/admin/patients" 
+          element={
+            <PrivateRoute allowedRole="admin">
+              <AdminLayout onLogout={handleLogout}>
+                <AdminDashboard initialTab="patients" />
+              </AdminLayout>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/admin/specializations" 
+          element={
+            <PrivateRoute allowedRole="admin">
+              <AdminLayout onLogout={handleLogout}>
+                <AdminDashboard initialTab="specializations" />
+              </AdminLayout>
             </PrivateRoute>
           } 
         />

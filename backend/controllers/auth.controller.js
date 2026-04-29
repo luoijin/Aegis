@@ -59,6 +59,7 @@ exports.register = async (req, res) => {
   }
 };
 
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -66,6 +67,11 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    
+    // ✅ ADD THIS CHECK - PREVENTS DEACTIVATED USERS FROM LOGGING IN
+    if (!user.isActive) {
+      return res.status(401).json({ message: 'Your account has been deactivated. Please contact your administrator.' });
     }
     
     const isPasswordValid = await user.comparePassword(password);
