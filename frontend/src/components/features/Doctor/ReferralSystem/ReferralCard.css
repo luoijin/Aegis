@@ -1,0 +1,137 @@
+/* frontend/src/components/features/Doctor/ReferralSystem/ReferralCard.css */
+.referral-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.referral-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.referral-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.patient-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.patient-name {
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.priority-emergency {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+}
+
+.priority-urgent {
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+.priority-normal {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3B82F6;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-accepted { color: #10B981; }
+.status-denied { color: #EF4444; }
+.status-pending { color: #F59E0B; }
+
+.referral-card-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.doctor-info, .reason, .notes, .date {
+  font-size: 14px;
+  color: #475569;
+}
+
+.doctor-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes {
+  background: #F8FAFC;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.date {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.referral-card-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+}
+
+.accept-btn, .decline-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.accept-btn {
+  background: #10B981;
+  color: white;
+}
+
+.accept-btn:hover {
+  background: #059669;
+}
+
+.decline-btn {
+  background: #EF4444;
+  color: white;
+}
+
+.decline-btn:hover {
+  background: #DC2626;
+}

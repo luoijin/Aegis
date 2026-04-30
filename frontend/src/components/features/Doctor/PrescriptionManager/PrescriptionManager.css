@@ -1,0 +1,174 @@
+/* PrescriptionManager.css - Minimal consistent design */
+.prescription-manager {
+  padding: 24px;
+  background: #F8FAFC;
+  min-height: 100%;
+}
+
+/* Header */
+.prescription-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.prescription-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0A0F1D;
+  margin-bottom: 8px;
+}
+
+.prescription-header p {
+  color: #64748B;
+  font-size: 14px;
+}
+
+.create-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.create-btn:hover {
+  background: #2563EB;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #E2E8F0;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.total-icon {
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+
+.active-icon {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.expired-icon {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0A0F1D;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #64748B;
+}
+
+/* Filter Tabs */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.filter-tab {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748B;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.filter-tab:hover {
+  color: #3B82F6;
+}
+
+.filter-tab.active {
+  color: #3B82F6;
+}
+
+.filter-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #3B82F6;
+}
+
+/* Prescriptions List */
+.prescriptions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  color: #94A3B8;
+}
+
+.empty-state svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .prescription-manager {
+    padding: 16px;
+  }
+  
+  .prescription-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

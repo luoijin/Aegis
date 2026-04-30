@@ -1,0 +1,50 @@
+.create-prescription-modal {
+  background: white;
+  border-radius: 16px;
+  width: 700px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.medication-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.medication-row input {
+  padding: 8px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.remove-med-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #EF4444;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.remove-med-btn:hover {
+  background: #FEE2E2;
+}
+
+.add-med-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: none;
+  border: 1px dashed #3B82F6;
+  border-radius: 6px;
+  color: #3B82F6;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 8px;
+}

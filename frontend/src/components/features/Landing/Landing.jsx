@@ -69,13 +69,6 @@ const Landing = () => {
               
               <div className="hero-buttons">
                 <Button 
-                  variant="primary" 
-                  size="lg"
-                  onClick={() => openAuthModal('register')}
-                >
-                  Start Free Trial
-                </Button>
-                <Button 
                   variant="outline" 
                   size="lg"
                   onClick={() => openAuthModal('login')}

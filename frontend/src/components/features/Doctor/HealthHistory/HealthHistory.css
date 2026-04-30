@@ -1,0 +1,72 @@
+.health-history-container {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.history-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin: 0;
+}
+
+.history-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #F1F5F9;
+  color: #64748B;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-badge:hover {
+  background: #E2E8F0;
+}
+
+.filter-badge.active {
+  background: #3B82F6;
+  color: white;
+}
+
+.filter-badge.critical.active {
+  background: #EF4444;
+}
+
+.filter-badge.warning.active {
+  background: #F59E0B;
+}
+
+.filter-badge.normal.active {
+  background: #10B981;
+}
+
+@media (max-width: 768px) {
+  .health-history-container {
+    padding: 16px;
+  }
+  
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

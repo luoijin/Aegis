@@ -1,0 +1,204 @@
+.doctor-patient-management {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.management-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0;
+}
+
+.patients-table-container {
+  overflow-x: auto;
+}
+
+.patients-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.patients-table th,
+.patients-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.patients-table th {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-600);
+  background: var(--gray-50);
+}
+
+.patients-table td {
+  font-size: 14px;
+  color: var(--gray-700);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.status-badge.inactive {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  color: var(--gray-500);
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: var(--gray-100);
+}
+
+.action-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--gray-500);
+}
+
+.empty-state p {
+  margin-bottom: 16px;
+}
+
+/* Add Patient Modal */
+.add-patient-modal {
+  min-width: 400px;
+}
+
+.search-section {
+  margin-bottom: 20px;
+}
+
+.available-patients-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.available-patient-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  transition: all 0.2s;
+}
+
+.available-patient-item:hover {
+  border-color: var(--accent);
+  background: var(--gray-50);
+}
+
+.patient-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.patient-avatar-small {
+  width: 40px;
+  height: 40px;
+  background: var(--gradient-accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+  font-size: 14px;
+}
+
+.patient-name {
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 4px;
+}
+
+.patient-email {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: var(--gray-500);
+}
+
+/* Confirm Modal */
+.confirm-modal {
+  text-align: center;
+  padding: 10px;
+}
+
+.confirm-modal p {
+  margin-bottom: 16px;
+  color: var(--gray-700);
+}
+
+.warning-text {
+  font-size: 13px;
+  color: var(--warning);
+  background: var(--warning-bg);
+  padding: 10px;
+  border-radius: var(--radius-md);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .doctor-patient-management {
+    padding: 16px;
+  }
+  
+  .add-patient-modal {
+    min-width: auto;
+  }
+  
+  .patients-table th,
+  .patients-table td {
+    padding: 8px;
+    font-size: 12px;
+  }
+}

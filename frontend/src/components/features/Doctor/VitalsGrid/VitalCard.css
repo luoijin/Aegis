@@ -1,0 +1,38 @@
+.vital-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--gray-200);
+  transition: all 0.2s ease;
+}
+
+.vital-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.vital-card svg {
+  color: var(--accent);
+}
+
+.vital-label {
+  font-size: 11px;
+  color: var(--gray-500);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.vital-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.vital-value span {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--gray-400);
+}

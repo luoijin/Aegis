@@ -197,7 +197,7 @@
 .patient-avatar {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  background: var(--gradient-accent);
   border-radius: 12px;
   display: flex;
   align-items: center;

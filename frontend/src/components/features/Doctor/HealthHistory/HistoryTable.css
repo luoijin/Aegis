@@ -1,0 +1,395 @@
+.history-table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.history-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: #F8FAFC;
+  color: #475569;
+  font-weight: 600;
+  border-bottom: 1px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.history-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
+}
+
+/* Status row styling */
+.history-table tr.status-row.critical {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.history-table tr.status-row.warning {
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.history-table tr.status-row:hover {
+  background: #F8FAFC;
+}
+
+/* Date cell */
+.date-cell .date {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Vital cells */
+.vital-cell {
+  text-align: center;
+}
+
+.vital-value {
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+.vital-unit {
+  font-size: 10px;
+  color: #94A3B8;
+  margin-left: 2px;
+}
+
+/* Doctor cell */
+.doctor-cell .doctor-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #3B82F6;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.doctor-cell .doctor-info svg {
+  flex-shrink: 0;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-badge.critical {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+}
+
+.status-badge.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+}
+
+.status-badge.normal {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+/* Notes cell */
+.notes-cell {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #64748B;
+}
+
+/* Actions cell */
+.actions-cell {
+  text-align: center;
+  width: 50px;
+}
+
+.view-notes-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #3B82F6;
+  padding: 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.view-notes-btn:hover {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+/* View more button */
+.view-more {
+  text-align: center;
+  padding: 16px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.view-more-btn {
+  background: none;
+  border: none;
+  color: #3B82F6;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.view-more-btn:hover {
+  background: #EFF6FF;
+}
+
+/* Notes Modal */
+.notes-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.notes-modal {
+  background: white;
+  border-radius: 20px;
+  width: 550px;
+  max-width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.notes-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E2E8F0;
+  background: white;
+}
+
+.notes-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notes-modal-title svg {
+  color: #3B82F6;
+}
+
+.notes-modal-title h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin: 0;
+}
+
+.notes-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.notes-modal-close:hover {
+  background: #F1F5F9;
+  color: #EF4444;
+}
+
+.notes-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.notes-info-row {
+  display: flex;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.notes-label {
+  width: 100px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.notes-value {
+  color: #1E293B;
+}
+
+.doctor-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #3B82F6;
+}
+
+.notes-divider {
+  height: 1px;
+  background: #E2E8F0;
+  margin: 16px 0;
+}
+
+.notes-section {
+  margin-bottom: 16px;
+}
+
+.notes-section label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 10px;
+}
+
+.vitals-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  background: #F8FAFC;
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.vital-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.vital-name {
+  color: #64748B;
+}
+
+.vital-data {
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+.notes-content {
+  background: #F8FAFC;
+  padding: 16px;
+  border-radius: 12px;
+  min-height: 100px;
+}
+
+.notes-content p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1E293B;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.no-notes {
+  color: #94A3B8 !important;
+  font-style: italic;
+}
+
+.symptoms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symptom-tag {
+  background: #EFF6FF;
+  color: #3B82F6;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.notes-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.close-notes-btn {
+  padding: 8px 20px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-notes-btn:hover {
+  background: #2563EB;
+}
+
+/* No data */
+.no-data {
+  text-align: center;
+  padding: 60px;
+  color: #94A3B8;
+}
+
+.no-data svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .history-table th,
+  .history-table td {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .doctor-cell .doctor-info span {
+    display: none;
+  }
+  
+  .notes-cell {
+    max-width: 100px;
+  }
+  
+  .notes-modal {
+    width: 95%;
+  }
+  
+  .vitals-summary {
+    grid-template-columns: 1fr;
+  }
+}
