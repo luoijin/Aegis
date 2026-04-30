@@ -1,0 +1,56 @@
+/* frontend/src/components/features/Doctor/DashboardSidebar/SidebarPatientCard.css */
+.sidebar-patient-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 4px;
+}
+
+.sidebar-patient-card:hover {
+  background: #F1F5F9;
+}
+
+.sidebar-patient-card.active {
+  background: #EFF6FF;
+  border-left: 3px solid #3B82F6;
+}
+
+.patient-avatar {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0;
+}
+
+.patient-info {
+  flex: 1;
+}
+
+.patient-name {
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.patient-last-visit {
+  font-size: 11px;
+  color: #64748B;
+}
+
+.patient-condition-summary {
+  font-size: 11px;
+  color: #8B0000;
+  margin-bottom: 4px;
+  font-weight: 500;
+}

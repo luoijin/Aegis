@@ -12,7 +12,8 @@ npm install framer-motion
 npm install lucide-react    
 npm install recharts
 npm install firebase
-
+npm install react-hot-toast
+npm install html2canvas jspdf
 ## Folder Structure
 Aegis/
 ├── backend/

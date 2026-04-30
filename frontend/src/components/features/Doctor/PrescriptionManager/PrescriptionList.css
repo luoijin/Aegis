@@ -1,0 +1,113 @@
+/* frontend/src/components/features/Doctor/PrescriptionManager/PrescriptionList.css */
+.prescription-list {
+  margin-top: 32px;
+}
+
+.prescription-list h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #E2E8F0;
+}
+
+.prescription-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.prescription-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.prescription-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.prescription-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 4px;
+}
+
+.prescription-header .date {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.prescription-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: #E2E8F0;
+  color: #3B82F6;
+}
+
+.prescription-body {
+  padding: 16px;
+}
+
+.medications-list {
+  margin-bottom: 12px;
+}
+
+.medication-item {
+  font-size: 14px;
+  color: #475569;
+  padding: 6px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.more-meds {
+  font-size: 12px;
+  color: #3B82F6;
+  margin-top: 8px;
+}
+
+.prescription-notes {
+  font-size: 13px;
+  color: #64748B;
+  background: #F8FAFC;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.loading, .empty-state {
+  text-align: center;
+  padding: 60px;
+  color: #94A3B8;
+}
+
+.empty-state svg {
+  margin-bottom: 16px;
+  color: #CBD5E1;
+}
+
+.empty-state .hint {
+  font-size: 12px;
+  margin-top: 8px;
+}

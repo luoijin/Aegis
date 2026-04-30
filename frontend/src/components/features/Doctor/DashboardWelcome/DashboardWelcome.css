@@ -1,0 +1,10 @@
+/* frontend/src/components/features/Doctor/DashboardWelcome/DashboardWelcome.css */
+.dashboard-welcome {
+  margin-bottom: 24px;
+}
+
+.dashboard-welcome h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0A0F1D;
+}

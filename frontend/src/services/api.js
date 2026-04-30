@@ -1,3 +1,4 @@
+// frontend/src/services/api.js
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -10,7 +11,8 @@ const api = axios.create({
 // Request interceptor - add token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    // FIX: Use 'token' instead of 'accessToken' to match your login storage
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -40,7 +42,9 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('token');  // Also remove 'token'
         localStorage.removeItem('user');
+        localStorage.removeItem('userRole');
         window.location.href = '/login';
         toast.error('Session expired. Please login again.');
       }

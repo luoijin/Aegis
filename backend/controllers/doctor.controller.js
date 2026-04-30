@@ -1,373 +1,931 @@
+const mongoose = require('mongoose');
 const Patient = require('../models/Patient.model');
-const Doctor = require('../models/Doctor.model');
 const HealthLog = require('../models/HealthLog.model');
+const User = require('../models/User.model');
 const Referral = require('../models/Referral.model');
 const Appointment = require('../models/Appointment.model');
 const Prescription = require('../models/Prescription.model');
-const Notification = require('../models/Notification.model');
-const User = require('../models/User.model');
+const notificationController = require('./notification.controller');
 
-// Get doctor's patients
+// ========== DASHBOARD STATS ==========
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const totalPatients = await Patient.countDocuments({ assignedDoctor: req.user._id });
+    const recentHealthLogs = await HealthLog.find()
+      .populate('patient')
+      .sort({ createdAt: -1 })
+      .limit(10);
+    const criticalAlerts = await HealthLog.countDocuments({
+      status: 'critical',
+      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+    });
+    
+    res.json({
+      totalPatients,
+      criticalAlerts,
+      recentActivity: recentHealthLogs
+    });
+  } catch (error) {
+    console.error('Get dashboard stats error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== PATIENT MANAGEMENT ==========
 exports.getPatients = async (req, res) => {
   try {
-    const doctor = await Doctor.findOne({ user: req.user._id });
-    if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
-
-    const patients = await Patient.find({ assignedDoctors: doctor._id })
-      .populate('user', 'email name phone')
-      .populate('primaryDoctor', 'specialization');
-
+    const patients = await Patient.find({ assignedDoctor: req.user._id })
+      .populate('user', 'email profile isActive')
+      .sort({ createdAt: -1 });
+    
     res.json(patients);
   } catch (error) {
+    console.error('Get patients error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get specific patient details
+exports.searchPatients = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const patients = await Patient.find({ assignedDoctor: req.user._id })
+      .populate('user', 'email profile');
+    
+    const filtered = patients.filter(patient => {
+      const name = `${patient.user?.profile?.firstName} ${patient.user?.profile?.lastName}`.toLowerCase();
+      const email = patient.user?.email?.toLowerCase();
+      return name.includes(q.toLowerCase()) || email?.includes(q.toLowerCase());
+    });
+    
+    res.json(filtered);
+  } catch (error) {
+    console.error('Search patients error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.getPatientById = async (req, res) => {
   try {
-    const doctor = await Doctor.findOne({ user: req.user._id });
-    if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
-
     const patient = await Patient.findById(req.params.id)
-      .populate('user', 'email name phone')
-      .populate('primaryDoctor', 'specialization')
-      .populate('assignedDoctors', 'specialization');
-
-    if (!patient) return res.status(404).json({ message: 'Patient not found' });
+      .populate('user', 'email profile isActive')
+      .populate('assignedDoctor', 'email profile');
     
-    // Check if doctor has access to this patient
-    if (!patient.assignedDoctors.some(d => d._id.toString() === doctor._id.toString())) {
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if doctor has access
+    if (patient.assignedDoctor?._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
-
-    // Get health logs, prescriptions, appointments for this patient
-    const [healthLogs, prescriptions, appointments] = await Promise.all([
-      HealthLog.find({ patient: patient._id }).sort({ timestamp: -1 }).limit(50),
-      Prescription.find({ patient: patient._id }).sort({ issuedDate: -1 }).limit(20),
-      Appointment.find({ patient: patient._id, doctor: doctor._id }).sort({ dateTime: -1 })
-    ]);
-
-    res.json({ patient, healthLogs, prescriptions, appointments });
+    
+    res.json(patient);
   } catch (error) {
+    console.error('Get patient by ID error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Update patient medical record (diagnoses, treatment plans)
 exports.updateMedicalRecord = async (req, res) => {
   try {
-    const { medicalHistory, chronicConditions, allergies } = req.body;
+    const { medicalHistory, allergies, bloodType, emergencyContact } = req.body;
     const patient = await Patient.findById(req.params.id);
     
-    if (!patient) return res.status(404).json({ message: 'Patient not found' });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if doctor has access
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
     
     if (medicalHistory) patient.medicalHistory = medicalHistory;
-    if (chronicConditions) patient.chronicConditions = chronicConditions;
     if (allergies) patient.allergies = allergies;
+    if (bloodType) patient.bloodType = bloodType;
+    if (emergencyContact) patient.emergencyContact = emergencyContact;
     
     await patient.save();
+    
     res.json({ message: 'Medical record updated', patient });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Update medical record error:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Add health log (vitals)
+exports.assignPatientToDoctor = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    patient.assignedDoctor = req.user._id;
+    await patient.save();
+    
+    res.json({ message: 'Patient assigned successfully', patient });
+  } catch (error) {
+    console.error('Assign patient error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.removePatient = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'This patient is not in your list' });
+    }
+    
+    patient.assignedDoctor = null;
+    await patient.save();
+    
+    res.json({ message: 'Patient removed from your list successfully' });
+  } catch (error) {
+    console.error('Remove patient error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== PATIENT ANALYTICS ==========
+exports.getPatientAnalytics = async (req, res) => {
+  try {
+    // Get all patients assigned to this doctor
+    const patients = await Patient.find({ assignedDoctor: req.user._id })
+      .populate('user', 'profile email');
+    
+    // Aggregate conditions for pie chart
+    const conditionStats = {};
+    let totalConditions = 0;
+    
+    patients.forEach(patient => {
+      if (patient.conditions && patient.conditions.length > 0) {
+        patient.conditions.forEach(condition => {
+          if (condition.isActive) {
+            conditionStats[condition.name] = (conditionStats[condition.name] || 0) + 1;
+            totalConditions++;
+          }
+        });
+      }
+    });
+    
+    // Calculate percentages and format for pie chart
+    const analyticsData = Object.entries(conditionStats).map(([name, count]) => ({
+      name,
+      value: count,
+      percentage: ((count / totalConditions) * 100).toFixed(1)
+    }));
+    
+    // Sort by count descending
+    analyticsData.sort((a, b) => b.value - a.value);
+    
+    res.json({
+      totalPatients: patients.length,
+      totalConditions,
+      conditions: analyticsData,
+      patientList: patients.map(p => ({
+        id: p._id,
+        name: `${p.user?.profile?.firstName} ${p.user?.profile?.lastName}`,
+        email: p.user?.email,
+        bloodType: p.bloodType,
+        conditions: p.conditions.filter(c => c.isActive).map(c => c.name),
+        conditionCount: p.conditions.filter(c => c.isActive).length,
+        lastVisit: p.updatedAt
+      }))
+    });
+  } catch (error) {
+    console.error('Get patient analytics error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== CONDITION MANAGEMENT ==========
+
+// Get all available condition options
+exports.getConditionOptions = async (req, res) => {
+  try {
+    const conditions = [
+      'Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 
+      'Arthritis', 'COPD', 'Depression', 'Anxiety', 
+      'Obesity', 'Thyroid Disorder', 'Kidney Disease',
+      'Cancer', 'Stroke', 'Alzheimer\'s', 'Parkinson\'s',
+      'Multiple Sclerosis', 'Epilepsy', 'HIV/AIDS',
+      'Hepatitis', 'Tuberculosis', 'Pneumonia',
+      'Bronchitis', 'Migraine', 'Osteoporosis'
+    ];
+    res.json(conditions);
+  } catch (error) {
+    console.error('Get condition options error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Add condition to patient
+exports.addPatientCondition = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const { name, severity, diagnosedDate, notes } = req.body;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if doctor has access
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    // Check if condition already exists
+    const existingCondition = patient.conditions.find(
+      c => c.name === name && c.isActive !== false
+    );
+    
+    if (existingCondition) {
+      return res.status(400).json({ message: 'Condition already exists for this patient' });
+    }
+    
+    patient.conditions.push({
+      name,
+      severity: severity || 'moderate',
+      diagnosedDate: diagnosedDate || new Date(),
+      isActive: true
+    });
+    
+    await patient.save();
+    
+    // Create notification for patient (optional)
+    const notificationController = require('./notification.controller');
+    await notificationController.createNotification(
+      patient.user,
+      'condition_added',
+      '📋 New Medical Condition',
+      `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} added ${name} to your medical record.`,
+      { condition: name, severity }
+    );
+    
+    res.json({ 
+      message: 'Condition added successfully', 
+      conditions: patient.conditions 
+    });
+  } catch (error) {
+    console.error('Add condition error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update patient condition
+exports.updatePatientCondition = async (req, res) => {
+  try {
+    const { patientId, conditionId } = req.params;
+    const { severity, isActive, notes } = req.body;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    const condition = patient.conditions.id(conditionId);
+    if (!condition) {
+      return res.status(404).json({ message: 'Condition not found' });
+    }
+    
+    if (severity) condition.severity = severity;
+    if (isActive !== undefined) condition.isActive = isActive;
+    
+    await patient.save();
+    
+    res.json({ 
+      message: 'Condition updated successfully', 
+      conditions: patient.conditions 
+    });
+  } catch (error) {
+    console.error('Update condition error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deletePatientCondition = async (req, res) => {
+  try {
+    const { patientId, conditionId } = req.params;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    const condition = patient.conditions.id(conditionId);
+    if (!condition) {
+      return res.status(404).json({ message: 'Condition not found' });
+    }
+    
+    // Soft delete - mark as inactive
+    condition.isActive = false;
+    await patient.save();
+    
+    res.json({ 
+      message: 'Condition resolved successfully', 
+      conditions: patient.conditions 
+    });
+  } catch (error) {
+    console.error('Delete condition error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== HEALTH LOGS (VITALS) ==========
+const determineHealthStatus = (vitals) => {
+  if (!vitals) return 'normal';
+  const { heartRate, bloodPressure, temperature, oxygenSaturation } = vitals;
+  
+  if (heartRate && (heartRate < 40 || heartRate > 140)) return 'critical';
+  if (bloodPressure && (bloodPressure.systolic > 180 || bloodPressure.diastolic > 120)) return 'critical';
+  if (temperature && (temperature > 39.5 || temperature < 35)) return 'critical';
+  if (oxygenSaturation && oxygenSaturation < 85) return 'critical';
+  if (heartRate && (heartRate < 50 || heartRate > 110)) return 'warning';
+  if (bloodPressure && (bloodPressure.systolic > 140 || bloodPressure.diastolic > 90)) return 'warning';
+  if (temperature && (temperature > 38.5 || temperature < 36)) return 'warning';
+  if (oxygenSaturation && oxygenSaturation < 92) return 'warning';
+  return 'normal';
+};
+
 exports.addHealthLog = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const { vitals, notes } = req.body;
+    const { vitals, symptoms, notes } = req.body;
     
-    const doctor = await Doctor.findOne({ user: req.user._id });
     const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
     
-    if (!patient) return res.status(404).json({ message: 'Patient not found' });
-    
-    // Check if abnormal
-    const isAbnormal = (
-      (vitals.bpSystolic && vitals.bpSystolic > 140) ||
-      (vitals.heartRate && (vitals.heartRate > 100 || vitals.heartRate < 60)) ||
-      (vitals.temperature && (vitals.temperature > 37.5 || vitals.temperature < 36)) ||
-      (vitals.spO2 && vitals.spO2 < 95)
-    );
+    // Check if doctor has access
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
     
     const healthLog = new HealthLog({
       patient: patientId,
       recordedBy: req.user._id,
-      vitals,
-      notes,
-      isAbnormal
+      vitals: {
+        bloodPressure: vitals?.bloodPressure,
+        heartRate: vitals?.heartRate,
+        temperature: vitals?.temperature,
+        respiratoryRate: vitals?.respiratoryRate,
+        oxygenSaturation: vitals?.oxygenSaturation,
+        bloodGlucose: vitals?.bloodGlucose,
+        weight: vitals?.weight,
+        height: vitals?.height
+      },
+      symptoms: symptoms || [],
+      notes: notes || '',
+      status: determineHealthStatus(vitals)
     });
     
     await healthLog.save();
     
-    // Send notification if abnormal
-    if (isAbnormal) {
-      const notification = new Notification({
-        user: patient.user,
-        type: 'alert',
-        title: 'Abnormal Health Reading',
-        message: `Your ${new Date().toLocaleDateString()} health reading shows abnormal values. Please consult your doctor.`,
-        data: { healthLogId: healthLog._id }
-      });
-      await notification.save();
+    // Create notification for patient if vitals are critical
+    if (healthLog.status === 'critical') {
+      await notificationController.createNotification(
+        patient.user,
+        'vitals_alert',
+        '⚠️ Critical Vitals Alert',
+        `Your ${new Date().toLocaleDateString()} vitals show critical values. Please contact your doctor immediately.`,
+        { healthLogId: healthLog._id, status: 'critical' }
+      );
     }
     
     res.status(201).json(healthLog);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Add health log error:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Get patient health logs
 exports.getHealthLogs = async (req, res) => {
   try {
     const { patientId } = req.params;
     const { startDate, endDate, limit = 100 } = req.query;
     
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if doctor has access
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
     let query = { patient: patientId };
     if (startDate && endDate) {
-      query.timestamp = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
     
     const healthLogs = await HealthLog.find(query)
-      .sort({ timestamp: -1 })
+      .sort({ createdAt: -1 })
       .limit(parseInt(limit));
     
     res.json(healthLogs);
   } catch (error) {
+    console.error('Get health logs error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Create referral
+exports.getVitalsTrends = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const { days = 30 } = req.query;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if doctor has access
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    const logs = await HealthLog.find({
+      patient: patientId,
+      createdAt: { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) }
+    }).sort({ createdAt: 1 });
+
+    const trends = {
+      heartRate: logs.map(log => ({
+        date: log.createdAt,
+        value: log.vitals?.heartRate
+      })).filter(item => item.value),
+      bloodPressureSystolic: logs.map(log => ({
+        date: log.createdAt,
+        value: log.vitals?.bloodPressure?.systolic
+      })).filter(item => item.value),
+      bloodPressureDiastolic: logs.map(log => ({
+        date: log.createdAt,
+        value: log.vitals?.bloodPressure?.diastolic
+      })).filter(item => item.value),
+      temperature: logs.map(log => ({
+        date: log.createdAt,
+        value: log.vitals?.temperature
+      })).filter(item => item.value),
+      weight: logs.map(log => ({
+        date: log.createdAt,
+        value: log.vitals?.weight
+      })).filter(item => item.value)
+    };
+
+    res.json(trends);
+  } catch (error) {
+    console.error('Get vitals trends error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateHealthLog = async (req, res) => {
+  try {
+    const { logId } = req.params;
+    const { vitals, symptoms, notes } = req.body;
+    
+    const healthLog = await HealthLog.findById(logId).populate('patient');
+    if (!healthLog) {
+      return res.status(404).json({ message: 'Health log not found' });
+    }
+    
+    const patient = await Patient.findById(healthLog.patient._id);
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    if (vitals) {
+      healthLog.vitals = { ...healthLog.vitals, ...vitals };
+      healthLog.status = determineHealthStatus(healthLog.vitals);
+    }
+    if (symptoms) healthLog.symptoms = symptoms;
+    if (notes) healthLog.notes = notes;
+    
+    await healthLog.save();
+    res.json(healthLog);
+  } catch (error) {
+    console.error('Update health log error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteHealthLog = async (req, res) => {
+  try {
+    const { logId } = req.params;
+    
+    const healthLog = await HealthLog.findById(logId).populate('patient');
+    if (!healthLog) {
+      return res.status(404).json({ message: 'Health log not found' });
+    }
+    
+    const patient = await Patient.findById(healthLog.patient._id);
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    await HealthLog.findByIdAndDelete(logId);
+    res.json({ message: 'Health log deleted successfully' });
+  } catch (error) {
+    console.error('Delete health log error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== REFERRAL SYSTEM ==========
+exports.getAllDoctors = async (req, res) => {
+  try {
+    const doctors = await User.find({ 
+      role: 'doctor', 
+      isActive: true,
+      _id: { $ne: req.user._id }
+    }).select('email profile specialization');
+    
+    res.json(doctors);
+  } catch (error) {
+    console.error('Get all doctors error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.createReferral = async (req, res) => {
   try {
     const { patientId, toDoctorId, reason, priority, notes } = req.body;
     
-    const fromDoctor = await Doctor.findOne({ user: req.user._id });
-    const toDoctor = await Doctor.findById(toDoctorId);
-    const patient = await Patient.findById(patientId);
+    const patient = await Patient.findById(patientId).populate('user', 'profile email');
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
     
-    if (!toDoctor) return res.status(404).json({ message: 'Target doctor not found' });
-    if (!patient) return res.status(404).json({ message: 'Patient not found' });
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You can only refer patients assigned to you' });
+    }
+    
+    const targetDoctor = await User.findById(toDoctorId);
+    if (!targetDoctor || targetDoctor.role !== 'doctor') {
+      return res.status(404).json({ message: 'Target doctor not found' });
+    }
     
     const referral = new Referral({
       patient: patientId,
-      fromDoctor: fromDoctor._id,
+      fromDoctor: req.user._id,
       toDoctor: toDoctorId,
       reason,
-      priority,
-      notes,
+      priority: priority || 'normal',
+      notes: notes || '',
       status: 'pending'
     });
     
     await referral.save();
+    await referral.populate('patient', 'user');
+    await referral.populate('fromDoctor', 'email profile');
+    await referral.populate('toDoctor', 'email profile');
     
-    // Create notification for target doctor
-    const notification = new Notification({
-      user: toDoctor.user,
-      type: 'referral',
-      title: 'New Referral Request',
-      message: `Dr. ${req.user.name.firstName} ${req.user.name.lastName} referred patient ${patient.user?.name?.firstName} ${patient.user?.name?.lastName} to you.`,
-      data: { referralId: referral._id, patientId }
-    });
-    await notification.save();
+    const patientName = `${patient.user?.profile?.firstName} ${patient.user?.profile?.lastName}`;
+    const fromDoctorName = `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName}`;
     
-    res.status(201).json(referral);
+    await notificationController.createNotification(
+      toDoctorId,
+      'referral_received',
+      '🩺 New Referral Received',
+      `${fromDoctorName} referred ${patientName} to you (${priority} priority)`,
+      { referralId: referral._id.toString(), patientId, priority }
+    );
+    
+    res.status(201).json({ message: 'Referral sent successfully', referral });
   } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// Get received referrals
-exports.getReceivedReferrals = async (req, res) => {
-  try {
-    const doctor = await Doctor.findOne({ user: req.user._id });
-    const referrals = await Referral.find({ toDoctor: doctor._id })
-      .populate('patient', 'user bloodGroup')
-      .populate('fromDoctor', 'specialization')
-      .populate('toDoctor', 'specialization')
-      .sort({ createdAt: -1 });
-    
-    // Populate patient user details
-    for (let ref of referrals) {
-      if (ref.patient) {
-        await ref.patient.populate('user', 'name');
-      }
-    }
-    
-    res.json(referrals);
-  } catch (error) {
+    console.error('Create referral error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Respond to referral (accept/decline)
+exports.getSentReferrals = async (req, res) => {
+  try {
+    const referrals = await Referral.find({ fromDoctor: req.user._id })
+      .populate('patient', 'user')
+      .populate('toDoctor', 'email profile')
+      .sort({ createdAt: -1 });
+    
+    for (let ref of referrals) {
+      if (ref.patient) await ref.patient.populate('user', 'email profile');
+    }
+    
+    res.json(referrals);
+  } catch (error) {
+    console.error('Get sent referrals error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getReceivedReferrals = async (req, res) => {
+  try {
+    const referrals = await Referral.find({ toDoctor: req.user._id })
+      .populate('patient', 'user')
+      .populate('fromDoctor', 'email profile')
+      .sort({ createdAt: -1 });
+    
+    for (let ref of referrals) {
+      if (ref.patient) await ref.patient.populate('user', 'email profile');
+    }
+    
+    res.json(referrals);
+  } catch (error) {
+    console.error('Get received referrals error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.respondToReferral = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, responseNotes } = req.body;
     
-    const referral = await Referral.findById(id)
-      .populate('patient')
-      .populate('fromDoctor')
-      .populate('toDoctor');
+    if (!['accepted', 'denied'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
     
+    const referral = await Referral.findById(id);
     if (!referral) return res.status(404).json({ message: 'Referral not found' });
     
+    if (referral.toDoctor.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'This referral is not for you' });
+    }
+    
+    if (referral.status !== 'pending') {
+      return res.status(400).json({ message: `Referral already ${referral.status}` });
+    }
+    
     referral.status = status;
-    referral.responseNotes = responseNotes;
+    referral.responseNotes = responseNotes || '';
     referral.respondedAt = new Date();
     await referral.save();
     
-    // If accepted, add patient to doctor's assigned list
+    const patient = await Patient.findById(referral.patient).populate('user', 'profile email');
+    const fromDoctor = await User.findById(referral.fromDoctor);
+    const toDoctor = req.user;
+    
+    const patientName = `${patient.user?.profile?.firstName} ${patient.user?.profile?.lastName}`;
+    const toDoctorName = `Dr. ${toDoctor.profile?.firstName} ${toDoctor.profile?.lastName}`;
+    
     if (status === 'accepted') {
-      await Patient.findByIdAndUpdate(referral.patient._id, {
-        $addToSet: { assignedDoctors: referral.toDoctor._id }
-      });
+      patient.assignedDoctor = referral.toDoctor;
+      await patient.save();
+      
+      await notificationController.createNotification(
+        referral.fromDoctor,
+        'referral_accepted',
+        '✅ Referral Accepted',
+        `${toDoctorName} accepted your referral for ${patientName}`,
+        { referralId: referral._id.toString(), status: 'accepted' }
+      );
+      
+      await notificationController.createNotification(
+        patient.user._id,
+        'doctor_assigned',
+        '🩺 Your Doctor Has Been Updated',
+        `Dr. ${toDoctorName} is now your primary physician.`,
+        { newDoctorId: referral.toDoctor.toString() }
+      );
+    } else {
+      await notificationController.createNotification(
+        referral.fromDoctor,
+        'referral_denied',
+        '❌ Referral Declined',
+        `${toDoctorName} declined your referral for ${patientName}`,
+        { referralId: referral._id.toString(), status: 'denied' }
+      );
+      
+      await notificationController.createNotification(
+        patient.user._id,
+        'referral_denied',
+        '📋 Referral Update',
+        `Dr. ${toDoctorName} declined your referral. Your current doctor remains Dr. ${fromDoctor.profile?.firstName} ${fromDoctor.profile?.lastName}.`,
+        { referralId: referral._id.toString(), status: 'denied' }
+      );
     }
     
-    // Notify referring doctor
-    const fromDoctorUser = await User.findById(referral.fromDoctor.user);
-    const notification = new Notification({
-      user: fromDoctorUser._id,
-      type: 'referral',
-      title: `Referral ${status === 'accepted' ? 'Accepted' : 'Declined'}`,
-      message: `Dr. ${referral.toDoctor.user?.name?.firstName} ${referral.toDoctor.user?.name?.lastName} has ${status} your referral for patient ${referral.patient.user?.name?.firstName} ${referral.patient.user?.name?.lastName}.`,
-      data: { referralId: referral._id }
-    });
-    await notification.save();
+    await referral.populate('patient', 'user');
+    await referral.populate('fromDoctor', 'email profile');
+    await referral.populate('toDoctor', 'email profile');
     
     res.json({ message: `Referral ${status}`, referral });
   } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// Create prescription
-exports.createPrescription = async (req, res) => {
-  try {
-    const { patientId, medications, refillsRemaining } = req.body;
-    
-    const doctor = await Doctor.findOne({ user: req.user._id });
-    const prescription = new Prescription({
-      patient: patientId,
-      doctor: doctor._id,
-      medications,
-      refillsRemaining: refillsRemaining || 0
-    });
-    
-    await prescription.save();
-    
-    res.status(201).json(prescription);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// Get doctor's prescriptions for a patient
-exports.getPrescriptions = async (req, res) => {
-  try {
-    const { patientId } = req.params;
-    const doctor = await Doctor.findOne({ user: req.user._id });
-    
-    const prescriptions = await Prescription.find({
-      patient: patientId,
-      doctor: doctor._id
-    }).sort({ issuedDate: -1 });
-    
-    res.json(prescriptions);
-  } catch (error) {
+    console.error('Respond to referral error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get doctor's notifications
-exports.getNotifications = async (req, res) => {
+exports.getReferralById = async (req, res) => {
   try {
-    const notifications = await Notification.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const { id } = req.params;
+    const referral = await Referral.findById(id)
+      .populate('patient', 'user')
+      .populate('fromDoctor', 'email profile')
+      .populate('toDoctor', 'email profile');
     
-    const unreadCount = notifications.filter(n => !n.isRead).length;
+    if (!referral) return res.status(404).json({ message: 'Referral not found' });
     
-    res.json({ notifications, unreadCount });
+    if (referral.fromDoctor._id.toString() !== req.user._id.toString() && 
+        referral.toDoctor._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    if (referral.patient) await referral.patient.populate('user', 'email profile');
+    res.json(referral);
   } catch (error) {
+    console.error('Get referral by ID error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Mark notification as read
-exports.markNotificationRead = async (req, res) => {
+// ========== APPOINTMENT SYSTEM ==========
+exports.getAppointments = async (req, res) => {
   try {
-    const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      { isRead: true },
-      { new: true }
-    );
+    const appointments = await Appointment.find({ doctor: req.user._id })
+      .populate('patient', 'user')
+      .sort({ dateTime: -1 });
     
-    if (!notification) return res.status(404).json({ message: 'Notification not found' });
-    res.json(notification);
+    for (let apt of appointments) {
+      if (apt.patient) await apt.patient.populate('user', 'email profile');
+    }
+    
+    res.json(appointments);
   } catch (error) {
+    console.error('Get appointments error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Create appointment
 exports.createAppointment = async (req, res) => {
   try {
-    const { patientId, dateTime, type, reason } = req.body;
+    const { patientId, dateTime, type, reason, notes } = req.body;
     
-    const doctor = await Doctor.findOne({ user: req.user._id });
     const patient = await Patient.findById(patientId);
-    
     if (!patient) return res.status(404).json({ message: 'Patient not found' });
     
     const appointment = new Appointment({
       patient: patientId,
-      doctor: doctor._id,
-      dateTime,
-      type,
-      reason,
+      doctor: req.user._id,
+      dateTime: new Date(dateTime),
+      type: type || 'in-person',
+      reason: reason || '',
+      notes: notes || '',
       status: 'scheduled'
     });
     
     await appointment.save();
+    await appointment.populate('patient', 'user');
     
-    // Notify patient
-    const notification = new Notification({
-      user: patient.user,
-      type: 'appointment',
-      title: 'New Appointment Scheduled',
-      message: `Your appointment with Dr. ${req.user.name.firstName} ${req.user.name.lastName} has been scheduled for ${new Date(dateTime).toLocaleString()}.`,
-      data: { appointmentId: appointment._id }
-    });
-    await notification.save();
+    await notificationController.createNotification(
+      patient.user,
+      'appointment_reminder',
+      '📅 Appointment Scheduled',
+      `Your appointment with Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} is scheduled for ${new Date(dateTime).toLocaleString()}`,
+      { appointmentId: appointment._id, dateTime }
+    );
     
     res.status(201).json(appointment);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Create appointment error:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Update appointment status
 exports.updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
     
-    const appointment = await Appointment.findByIdAndUpdate(
-      id,
+    const appointment = await Appointment.findOneAndUpdate(
+      { _id: id, doctor: req.user._id },
       { status, notes },
       { new: true }
-    );
+    ).populate('patient', 'user');
     
     if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
-    
     res.json(appointment);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Update appointment error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const appointment = await Appointment.findOneAndDelete({ _id: id, doctor: req.user._id });
+    
+    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    res.json({ message: 'Appointment deleted successfully' });
+  } catch (error) {
+    console.error('Delete appointment error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== PRESCRIPTION SYSTEM ==========
+// When fetching prescriptions, populate doctor details
+exports.getPrescriptions = async (req, res) => {
+  try {
+    const prescriptions = await Prescription.find({ doctor: req.user._id })
+      .populate('patient', 'user')
+      .populate('doctor', 'email profile licenseNumber specialization hospital')  // ← Make sure this includes licenseNumber
+      .sort({ issuedDate: -1 });
+    
+    // Also populate hospital if needed
+    for (let pres of prescriptions) {
+      if (pres.patient) await pres.patient.populate('user', 'email profile');
+    }
+    
+    res.json(prescriptions);
+  } catch (error) {
+    console.error('Get prescriptions error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+exports.createPrescription = async (req, res) => {
+  try {
+    const { patientId, medications, notes, refillsRemaining } = req.body;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) return res.status(404).json({ message: 'Patient not found' });
+    
+    const prescription = new Prescription({
+      patient: patientId,
+      doctor: req.user._id,
+      medications: medications || [],
+      notes: notes || '',
+      refillsRemaining: refillsRemaining || 0,
+      isActive: true,
+      issuedDate: new Date()
+    });
+    
+    await prescription.save();
+    await prescription.populate('patient', 'user');
+    
+    await notificationController.createNotification(
+      patient.user,
+      'prescription_created',
+      '💊 New Prescription',
+      `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} has issued a new prescription for you.`,
+      { prescriptionId: prescription._id }
+    );
+    
+    res.status(201).json(prescription);
+  } catch (error) {
+    console.error('Create prescription error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updatePrescription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { medications, notes, refillsRemaining, isActive } = req.body;
+    
+    const prescription = await Prescription.findOneAndUpdate(
+      { _id: id, doctor: req.user._id },
+      { medications, notes, refillsRemaining, isActive },
+      { new: true }
+    ).populate('patient', 'user');
+    
+    if (!prescription) return res.status(404).json({ message: 'Prescription not found' });
+    res.json(prescription);
+  } catch (error) {
+    console.error('Update prescription error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deletePrescription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const prescription = await Prescription.findOneAndDelete({ _id: id, doctor: req.user._id });
+    
+    if (!prescription) return res.status(404).json({ message: 'Prescription not found' });
+    res.json({ message: 'Prescription deleted successfully' });
+  } catch (error) {
+    console.error('Delete prescription error:', error);
+    res.status(500).json({ message: error.message });
   }
 };

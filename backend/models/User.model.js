@@ -37,14 +37,17 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  // ✅ ADD THIS - FCM Token for push notifications
+  fcmToken: {
+    type: String,
+    default: null
   }
 }, { timestamps: true });
 
 // Hash password before saving
 userSchema.pre('save', function(next) {
   if (!this.isModified('password')) return next();
-  
-  // Use crypto-js to encrypt password
   this.password = CryptoJS.AES.encrypt(this.password, process.env.JWT_SECRET || 'secret').toString();
   next();
 });

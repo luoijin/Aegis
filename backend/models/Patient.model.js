@@ -16,6 +16,27 @@ const patientSchema = new mongoose.Schema({
       default: 'active'
     }
   }],
+  // ✅ ADD THIS - Conditions array for analytics
+  conditions: [{
+    name: {
+      type: String,
+      enum: ['Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 'Arthritis', 'COPD', 'Depression', 'Anxiety', 'Obesity', 'Thyroid Disorder', 'Kidney Disease', 'Other'],
+      required: true
+    },
+    severity: {
+      type: String,
+      enum: ['mild', 'moderate', 'severe'],
+      default: 'moderate'
+    },
+    diagnosedDate: {
+      type: Date,
+      default: Date.now
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    }
+  }],
   allergies: [{
     type: String,
     trim: true
@@ -26,18 +47,9 @@ const patientSchema = new mongoose.Schema({
     default: ''
   },
   emergencyContact: {
-    name: {
-      type: String,
-      trim: true
-    },
-    relationship: {
-      type: String,
-      trim: true
-    },
-    phone: {
-      type: String,
-      trim: true
-    }
+    name: String,
+    relationship: String,
+    phone: String
   },
   assignedDoctor: {
     type: mongoose.Schema.Types.ObjectId,
@@ -51,5 +63,6 @@ const patientSchema = new mongoose.Schema({
 // Index for efficient queries
 patientSchema.index({ user: 1 });
 patientSchema.index({ assignedDoctor: 1 });
+patientSchema.index({ 'conditions.name': 1 });
 
 module.exports = mongoose.model('Patient', patientSchema);

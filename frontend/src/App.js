@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './components/features/Landing/Landing';
-import DoctorDashboard from './components/features/Doctor/DoctorDashboard';
+import DoctorDashboard from './components/features/Doctor/DoctorDashboard/DoctorDashboard';
 import PatientDashboard from './components/features/Patient/PatientDashboard';
 import AdminDashboard from './components/features/Admin/AdminDashboard';
 import './styles/global.css';

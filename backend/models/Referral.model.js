@@ -1,15 +1,51 @@
 const mongoose = require('mongoose');
 
 const referralSchema = new mongoose.Schema({
-  patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
-  fromDoctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  toDoctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  reason: { type: String, required: true },
-  priority: { type: String, enum: ['normal', 'urgent', 'emergency'], default: 'normal' },
-  notes: String,
-  status: { type: String, enum: ['pending', 'accepted', 'denied'], default: 'pending' },
-  responseNotes: String,
-  respondedAt: Date
+  patient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Patient',
+    required: true
+  },
+  fromDoctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  toDoctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  reason: {
+    type: String,
+    required: true
+  },
+  priority: {
+    type: String,
+    enum: ['normal', 'urgent', 'emergency'],
+    default: 'normal'
+  },
+  notes: {
+    type: String,
+    default: ''
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'accepted', 'denied'],
+    default: 'pending'
+  },
+  responseNotes: {
+    type: String,
+    default: ''
+  },
+  respondedAt: {
+    type: Date
+  }
 }, { timestamps: true });
+
+// Indexes for efficient queries
+referralSchema.index({ toDoctor: 1, status: 1 });
+referralSchema.index({ fromDoctor: 1, createdAt: -1 });
+referralSchema.index({ patient: 1 });
 
 module.exports = mongoose.model('Referral', referralSchema);

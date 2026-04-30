@@ -1,0 +1,305 @@
+/* PrescriptionCard.css */
+.prescription-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.prescription-card:hover {
+  border-color: #CBD5E1;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.patient-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.patient-icon {
+  width: 28px;
+  height: 28px;
+  background: #EFF6FF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3B82F6;
+}
+
+.patient-name {
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.status-badge.expired {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  color: #64748B;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.action-btn:hover {
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+
+.action-btn.send:hover {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.card-body {
+  padding: 14px 16px;
+}
+
+.medications-preview {
+  margin-bottom: 10px;
+}
+
+.medication-preview {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+  color: #475569;
+}
+
+.med-name {
+  font-weight: 500;
+}
+
+.med-dosage {
+  color: #64748B;
+}
+
+.more-meds {
+  font-size: 12px;
+  color: #3B82F6;
+  margin-top: 4px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94A3B8;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+}
+
+/* Details Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.details-modal {
+  background: white;
+  border-radius: 16px;
+  width: 600px;
+  max-width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-title h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.close-btn:hover {
+  background: #F1F5F9;
+  color: #EF4444;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 11px;
+  color: #64748B;
+  text-transform: uppercase;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0A0F1D;
+}
+
+.medications-section {
+  margin-bottom: 20px;
+}
+
+.medications-section label,
+.notes-section label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 10px;
+}
+
+.medications-table {
+  overflow-x: auto;
+}
+
+.medications-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.medications-table th,
+.medications-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.medications-table th {
+  background: #F8FAFC;
+  font-weight: 600;
+  color: #475569;
+}
+
+.notes-section p {
+  background: #F8FAFC;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.download-btn, .modal-footer .send-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.download-btn {
+  background: none;
+  border: 1px solid #E2E8F0;
+  color: #64748B;
+}
+
+.download-btn:hover {
+  background: #F1F5F9;
+}
+
+.modal-footer .send-btn {
+  background: #059669;
+  border: none;
+  color: white;
+}
+
+.modal-footer .send-btn:hover {
+  background: #047857;
+}
