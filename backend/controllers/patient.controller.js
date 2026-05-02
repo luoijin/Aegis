@@ -414,3 +414,143 @@ exports.markNotificationRead = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ========== PATIENT DASHBOARD FUNCTIONS (ADD THESE) ==========
+
+// Get logged-in patient's own profile
+exports.getOwnProfile = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.user._id })
+      .populate('user', 'email profile isActive')
+      .populate('assignedDoctor', 'email profile specialization licenseNumber');
+    
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient profile not found' });
+    }
+    
+    res.json(patient);
+  } catch (error) {
+    console.error('Get own profile error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get patient's own health logs
+exports.getMyHealthLogs = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.user._id });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    const healthLogs = await HealthLog.find({ patient: patient._id })
+      .populate('recordedBy', 'email profile')
+      .sort({ createdAt: -1 });
+    
+    res.json(healthLogs);
+  } catch (error) {
+    console.error('Get my health logs error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get patient's own prescriptions
+exports.getMyPrescriptions = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.user._id });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    const Prescription = require('../models/Prescription.model');
+    
+    const prescriptions = await Prescription.find({ patient: patient._id })
+      .populate('doctor', 'email profile specialization')
+      .sort({ issuedDate: -1 });
+    
+    res.json(prescriptions);
+  } catch (error) {
+    console.error('Get my prescriptions error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get patient's own appointments
+exports.getMyAppointments = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.user._id });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    const Appointment = require('../models/Appointment.model');
+    
+    const appointments = await Appointment.find({ patient: patient._id })
+      .populate('doctor', 'email profile specialization')
+      .sort({ dateTime: -1 });
+    
+    res.json(appointments);
+  } catch (error) {
+    console.error('Get my appointments error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get patient's own referrals
+exports.getMyReferrals = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.user._id });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    const Referral = require('../models/Referral.model');
+    
+    const referrals = await Referral.find({ patient: patient._id })
+      .populate('fromDoctor', 'email profile specialization')
+      .populate('toDoctor', 'email profile specialization')
+      .sort({ createdAt: -1 });
+    
+    res.json(referrals);
+  } catch (error) {
+    console.error('Get my referrals error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get patient's doctor info
+exports.getMyDoctorInfo = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.user._id })
+      .populate('assignedDoctor', 'email profile specialization licenseNumber');
+    
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    res.json(patient.assignedDoctor || null);
+  } catch (error) {
+    console.error('Get my doctor info error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update patient's blood type
+exports.updateBloodType = async (req, res) => {
+  try {
+    const { bloodType } = req.body;
+    
+    const patient = await Patient.findOne({ user: req.user._id });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    patient.bloodType = bloodType;
+    await patient.save();
+    
+    res.json({ message: 'Blood type updated successfully', bloodType: patient.bloodType });
+  } catch (error) {
+    console.error('Update blood type error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

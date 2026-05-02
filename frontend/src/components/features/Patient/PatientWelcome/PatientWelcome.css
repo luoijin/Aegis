@@ -1,0 +1,38 @@
+/* PatientWelcome.css */
+.patient-welcome {
+  margin-bottom: 32px;
+}
+
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+.welcome-badge span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #3B82F6;
+}
+
+.patient-welcome h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0A0F1D;
+  margin-bottom: 8px;
+}
+
+.patient-welcome p {
+  font-size: 14px;
+  color: #64748B;
+}
+
+@media (max-width: 768px) {
+  .patient-welcome h1 {
+    font-size: 22px;
+  }
+}

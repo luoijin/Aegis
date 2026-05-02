@@ -1,0 +1,75 @@
+/* PatientAppointments.css */
+.appointments-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+}
+
+.appointments-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  color: #94A3B8;
+}
+
+.empty-state svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appointment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  background: #F8FAFC;
+}
+
+.appointment-date {
+  font-weight: 600;
+  font-size: 13px;
+  color: #0A0F1D;
+}
+
+.appointment-time {
+  font-size: 13px;
+  color: #3B82F6;
+}
+
+.appointment-type {
+  font-size: 12px;
+  color: #64748B;
+  padding: 2px 8px;
+  background: #EFF6FF;
+  border-radius: 12px;
+}
+
+.appointment-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #D1FAE5;
+  color: #059669;
+}
+
+@media (max-width: 768px) {
+  .appointment-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
