@@ -35,6 +35,7 @@ router.get('/referrals/:id', doctorController.getReferralById);
 
 // ========== APPOINTMENT SYSTEM ==========
 router.get('/appointments', doctorController.getAppointments);
+router.get('/appointments/stats', doctorController.getAppointmentStats);
 router.post('/appointments', doctorController.createAppointment);
 router.put('/appointments/:id', doctorController.updateAppointment);
 router.delete('/appointments/:id', doctorController.deleteAppointment);

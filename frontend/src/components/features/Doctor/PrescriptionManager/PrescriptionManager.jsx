@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Send, Download, Eye, X } from 'lucide-react';
+import { FileText, Plus, Send, Download, Eye, X, CheckCircle, Clock } from 'lucide-react';
 import { CreatePrescription } from './CreatePrescription';
-import { PrescriptionCard } from './PrescriptionCard';
 import { generatePrescriptionPDF } from '../../../../utils/pdfGenerator';
 import api from '../../../../services/api';
 import './PrescriptionManager.css';
@@ -10,7 +9,6 @@ export const PrescriptionManager = ({ doctorId, patients }) => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     fetchPrescriptions();
@@ -38,52 +36,40 @@ export const PrescriptionManager = ({ doctorId, patients }) => {
     }
   };
 
-
-    const handleSendToPatient = async (prescription) => {
+  const handleSendToPatient = async (prescription) => {
     try {
-        const patientUserId = prescription.patient?.user?._id;
-        
-        if (!patientUserId) {
+      const patientUserId = prescription.patient?.user?._id;
+      
+      if (!patientUserId) {
         alert('Patient not found');
         return;
-        }
+      }
 
-        // Use the correct notification endpoint
-        await api.post('/notifications', {
+      await api.post('/notifications', {
         recipient: patientUserId,
         type: 'prescription',
         title: 'New Prescription',
         message: `Dr. ${prescription.doctor?.profile?.firstName} ${prescription.doctor?.profile?.lastName} has issued a new prescription for you.`,
         data: { prescriptionId: prescription._id }
-        });
-        
-        alert('✓ Prescription sent to patient successfully!');
+      });
+      
+      alert('✓ Prescription sent to patient successfully!');
     } catch (error) {
-        console.error('Error sending prescription:', error);
-        // If notifications endpoint doesn't exist, show success anyway (prescription is still created)
-        alert('Prescription created! (Notification feature coming soon)');
+      console.error('Error sending prescription:', error);
+      alert('Prescription created! (Notification feature coming soon)');
     }
-    };
+  };
 
   const handleDownloadPDF = async (prescription) => {
     try {
       await generatePrescriptionPDF(prescription);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF');
+      alert('Failed to generate PDF. Please try again.');
     }
   };
 
-  const getFilteredPrescriptions = () => {
-    if (filter === 'all') return prescriptions;
-    return prescriptions.filter(p => p.isActive === (filter === 'active'));
-  };
-
-  const stats = {
-    total: prescriptions.length,
-    active: prescriptions.filter(p => p.isActive).length,
-    expired: prescriptions.filter(p => !p.isActive).length
-  };
+  const activeCount = prescriptions.filter(p => p.isActive === true).length;
 
   return (
     <div className="prescription-manager">
@@ -94,8 +80,7 @@ export const PrescriptionManager = ({ doctorId, patients }) => {
           <p>Create and manage digital prescriptions</p>
         </div>
         <button className="create-btn" onClick={() => setShowCreateForm(true)}>
-          <Plus size={18} />
-          New Prescription
+          <Plus size={18} /> New Prescription
         </button>
       </div>
 
@@ -106,62 +91,82 @@ export const PrescriptionManager = ({ doctorId, patients }) => {
             <FileText size={20} />
           </div>
           <div>
-            <div className="stat-value">{stats.total}</div>
-            <div className="stat-label">Total</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon active-icon">
-            <FileText size={20} />
-          </div>
-          <div>
-            <div className="stat-value">{stats.active}</div>
-            <div className="stat-label">Active</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon expired-icon">
-            <FileText size={20} />
-          </div>
-          <div>
-            <div className="stat-value">{stats.expired}</div>
-            <div className="stat-label">Expired</div>
+            <div className="stat-value">{prescriptions.length}</div>
+            <div className="stat-label">Total Prescriptions</div>
           </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="filter-tabs">
-        <button className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
-          All
-        </button>
-        <button className={`filter-tab ${filter === 'active' ? 'active' : ''}`} onClick={() => setFilter('active')}>
-          Active
-        </button>
-        <button className={`filter-tab ${filter === 'expired' ? 'active' : ''}`} onClick={() => setFilter('expired')}>
-          Expired
-        </button>
-      </div>
-
-      {/* Prescriptions List */}
+      {/* Prescriptions List - No Tabs */}
       <div className="prescriptions-list">
         {loading ? (
           <div className="empty-state">Loading prescriptions...</div>
-        ) : getFilteredPrescriptions().length === 0 ? (
+        ) : prescriptions.length === 0 ? (
           <div className="empty-state">
             <FileText size={48} />
             <p>No prescriptions found</p>
             <span>Click "New Prescription" to create one</span>
           </div>
         ) : (
-          getFilteredPrescriptions().map(prescription => (
-            <PrescriptionCard
-              key={prescription._id}
-              prescription={prescription}
-              onSend={() => handleSendToPatient(prescription)}
-              onDownload={() => handleDownloadPDF(prescription)}
-            />
-          ))
+          prescriptions.map(prescription => {
+            const patientName = `${prescription.patient?.user?.profile?.firstName || ''} ${prescription.patient?.user?.profile?.lastName || ''}`.trim();
+            const isActive = prescription.isActive;
+            
+            return (
+              <div key={prescription._id} className={`prescription-card ${!isActive ? 'inactive' : ''}`}>
+                <div className="card-header">
+                  <div className="patient-info">
+                    <div className="patient-initial">
+                      {patientName.charAt(0) || 'P'}
+                    </div>
+                    <div>
+                      <div className="patient-name">{patientName || 'Unknown Patient'}</div>
+                      <div className="prescription-date">
+                        <span>{new Date(prescription.issuedDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="card-badges">
+                    <div className="card-actions">
+                      <button className="action-btn" onClick={() => handleDownloadPDF(prescription)} title="Download PDF">
+                        <Download size={16} />
+                      </button>
+                      <button className="action-btn send" onClick={() => handleSendToPatient(prescription)} title="Send to Patient">
+                        <Send size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card-body">
+                  <div className="medications-list">
+                    {prescription.medications?.slice(0, 2).map((med, idx) => (
+                      <div key={idx} className="medication-item">
+                        <span className="med-name">{med.name}</span>
+                        <span className="med-dosage">{med.dosage}</span>
+                        <span className="med-frequency">{med.frequency}</span>
+                      </div>
+                    ))}
+                    {prescription.medications?.length > 2 && (
+                      <div className="more-meds">+{prescription.medications.length - 2} more medications</div>
+                    )}
+                  </div>
+                  {prescription.notes && (
+                    <div className="prescription-notes">
+                      <strong>Notes:</strong> {prescription.notes}
+                    </div>
+                  )}
+                </div>
+
+                <div className="card-footer">
+                  <span className="refills">Refills: {prescription.refillsRemaining || 0}</span>
+                  {!isActive && (
+                    <span className="completed-badge">Completed</span>
+                  )}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 

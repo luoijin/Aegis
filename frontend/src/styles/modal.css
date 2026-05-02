@@ -1,4 +1,6 @@
-/* AppointmentForm.css - Clean consistent design */
+/* ============================================
+   SHARED MODAL STYLES - Used by all modals
+   ============================================ */
 
 /* Modal Overlay */
 .modal-overlay {
@@ -15,11 +17,10 @@
   z-index: 10000;
 }
 
-/* Appointment Modal */
-.appointment-modal {
+/* Modal Container - Base styles, extend per modal */
+.modal-container {
   background: white;
   border-radius: 20px;
-  width: 550px;
   max-width: 90%;
   max-height: 90vh;
   overflow-y: auto;
@@ -64,7 +65,7 @@
 }
 
 /* Modal Form */
-.appointment-modal form {
+.modal-form {
   padding: 24px;
 }
 
@@ -85,21 +86,29 @@
   color: #EF4444;
 }
 
-/* Form Row (2 columns) */
+/* Form Row (multiple columns) */
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
 
-.form-row .form-group {
+.form-row-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-row .form-group,
+.form-row-2 .form-group {
   margin-bottom: 0;
 }
 
-/* Select, Input, Textarea */
-.form-group select,
+/* Inputs, Selects, Textareas */
 .form-group input,
+.form-group select,
 .form-group textarea {
   width: 100%;
   padding: 10px 12px;
@@ -111,8 +120,8 @@
   font-family: inherit;
 }
 
-.form-group select:focus,
 .form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: #3B82F6;
@@ -123,7 +132,14 @@
   resize: vertical;
 }
 
-/* Type Options - Button based */
+.field-hint {
+  display: inline-block;
+  font-size: 11px;
+  color: #94A3B8;
+  margin-top: 4px;
+}
+
+/* Type Options (Appointment Type, etc) */
 .type-options {
   display: flex;
   gap: 12px;
@@ -157,8 +173,147 @@
   color: #3B82F6;
 }
 
-.type-option svg {
-  flex-shrink: 0;
+/* Priority Options */
+.priority-options {
+  display: flex;
+  gap: 12px;
+}
+
+.priority-option {
+  flex: 1;
+  padding: 10px 12px;
+  background: white;
+  border: 2px solid #E2E8F0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748B;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.priority-option:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+
+.priority-option.selected.normal {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+
+.priority-option.selected.urgent {
+  border-color: #F59E0B;
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.priority-option.selected.emergency {
+  border-color: #EF4444;
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* Severity Options */
+.severity-options {
+  display: flex;
+  gap: 12px;
+}
+
+.severity-option {
+  flex: 1;
+  padding: 10px 12px;
+  background: white;
+  border: 2px solid #E2E8F0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748B;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.severity-option:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+
+.severity-option.selected {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+
+.severity-option.selected.mild {
+  border-color: #10B981;
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.severity-option.selected.moderate {
+  border-color: #F59E0B;
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.severity-option.selected.severe {
+  border-color: #EF4444;
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* Medications Row */
+.medications-list {
+  margin-bottom: 12px;
+}
+
+.medication-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.medication-row input {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.remove-med-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #EF4444;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.remove-med-btn:hover {
+  background: #FEE2E2;
+}
+
+.add-med-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px dashed #3B82F6;
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #3B82F6;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.add-med-btn:hover {
+  background: #EFF6FF;
 }
 
 /* Conflict Warning */
@@ -175,7 +330,18 @@
   color: #D97706;
 }
 
-/* Modal Actions */
+/* Error Message */
+.error-message {
+  background: #FEE2E2;
+  color: #DC2626;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  border: 1px solid #FECACA;
+}
+
+/* Modal Actions (Buttons) */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -214,11 +380,6 @@
   background: #2563EB;
 }
 
-.submit-btn.disabled {
-  background: #94A3B8;
-  cursor: not-allowed;
-}
-
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -226,13 +387,21 @@
 
 /* Responsive */
 @media (max-width: 640px) {
-  .form-row {
+  .form-row,
+  .form-row-2 {
     grid-template-columns: 1fr;
     gap: 0;
   }
   
-  .type-options {
+  .type-options,
+  .priority-options,
+  .severity-options {
     flex-direction: column;
+  }
+  
+  .medication-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
   
   .modal-actions {

@@ -1,10 +1,12 @@
+// frontend/src/components/features/Doctor/VitalsModal/VitalsModal.jsx
 import React, { useState } from 'react';
-import { VitalsForm } from './VitalsForm';
+import { X } from 'lucide-react';
 import api from '../../../../services/api';
-import './VitalsModal.css';
+import '../../../../styles/modal.css';
 
 export const VitalsModal = ({ patient, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [vitals, setVitals] = useState({
     heartRate: '',
     systolicBP: '',
@@ -17,10 +19,10 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
     try {
-      await api.post('/health-logs', {
-        patient: patient._id,
+      await api.post(`/doctor/patients/${patient._id}/health-logs`, {
         vitals: {
           heartRate: parseInt(vitals.heartRate),
           bloodPressure: {
@@ -34,10 +36,9 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
       });
       
       onSuccess();
-      onClose(); // Close modal after success
-    } catch (error) {
-      console.error('Error recording vitals:', error);
-      alert(error.response?.data?.message || 'Failed to record vitals');
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to record vitals');
     } finally {
       setLoading(false);
     }
@@ -47,18 +48,96 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-md" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Record Vitals for {firstName}</h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <h3>Record Vitals - {firstName}</h3>
+          <button className="close-btn" onClick={onClose}>
+            <X size={20} />
+          </button>
         </div>
-        <VitalsForm 
-          vitals={vitals}
-          setVitals={setVitals}
-          onSubmit={handleSubmit}
-          loading={loading}
-          onCancel={onClose}  // ← Pass onClose as onCancel
-        />
+
+        <form className="modal-form" onSubmit={handleSubmit}>
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Heart Rate <span className="required">*</span></label>
+              <input
+                type="number"
+                value={vitals.heartRate}
+                onChange={(e) => setVitals({...vitals, heartRate: e.target.value})}
+                placeholder="60-100"
+                required
+              />
+              <span className="field-hint">bpm</span>
+            </div>
+            <div className="form-group">
+              <label>Systolic BP <span className="required">*</span></label>
+              <input
+                type="number"
+                value={vitals.systolicBP}
+                onChange={(e) => setVitals({...vitals, systolicBP: e.target.value})}
+                placeholder="120"
+                required
+              />
+              <span className="field-hint">mmHg</span>
+            </div>
+            <div className="form-group">
+              <label>Diastolic BP <span className="required">*</span></label>
+              <input
+                type="number"
+                value={vitals.diastolicBP}
+                onChange={(e) => setVitals({...vitals, diastolicBP: e.target.value})}
+                placeholder="80"
+                required
+              />
+              <span className="field-hint">mmHg</span>
+            </div>
+          </div>
+
+          <div className="form-row-2">
+            <div className="form-group">
+              <label>Temperature</label>
+              <input
+                type="number"
+                step="0.1"
+                value={vitals.temperature}
+                onChange={(e) => setVitals({...vitals, temperature: e.target.value})}
+                placeholder="36.5"
+              />
+              <span className="field-hint">°C</span>
+            </div>
+            <div className="form-group">
+              <label>O₂ Saturation</label>
+              <input
+                type="number"
+                value={vitals.oxygenSaturation}
+                onChange={(e) => setVitals({...vitals, oxygenSaturation: e.target.value})}
+                placeholder="95-100"
+              />
+              <span className="field-hint">%</span>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Clinical Notes</label>
+            <textarea
+              value={vitals.notes}
+              onChange={(e) => setVitals({...vitals, notes: e.target.value})}
+              rows="3"
+              placeholder="Enter your clinical observations..."
+            />
+          </div>
+
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="submit-btn" disabled={loading}>
+              {loading ? 'Recording...' : 'Save Vitals'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

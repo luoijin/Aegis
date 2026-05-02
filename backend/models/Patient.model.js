@@ -20,7 +20,15 @@ const patientSchema = new mongoose.Schema({
   conditions: [{
     name: {
       type: String,
-      enum: ['Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 'Arthritis', 'COPD', 'Depression', 'Anxiety', 'Obesity', 'Thyroid Disorder', 'Kidney Disease', 'Other'],
+      enum: [
+        'Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 
+        'Arthritis', 'COPD', 'Depression', 'Anxiety', 
+        'Obesity', 'Thyroid Disorder', 'Kidney Disease',
+        'Cancer', 'Stroke', "Alzheimer's", "Parkinson's",
+        'Multiple Sclerosis', 'Epilepsy', 'HIV/AIDS',
+        'Hepatitis', 'Tuberculosis', 'Pneumonia',
+        'Bronchitis', 'Migraine', 'Osteoporosis'
+      ],
       required: true
     },
     severity: {

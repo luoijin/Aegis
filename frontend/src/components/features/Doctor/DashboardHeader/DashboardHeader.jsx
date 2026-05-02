@@ -9,6 +9,8 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
   const [showAccountModal, setShowAccountModal] = useState(false);
   const menuRef = useRef(null);
 
+  const logo = '/images/logo-dark.png';
+
   const tabs = [
     { id: 'patients', label: 'Patients', icon: <Users size={18} /> },
     { id: 'appointments', label: 'Appointments', icon: <Calendar size={18} /> },
@@ -43,7 +45,8 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
         <div className="header-container">
           {/* Logo */}
           <div className="logo">
-            <Stethoscope size={28} />
+            <img src={logo} alt="AEGIS Logo" className="logo-image" />
+
             <span>AEGIS</span>
           </div>
 

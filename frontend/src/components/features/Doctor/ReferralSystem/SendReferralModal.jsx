@@ -1,7 +1,7 @@
 // frontend/src/components/features/Doctor/ReferralSystem/SendReferralModal.jsx
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import './SendReferralModal.css';
+import '../../../../styles/modal.css';
 
 export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
   const [formData, setFormData] = useState({
@@ -12,17 +12,19 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
     notes: ''
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     await onSend(formData);
     setLoading(false);
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="send-referral-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-md" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Send Referral</h3>
           <button className="close-btn" onClick={onClose}>
@@ -30,30 +32,23 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form className="modal-form" onSubmit={handleSubmit}>
+          {error && <div className="error-message">{error}</div>}
+
           <div className="form-group">
-            <label>Select Patient *</label>
-            <select
-              value={formData.patientId}
-              onChange={(e) => setFormData({...formData, patientId: e.target.value})}
-              required
-            >
+            <label>Select Patient <span className="required">*</span></label>
+            <select value={formData.patientId} onChange={(e) => setFormData({...formData, patientId: e.target.value})} required>
               <option value="">Choose a patient</option>
-              {patients.map(patient => (
-                <option key={patient._id} value={patient._id}>
-                  {patient.user?.profile?.firstName} {patient.user?.profile?.lastName}
-                </option>
-              ))}
+              {patients.map(patient => {
+                const name = `${patient.user?.profile?.firstName || ''} ${patient.user?.profile?.lastName || ''}`.trim();
+                return <option key={patient._id} value={patient._id}>{name || 'Unknown Patient'}</option>;
+              })}
             </select>
           </div>
 
           <div className="form-group">
-            <label>Refer to Doctor *</label>
-            <select
-              value={formData.toDoctorId}
-              onChange={(e) => setFormData({...formData, toDoctorId: e.target.value})}
-              required
-            >
+            <label>Refer to Doctor <span className="required">*</span></label>
+            <select value={formData.toDoctorId} onChange={(e) => setFormData({...formData, toDoctorId: e.target.value})} required>
               <option value="">Choose a doctor</option>
               {doctors.map(doctor => (
                 <option key={doctor._id} value={doctor._id}>
@@ -64,36 +59,28 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
           </div>
 
           <div className="form-group">
-            <label>Priority *</label>
-            <select
-              value={formData.priority}
-              onChange={(e) => setFormData({...formData, priority: e.target.value})}
-            >
-              <option value="normal">Normal</option>
-              <option value="urgent">Urgent</option>
-              <option value="emergency">Emergency</option>
-            </select>
+            <label>Priority <span className="required">*</span></label>
+            <div className="priority-options">
+              <button type="button" className={`priority-option ${formData.priority === 'normal' ? 'selected normal' : ''}`} onClick={() => setFormData({...formData, priority: 'normal'})}>
+                Normal
+              </button>
+              <button type="button" className={`priority-option ${formData.priority === 'urgent' ? 'selected urgent' : ''}`} onClick={() => setFormData({...formData, priority: 'urgent'})}>
+                Urgent
+              </button>
+              <button type="button" className={`priority-option ${formData.priority === 'emergency' ? 'selected emergency' : ''}`} onClick={() => setFormData({...formData, priority: 'emergency'})}>
+                Emergency
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
-            <label>Reason for Referral *</label>
-            <textarea
-              value={formData.reason}
-              onChange={(e) => setFormData({...formData, reason: e.target.value})}
-              required
-              rows="3"
-              placeholder="Explain why you're referring this patient..."
-            />
+            <label>Reason for Referral <span className="required">*</span></label>
+            <textarea value={formData.reason} onChange={(e) => setFormData({...formData, reason: e.target.value})} required rows="3" placeholder="Explain why you're referring this patient..." />
           </div>
 
           <div className="form-group">
             <label>Additional Notes</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              rows="2"
-              placeholder="Any additional information for the receiving doctor..."
-            />
+            <textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows="2" placeholder="Any additional information for the receiving doctor..." />
           </div>
 
           <div className="modal-actions">
