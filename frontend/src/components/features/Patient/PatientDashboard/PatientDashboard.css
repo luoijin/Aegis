@@ -1,0 +1,89 @@
+/* PatientDashboard.css */
+.patient-dashboard {
+  min-height: 100vh;
+  background: #F8FAFC;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.patient-dashboard.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.patient-dashboard-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.patient-dashboard-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.patient-dashboard-container::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 3px;
+}
+
+.patient-dashboard-container::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+
+.patient-dashboard-container::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+.patient-dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+.error-state {
+  text-align: center;
+  padding: 60px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #FEE2E2;
+}
+
+.error-state p {
+  color: #DC2626;
+  margin-bottom: 16px;
+}
+
+.error-state button {
+  padding: 8px 20px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .patient-dashboard-content {
+    padding: 16px;
+  }
+}

@@ -1,0 +1,68 @@
+/* PatientVitals.css */
+.patient-vitals-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #E2E8F0;
+}
+
+.patient-vitals-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 16px;
+}
+
+.vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.vital-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 12px;
+}
+
+.vital-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vital-details {
+  flex: 1;
+}
+
+.vital-label {
+  display: block;
+  font-size: 11px;
+  color: #64748B;
+  margin-bottom: 2px;
+}
+
+.vital-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0A0F1D;
+}
+
+.vital-value span {
+  font-size: 11px;
+  font-weight: 400;
+  color: #94A3B8;
+}
+
+@media (max-width: 768px) {
+  .vitals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

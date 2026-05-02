@@ -1,0 +1,147 @@
+/* PatientHealthHistory.css */
+.health-history-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+}
+
+.health-history-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 16px;
+}
+
+.records-table-wrapper {
+  overflow-x: auto;
+}
+
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.records-table th,
+.records-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.records-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.records-table td {
+  font-size: 13px;
+  color: #475569;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge.critical {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.badge.warning {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.badge.normal {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.view-details-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #3B82F6;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.view-details-btn:hover {
+  background: #EFF6FF;
+}
+
+.expand-btn {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #3B82F6;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  color: #94A3B8;
+}
+
+/* Record Modal */
+.record-modal {
+  background: white;
+  border-radius: 16px;
+  width: 450px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 14px;
+  color: #475569;
+}
+
+.detail-row svg {
+  color: #3B82F6;
+}
+
+.notes-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.notes-section p {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .records-table th:nth-child(2),
+  .records-table td:nth-child(2),
+  .records-table th:nth-child(4),
+  .records-table td:nth-child(4) {
+    display: none;
+  }
+}
