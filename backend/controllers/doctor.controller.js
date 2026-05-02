@@ -217,7 +217,7 @@ exports.getConditionOptions = async (req, res) => {
       'Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 
       'Arthritis', 'COPD', 'Depression', 'Anxiety', 
       'Obesity', 'Thyroid Disorder', 'Kidney Disease',
-      'Cancer', 'Stroke', 'Alzheimer\'s', 'Parkinson\'s',
+      'Cancer', 'Stroke', "Alzheimer's", "Parkinson's",
       'Multiple Sclerosis', 'Epilepsy', 'HIV/AIDS',
       'Hepatitis', 'Tuberculosis', 'Pneumonia',
       'Bronchitis', 'Migraine', 'Osteoporosis'
@@ -761,12 +761,29 @@ exports.getReferralById = async (req, res) => {
 // ========== APPOINTMENT SYSTEM ==========
 exports.getAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find({ doctor: req.user._id })
-      .populate('patient', 'user')
-      .sort({ dateTime: -1 });
+    const { status, startDate, endDate } = req.query;
+    let query = { doctor: req.user._id };
     
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    if (startDate && endDate) {
+      query.dateTime = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+    
+    const appointments = await Appointment.find(query)
+      .populate('patient', 'user bloodType')
+      .sort({ dateTime: 1 });
+    
+    // Populate patient user details
     for (let apt of appointments) {
-      if (apt.patient) await apt.patient.populate('user', 'email profile');
+      if (apt.patient) {
+        await apt.patient.populate('user', 'email profile');
+      }
     }
     
     res.json(appointments);
@@ -778,15 +795,35 @@ exports.getAppointments = async (req, res) => {
 
 exports.createAppointment = async (req, res) => {
   try {
-    const { patientId, dateTime, type, reason, notes } = req.body;
+    const { patientId, dateTime, duration, type, reason, notes } = req.body;
     
+    // Verify patient exists and is assigned to this doctor
     const patient = await Patient.findById(patientId);
-    if (!patient) return res.status(404).json({ message: 'Patient not found' });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if patient is assigned to this doctor
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You can only schedule appointments with your assigned patients' });
+    }
+    
+    // Check for scheduling conflicts
+    const existingAppointment = await Appointment.findOne({
+      doctor: req.user._id,
+      dateTime: new Date(dateTime),
+      status: { $nin: ['cancelled', 'completed'] }
+    });
+    
+    if (existingAppointment) {
+      return res.status(409).json({ message: 'You already have an appointment at this time' });
+    }
     
     const appointment = new Appointment({
       patient: patientId,
       doctor: req.user._id,
       dateTime: new Date(dateTime),
+      duration: duration || 30,
       type: type || 'in-person',
       reason: reason || '',
       notes: notes || '',
@@ -795,12 +832,15 @@ exports.createAppointment = async (req, res) => {
     
     await appointment.save();
     await appointment.populate('patient', 'user');
+    await appointment.populate('doctor', 'email profile');
     
+    // Create notification for patient
+    const notificationController = require('./notification.controller');
     await notificationController.createNotification(
       patient.user,
-      'appointment_reminder',
-      '📅 Appointment Scheduled',
-      `Your appointment with Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} is scheduled for ${new Date(dateTime).toLocaleString()}`,
+      'appointment',
+      '📅 New Appointment Scheduled',
+      `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} scheduled an appointment with you on ${new Date(dateTime).toLocaleString()}`,
       { appointmentId: appointment._id, dateTime }
     );
     
@@ -814,15 +854,39 @@ exports.createAppointment = async (req, res) => {
 exports.updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, notes } = req.body;
+    const { status, notes, cancellationReason } = req.body;
     
     const appointment = await Appointment.findOneAndUpdate(
       { _id: id, doctor: req.user._id },
-      { status, notes },
+      { status, notes, cancellationReason },
       { new: true }
     ).populate('patient', 'user');
     
-    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    
+    await appointment.populate('doctor', 'email profile');
+    
+    // Create notification for patient about status change
+    if (appointment.patient?.user) {
+      const statusMessages = {
+        confirmed: 'confirmed',
+        cancelled: 'cancelled',
+        completed: 'marked as completed',
+        'no-show': 'marked as no-show'
+      };
+      
+      const notificationController = require('./notification.controller');
+      await notificationController.createNotification(
+        appointment.patient.user,
+        'appointment',
+        `Appointment ${statusMessages[status] || 'updated'}`,
+        `Your appointment with Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} has been ${statusMessages[status] || 'updated'}.`,
+        { appointmentId: appointment._id, status }
+      );
+    }
+    
     res.json(appointment);
   } catch (error) {
     console.error('Update appointment error:', error);
@@ -835,10 +899,47 @@ exports.deleteAppointment = async (req, res) => {
     const { id } = req.params;
     const appointment = await Appointment.findOneAndDelete({ _id: id, doctor: req.user._id });
     
-    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    
     res.json({ message: 'Appointment deleted successfully' });
   } catch (error) {
     console.error('Delete appointment error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get appointment statistics
+exports.getAppointmentStats = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const stats = {
+      total: await Appointment.countDocuments({ doctor: req.user._id }),
+      scheduled: await Appointment.countDocuments({ doctor: req.user._id, status: 'scheduled' }),
+      confirmed: await Appointment.countDocuments({ doctor: req.user._id, status: 'confirmed' }),
+      completed: await Appointment.countDocuments({ doctor: req.user._id, status: 'completed' }),
+      cancelled: await Appointment.countDocuments({ doctor: req.user._id, status: 'cancelled' }),
+      'no-show': await Appointment.countDocuments({ doctor: req.user._id, status: 'no-show' }),  // ← Add this
+      today: await Appointment.countDocuments({ 
+        doctor: req.user._id, 
+        dateTime: { $gte: today, $lt: tomorrow },
+        status: { $nin: ['cancelled', 'completed', 'no-show'] }
+      }),
+      upcoming: await Appointment.countDocuments({ 
+        doctor: req.user._id, 
+        dateTime: { $gt: new Date() },
+        status: { $nin: ['cancelled', 'completed', 'no-show'] }
+      })
+    };
+    
+    res.json(stats);
+  } catch (error) {
+    console.error('Get appointment stats error:', error);
     res.status(500).json({ message: error.message });
   }
 };

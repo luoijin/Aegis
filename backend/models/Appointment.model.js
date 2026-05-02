@@ -17,7 +17,8 @@ const appointmentSchema = new mongoose.Schema({
   },
   duration: {
     type: Number,
-    default: 30
+    default: 30,
+    enum: [15, 30, 45, 60]
   },
   type: {
     type: String,
@@ -26,7 +27,7 @@ const appointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['scheduled', 'confirmed', 'completed', 'cancelled'],
+    enum: ['scheduled', 'confirmed', 'completed', 'cancelled', 'no-show'],
     default: 'scheduled'
   },
   reason: {
@@ -36,7 +37,16 @@ const appointmentSchema = new mongoose.Schema({
   notes: {
     type: String,
     default: ''
+  },
+  cancellationReason: {
+    type: String,
+    default: ''
   }
 }, { timestamps: true });
+
+// Indexes for efficient queries
+appointmentSchema.index({ doctor: 1, dateTime: 1 });
+appointmentSchema.index({ patient: 1 });
+appointmentSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);

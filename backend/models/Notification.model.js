@@ -9,7 +9,8 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['referral_received', 'referral_accepted', 'referral_denied', 'doctor_assigned', 'vitals_alert'],
+    enum: ['referral_received', 'referral_accepted', 'referral_denied', 
+          'vitals_alert', 'appointment', 'doctor_assigned', 'prescription'],
     required: true
   },
   title: {
