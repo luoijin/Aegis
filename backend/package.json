@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "test": "jest",
     "test-db": "node test-db.js",
-    "seed": "node scripts/seedData.js"
+    "seed": "node scripts/seed.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

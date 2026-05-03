@@ -33,4 +33,7 @@ router.post('/specializations', adminController.createSpecialization);
 router.put('/specializations/:id', adminController.updateSpecialization);
 router.delete('/specializations/:id', adminController.deleteSpecialization);
 
+// Analytics
+router.get('/analytics/patients', adminController.getGlobalPatientAnalytics);
+
 module.exports = router;

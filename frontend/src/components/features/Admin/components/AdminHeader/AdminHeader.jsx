@@ -1,28 +1,46 @@
-import React from 'react';
-import { Bell, User } from 'lucide-react';
+// frontend/src/components/features/Admin/components/AdminHeader/AdminHeader.jsx
+
+import React, { useState, useRef, useEffect } from 'react';
+import { LogOut, User, Settings, ChevronDown } from 'lucide-react';
+import { AdminAccountModal } from '../AdminAccountModal/AdminAccountModal';
 import './AdminHeader.css';
 
-const AdminHeader = ({ user, pageTitle }) => {
+const logo = '/images/logo-dark.png'; // or use your logo
+
+export const AdminHeader = ({ user, onLogout, pageTitle, onUserUpdate, isSidebarCollapsed = false }) => {
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const menuRef = useRef(null);
+
+  const adminName = `${user?.profile?.firstName || ''} ${user?.profile?.lastName || ''}`.trim();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowAccountMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleAccountClick = () => {
+    setShowAccountMenu(false);
+    setShowAccountModal(true);
+  };
+
   return (
-    <header className="admin-header">
-      <div className="header-left">
-        <h1 className="page-title">{pageTitle}</h1>
-      </div>
-      <div className="header-right">
-        <button className="notification-btn">
-          <Bell size={20} />
-        </button>
-        <div className="user-info">
-          <div className="user-avatar">
-            {user?.profile?.firstName?.[0] || 'A'}
-          </div>
-          <div className="user-details">
-            <span className="user-name">Admin {user?.profile?.firstName || ''}</span>
-            <span className="user-role">Administrator</span>
-          </div>
+    <>
+      <header className={`admin-header ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="header-left">
+          <h1 className="page-title">{pageTitle}</h1>
         </div>
-      </div>
-    </header>
+  
+      </header>
+      {showAccountModal && (
+        <AdminAccountModal user={user} onClose={() => setShowAccountModal(false)} onUpdate={onUserUpdate} />
+      )}
+    </>
   );
 };
 

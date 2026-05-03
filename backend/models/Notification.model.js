@@ -4,13 +4,13 @@ const notificationSchema = new mongoose.Schema({
   recipient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   type: {
     type: String,
     enum: ['referral_received', 'referral_accepted', 'referral_denied', 
-          'vitals_alert', 'appointment', 'doctor_assigned', 'prescription', 'profile_update'],
+           'vitals_alert', 'appointment', 'doctor_assigned', 'prescription',
+           'profile_update', 'welcome', 'system'],
     required: true
   },
   title: {

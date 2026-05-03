@@ -5,7 +5,7 @@ import {
   Stethoscope, 
   Users, 
   Award,
-  LogOut
+  LogOut, TrendingUp
 } from 'lucide-react';
 import './AdminSidebar.css';
 
@@ -44,7 +44,8 @@ const AdminSidebar = ({ activePage, onPageChange, onLogout, onToggle, isCollapse
     { id: 'hospitals', label: 'Hospitals', icon: <Building2 size={18} /> },
     { id: 'doctors', label: 'Doctors', icon: <Stethoscope size={18} /> },
     { id: 'patients', label: 'Patients', icon: <Users size={18} /> },
-    { id: 'specializations', label: 'Specializations', icon: <Award size={18} /> }
+    { id: 'specializations', label: 'Specializations', icon: <Award size={18} /> },
+      { id: 'analytics', label: 'Analytics', icon: <TrendingUp size={18} /> } 
   ];
 
   return (
