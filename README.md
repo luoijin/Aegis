@@ -259,21 +259,12 @@ Create `.env` files in both backend and frontend folders (see below).
 
 ### Backend `.env` (backend/)
 ```env
-# Server Configuration
 NODE_ENV=development
 PORT=5000
 FRONTEND_URL=http://localhost:3000
-
-# Database
+JWT_SECRET=aegis_super_secret_key_2024_secure
 MONGODB_URI=mongodb://localhost:27017/aegis
 
-# Security
-JWT_SECRET=your_super_secret_jwt_key
-BCRYPT_ROUNDS=10
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=1000
 ```
 
 ### Frontend `.env` (frontend/)
@@ -452,6 +443,7 @@ Aegis/
     ├── public/
     │   └── images/
     │       └── logo-dark.png
+    │       └── logo-light.png
     └── src/
         ├── components/
         │   ├── common/
@@ -531,7 +523,16 @@ This project is for educational purposes as part of a school project.
 
 ## 👥 Team
 
-**Group 5** - Health Monitoring & mHealth API System
+**Group 5** - Health Monitoring & Health API System
+
+| Avatar | Name | GitHub | Contributions |
+|--------|------|--------|---------------|
+| <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Anne Loraine Pardillo** | [@luoijin](https://github.com/luoijin) | Developer |
+| <img src="https://github.com/janninobansag.png" width="50" height="50"/> | **Laica Cabatana** | [@janxxy](https://github.com/janninobansag) | |
+| <img src="https://github.com/raymondchavez333.png" width="50" height="50"/> | **Shyna Labay** | [@raymondchavez333](https://github.com/raymondchavez333) | Documentation |
+| <img src="https://github.com/janninobansag.png" width="50" height="50"/> | **Vincent Dumaguet** | [@janxxy](https://github.com/janninobansag) | Tester |
+| <img src="https://github.com/raymondchavez333.png" width="50" height="50"/> | **Kashana Mabanto** | [@raymondchavez333](https://github.com/raymondchavez333) | Documentation |
+
 
 ---
 
