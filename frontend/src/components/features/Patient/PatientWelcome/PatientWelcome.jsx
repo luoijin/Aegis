@@ -8,8 +8,8 @@ export const PatientWelcome = ({ user }) => {
 
   return (
     <div className="patient-welcome">
-      <h1>Welcome back, {firstName}!</h1>
-      <p>View your health records, prescriptions, and appointments.</p>
+      {/* <h1>Welcome back, {firstName}!</h1> */}
+      {/* <p>View your health records, prescriptions, and appointments.</p> */}
     </div>
   );
 };

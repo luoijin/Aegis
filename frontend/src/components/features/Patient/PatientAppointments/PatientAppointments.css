@@ -1,21 +1,190 @@
-/* PatientAppointments.css */
+/* PatientAppointments.css - Clean professional table */
 .appointments-card {
   background: white;
   border-radius: 16px;
-  padding: 20px;
   border: 1px solid #E2E8F0;
+  overflow: hidden;
+  margin-bottom: 24px;
 }
 
-.appointments-card h3 {
+.card-header {
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.card-header h3 {
   font-size: 14px;
   font-weight: 600;
   color: #64748B;
-  margin-bottom: 16px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
+.card-header h3 svg {
+  color: #3B82F6;
+}
+
+/* Appointments List */
+.appointments-list {
+  padding: 0;
+}
+
+/* Appointment Group */
+.appointment-group {
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.appointment-group:last-child {
+  border-bottom: none;
+}
+
+/* Group Header */
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.group-header svg {
+  color: #64748B;
+}
+
+.group-header span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+/* Table Wrapper */
+.appointments-table-wrapper {
+  overflow-x: auto;
+}
+
+/* Appointments Table */
+.appointments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.appointments-table th {
+  text-align: left;
+  padding: 12px 80px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.appointments-table td {
+  padding: 14px 80px;
+  font-size: 13px;
+  color: #475569;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.appointments-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+/* Time Column */
+.col-time {
+  white-space: nowrap;
+  width: 140px;
+}
+
+.col-time svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  color: #94A3B8;
+}
+
+.col-time span {
+  vertical-align: middle;
+}
+
+.duration {
+  font-size: 11px;
+  color: #94A3B8;
+  margin-left: 6px;
+}
+
+/* Type Column */
+.col-type {
+  white-space: nowrap;
+  width: 110px;
+}
+
+.col-type svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  color: #64748B;
+}
+
+.col-type span {
+  vertical-align: middle;
+}
+
+/* Status Column */
+.col-status {
+  white-space: nowrap;
+  width: 110px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-scheduled {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.status-confirmed {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.status-completed {
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+
+.status-cancelled {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.status-no-show {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* Reason Column */
+.col-reason {
+  color: #64748B;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty State */
 .empty-state {
   text-align: center;
-  padding: 60px;
+  padding: 60px 20px;
   color: #94A3B8;
 }
 
@@ -24,52 +193,27 @@
   color: #CBD5E1;
 }
 
-.appointments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.empty-state p {
+  margin-bottom: 4px;
+  font-size: 14px;
 }
 
-.appointment-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
-  background: #F8FAFC;
-}
-
-.appointment-date {
-  font-weight: 600;
-  font-size: 13px;
-  color: #0A0F1D;
-}
-
-.appointment-time {
-  font-size: 13px;
-  color: #3B82F6;
-}
-
-.appointment-type {
+.empty-state span {
   font-size: 12px;
-  color: #64748B;
-  padding: 2px 8px;
-  background: #EFF6FF;
-  border-radius: 12px;
 }
 
-.appointment-status {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: #D1FAE5;
-  color: #059669;
-}
-
+/* Responsive */
 @media (max-width: 768px) {
-  .appointment-item {
-    flex-wrap: wrap;
-    gap: 8px;
+  .group-header {
+    padding: 10px 16px;
+  }
+  
+  .appointments-table th,
+  .appointments-table td {
+    padding: 10px 12px;
+  }
+  
+  .col-reason {
+    max-width: 150px;
   }
 }

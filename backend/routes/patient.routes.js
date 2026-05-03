@@ -6,7 +6,7 @@ const { authenticate, authorize } = require('../middleware/auth.middleware');
 // Apply authentication to all routes
 router.use(authenticate);
 
-// ========== TEST ROUTE (remove after testing) ==========
+// ========== TEST ROUTE ==========
 router.get('/test', (req, res) => {
   res.json({ message: 'Patient routes working', userId: req.user?._id });
 });
@@ -18,6 +18,9 @@ router.get('/my-prescriptions', authorize('patient'), patientController.getMyPre
 router.get('/my-appointments', authorize('patient'), patientController.getMyAppointments);
 router.get('/my-referrals', authorize('patient'), patientController.getMyReferrals);
 router.get('/my-doctor', authorize('patient'), patientController.getMyDoctorInfo);
+
+// ========== BLOOD TYPE UPDATE - MUST BE BEFORE /:id ==========
+router.put('/:id/blood-type', authenticate, authorize('doctor', 'admin'), patientController.updatePatientBloodType);
 
 // ========== EXISTING ROUTES ==========
 router.get('/', patientController.getAllPatients);
@@ -43,8 +46,5 @@ router.post('/:patientId/approve-doctor-change', authenticate, patientController
 router.post('/:patientId/reject-doctor-change', authenticate, patientController.rejectDoctorChange);
 router.get('/:patientId/notifications', authenticate, patientController.getNotifications);
 router.patch('/:patientId/notifications/:notificationId/read', authenticate, patientController.markNotificationRead);
-
-// Update patient's blood type
-router.put('/blood-type', authenticate, authorize('patient'), patientController.updateBloodType);
 
 module.exports = router;

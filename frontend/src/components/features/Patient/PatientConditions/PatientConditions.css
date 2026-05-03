@@ -1,0 +1,94 @@
+/* PatientConditions.css */
+.patient-conditions-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.card-header {
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.card-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header h3 svg {
+  color: #3B82F6;
+}
+
+.conditions-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.condition-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border-radius: 10px;
+}
+
+.condition-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0A0F1D;
+}
+
+.condition-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.diagnosed-date {
+  font-size: 11px;
+  color: #64748B;
+}
+
+.no-conditions {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94A3B8;
+}
+
+.no-conditions svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+.no-conditions p {
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .condition-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

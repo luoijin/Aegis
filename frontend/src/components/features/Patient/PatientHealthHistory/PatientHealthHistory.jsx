@@ -1,6 +1,6 @@
 // frontend/src/components/features/Patient/PatientHealthHistory/PatientHealthHistory.jsx
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Eye, X, Clock, Activity, Thermometer, Droplet, AlertCircle, CheckCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Eye, X, Clock, Activity, Thermometer, Droplet, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 import './PatientHealthHistory.css';
 
 export const PatientHealthHistory = ({ healthLogs, showAll = false }) => {
@@ -14,17 +14,23 @@ export const PatientHealthHistory = ({ healthLogs, showAll = false }) => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-    const getStatusBadge = (status) => {
+  const getStatusBadge = (status) => {
     if (status === 'critical') return <span className="badge critical"><AlertCircle size={12} /> Critical</span>;
     if (status === 'warning') return <span className="badge warning"><AlertCircle size={12} /> Warning</span>;
     return <span className="badge normal"><CheckCircle size={12} /> Normal</span>;
-    };
+  };
 
   if (healthLogs.length === 0) {
     return (
       <div className="health-history-card">
-        <h3>Health History</h3>
-        <div className="empty-state">No health records available</div>
+        <div className="card-header">
+          <h3><FileText size={16} /> Health History</h3>
+        </div>
+        <div className="empty-state">
+          <FileText size={48} />
+          <p>No health records available</p>
+          <span>Your vitals will appear here once recorded</span>
+        </div>
       </div>
     );
   }
@@ -32,7 +38,9 @@ export const PatientHealthHistory = ({ healthLogs, showAll = false }) => {
   return (
     <>
       <div className="health-history-card">
-        <h3>Health History</h3>
+        <div className="card-header">
+          <h3><FileText size={16} /> Health History</h3>
+        </div>
         
         <div className="records-table-wrapper">
           <table className="records-table">
@@ -76,46 +84,52 @@ export const PatientHealthHistory = ({ healthLogs, showAll = false }) => {
       </div>
 
       {/* Record Details Modal */}
-      {selectedRecord && (
-        <div className="modal-overlay" onClick={() => setSelectedRecord(null)}>
-          <div className="record-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Health Record Details</h3>
-              <button className="close-btn" onClick={() => setSelectedRecord(null)}>
-                <X size={20} />
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="detail-row">
-                <Clock size={16} />
-                <span>{formatDate(selectedRecord.createdAt)}</span>
-              </div>
-              <div className="detail-row">
-                <Activity size={16} />
-                <span>Heart Rate: {selectedRecord.vitals?.heartRate || '--'} bpm</span>
-              </div>
-              <div className="detail-row">
-                <Activity size={16} />
-                <span>Blood Pressure: {selectedRecord.vitals?.bloodPressure?.systolic || '--'}/{selectedRecord.vitals?.bloodPressure?.diastolic || '--'} mmHg</span>
-              </div>
-              <div className="detail-row">
-                <Thermometer size={16} />
-                <span>Temperature: {selectedRecord.vitals?.temperature || '--'} °C</span>
-              </div>
-              <div className="detail-row">
-                <Droplet size={16} />
-                <span>O₂ Saturation: {selectedRecord.vitals?.oxygenSaturation || '--'}%</span>
-              </div>
-              {selectedRecord.notes && (
-                <div className="notes-section">
-                  <strong>Notes:</strong>
-                  <p>{selectedRecord.notes}</p>
-                </div>
-              )}
-            </div>
-          </div>
+{/* Record Details Modal - Cleaner layout */}
+{selectedRecord && (
+  <div className="modal-overlay" onClick={() => setSelectedRecord(null)}>
+    <div className="modal-container modal-md" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-header">
+        <h3>Health Record Details</h3>
+        <button className="close-btn" onClick={() => setSelectedRecord(null)}>
+          <X size={18} />
+        </button>
+      </div>
+      <div className="modal-body">
+        <div className="detail-row">
+          <Clock size={16} />
+          <strong>Date & Time:</strong>
+          <span>{formatDate(selectedRecord.createdAt)}</span>
         </div>
-      )}
+        <div className="detail-row">
+          <Activity size={16} />
+          <strong>Heart Rate:</strong>
+          <span>{selectedRecord.vitals?.heartRate || '--'} bpm</span>
+        </div>
+        <div className="detail-row">
+          <Activity size={16} />
+          <strong>Blood Pressure:</strong>
+          <span>{selectedRecord.vitals?.bloodPressure?.systolic || '--'}/{selectedRecord.vitals?.bloodPressure?.diastolic || '--'} mmHg</span>
+        </div>
+        <div className="detail-row">
+          <Thermometer size={16} />
+          <strong>Temperature:</strong>
+          <span>{selectedRecord.vitals?.temperature || '--'} °C</span>
+        </div>
+        <div className="detail-row">
+          <Droplet size={16} />
+          <strong>O₂ Saturation:</strong>
+          <span>{selectedRecord.vitals?.oxygenSaturation || '--'}%</span>
+        </div>
+        {selectedRecord.notes && (
+          <div className="notes-section">
+            <strong>Notes:</strong>
+            <p>{selectedRecord.notes}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
     </>
   );
 };

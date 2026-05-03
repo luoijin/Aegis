@@ -536,19 +536,63 @@ exports.getMyDoctorInfo = async (req, res) => {
 };
 
 // Update patient's blood type
-exports.updateBloodType = async (req, res) => {
+// exports.updateBloodType = async (req, res) => {
+//   try {
+//     const { bloodType } = req.body;
+    
+//     const patient = await Patient.findOne({ user: req.user._id });
+//     if (!patient) {
+//       return res.status(404).json({ message: 'Patient not found' });
+//     }
+    
+//     patient.bloodType = bloodType;
+//     await patient.save();
+    
+//     res.json({ message: 'Blood type updated successfully', bloodType: patient.bloodType });
+//   } catch (error) {
+//     console.error('Update blood type error:', error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// Update patient blood type (Doctor/Admin only)
+exports.updatePatientBloodType = async (req, res) => {
+  console.log('=== updatePatientBloodType called ===');
+  console.log('Params:', req.params);
+  console.log('Body:', req.body);
+  console.log('User role:', req.user?.role);
+  
   try {
+    const { id } = req.params;
     const { bloodType } = req.body;
     
-    const patient = await Patient.findOne({ user: req.user._id });
+    console.log(`Looking for patient with ID: ${id}`);
+    
+    const patient = await Patient.findById(id);
     if (!patient) {
+      console.log('Patient not found!');
       return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    console.log(`Found patient: ${patient._id}`);
+    console.log(`Current blood type: ${patient.bloodType}`);
+    console.log(`New blood type: ${bloodType}`);
+    
+    // Check if doctor has access to this patient
+    if (req.user.role === 'doctor') {
+      console.log(`Doctor ID: ${req.user._id}`);
+      console.log(`Patient assigned doctor: ${patient.assignedDoctor}`);
+      if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+        console.log('Access denied - doctor not assigned to this patient');
+        return res.status(403).json({ message: 'Access denied' });
+      }
     }
     
     patient.bloodType = bloodType;
     await patient.save();
     
-    res.json({ message: 'Blood type updated successfully', bloodType: patient.bloodType });
+    console.log('Blood type updated successfully!');
+    res.json({ message: 'Blood type updated successfully', patient });
   } catch (error) {
     console.error('Update blood type error:', error);
     res.status(500).json({ message: error.message });

@@ -87,3 +87,84 @@
     padding: 16px;
   }
 }
+
+/* PatientDashboard.css - Add these shared card styles */
+
+/* Shared card styles for all tabs */
+.info-card,
+.vitals-card,
+.history-card,
+.prescriptions-card,
+.appointments-card,
+.referrals-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.card-header {
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.card-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header h3 svg {
+  color: #3B82F6;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94A3B8;
+}
+
+.empty-state svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+.empty-state p {
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.empty-state span {
+  font-size: 12px;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.overview-left {
+  min-width: 0;
+}
+
+.overview-right {
+  align-self: start;
+}
+
+@media (max-width: 1024px) {
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
