@@ -1,5 +1,6 @@
 const Patient = require('../models/Patient.model');
 const HealthLog = require('../models/HealthLog.model');
+const Appointment = require('../models/Appointment.model');
 
 const calculateAverage = (numbers) => {
   const validNumbers = numbers.filter(n => n && !isNaN(n));
@@ -422,7 +423,10 @@ exports.getOwnProfile = async (req, res) => {
   try {
     const patient = await Patient.findOne({ user: req.user._id })
       .populate('user', 'email profile isActive')
-      .populate('assignedDoctor', 'email profile specialization licenseNumber');
+      .populate({
+        path: 'assignedDoctor',
+        populate: { path: 'hospital', select: 'name address phone' }
+      });
     
     if (!patient) {
       return res.status(404).json({ message: 'Patient profile not found' });
@@ -483,10 +487,9 @@ exports.getMyAppointments = async (req, res) => {
       return res.status(404).json({ message: 'Patient not found' });
     }
     
-    const Appointment = require('../models/Appointment.model');
-    
     const appointments = await Appointment.find({ patient: patient._id })
       .populate('doctor', 'email profile specialization')
+      .populate('hospital', 'name address phone')  // Ensure this field exists
       .sort({ dateTime: -1 });
     
     res.json(appointments);

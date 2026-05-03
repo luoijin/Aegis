@@ -1,6 +1,6 @@
 // frontend/src/components/features/Patient/PatientAppointments/PatientAppointments.jsx
 import React from 'react';
-import { Calendar, Clock, MapPin, Video, Phone } from 'lucide-react';
+import { Calendar, Clock, MapPin, Video, Phone, Building, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import './PatientAppointments.css';
 
 export const PatientAppointments = ({ appointments }) => {
@@ -29,19 +29,25 @@ export const PatientAppointments = ({ appointments }) => {
 
   const getTypeLabel = (type) => {
     switch(type) {
-      case 'video': return 'Video';
-      case 'phone': return 'Phone';
+      case 'video': return 'Video Call';
+      case 'phone': return 'Phone Call';
       default: return 'In-Person';
+    }
+  };
+
+  const getStatusConfig = (status) => {
+    switch(status) {
+      case 'confirmed': return { icon: <CheckCircle size={12} />, class: 'confirmed', label: 'Confirmed' };
+      case 'completed': return { icon: <CheckCircle size={12} />, class: 'completed', label: 'Completed' };
+      case 'cancelled': return { icon: <XCircle size={12} />, class: 'cancelled', label: 'Cancelled' };
+      case 'no-show': return { icon: <AlertCircle size={12} />, class: 'no-show', label: 'No Show' };
+      default: return { icon: <Clock size={12} />, class: 'scheduled', label: 'Scheduled' };
     }
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { 
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const formatTime = (dateString) => {
@@ -52,34 +58,12 @@ export const PatientAppointments = ({ appointments }) => {
   // Group appointments by date
   const groupedAppointments = appointments.reduce((groups, apt) => {
     const dateKey = new Date(apt.dateTime).toDateString();
-    if (!groups[dateKey]) {
-      groups[dateKey] = [];
-    }
+    if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push(apt);
     return groups;
   }, {});
 
   const sortedDates = Object.keys(groupedAppointments).sort((a, b) => new Date(b) - new Date(a));
-
-  const getStatusClass = (status) => {
-    switch(status) {
-      case 'confirmed': return 'status-confirmed';
-      case 'completed': return 'status-completed';
-      case 'cancelled': return 'status-cancelled';
-      case 'no-show': return 'status-no-show';
-      default: return 'status-scheduled';
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    switch(status) {
-      case 'confirmed': return 'Confirmed';
-      case 'completed': return 'Completed';
-      case 'cancelled': return 'Cancelled';
-      case 'no-show': return 'No Show';
-      default: return 'Scheduled';
-    }
-  };
 
   return (
     <div className="appointments-card">
@@ -101,32 +85,63 @@ export const PatientAppointments = ({ appointments }) => {
                   <tr>
                     <th>Time</th>
                     <th>Type</th>
+                    <th>Location / Hospital</th>
                     <th>Status</th>
                     <th>Reason</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {groupedAppointments[dateKey].map(apt => (
-                    <tr key={apt._id}>
-                      <td className="col-time">
-                        <Clock size={12} />
-                        <span>{formatTime(apt.dateTime)}</span>
-                        <span className="duration">({apt.duration || 30} min)</span>
-                      </td>
-                      <td className="col-type">
-                        {getTypeIcon(apt.type)}
-                        <span>{getTypeLabel(apt.type)}</span>
-                      </td>
-                      <td className="col-status">
-                        <span className={`status-badge ${getStatusClass(apt.status)}`}>
-                          {getStatusLabel(apt.status)}
-                        </span>
-                      </td>
-                      <td className="col-reason">
-                        {apt.reason || '—'}
-                      </td>
-                    </tr>
-                  ))}
+                  {groupedAppointments[dateKey].map(apt => {
+                    const statusConfig = getStatusConfig(apt.status);
+                    const hospital = apt.hospital;
+                    
+                    return (
+                      <tr key={apt._id}>
+                        <td className="col-time">
+                          <Clock size={12} />
+                          <span>{formatTime(apt.dateTime)}</span>
+                          <span className="duration">({apt.duration || 30} min)</span>
+                        </td>
+                        <td className="col-type">
+                          {getTypeIcon(apt.type)}
+                          <span>{getTypeLabel(apt.type)}</span>
+                        </td>
+                        <td className="col-location">
+                          {apt.type === 'video' ? (
+                            <span className="video-link">Video call link will be sent</span>
+                          ) : apt.type === 'phone' ? (
+                            <span className="phone-call">Phone consultation</span>
+                          ) : (
+                            <div className="location-info">
+                              {hospital ? (
+                                <>
+                                  <Building size={12} />
+                                  <span className="hospital-name">{hospital.name}</span>
+                                  {apt.location?.room && <span className="room-info">({apt.location.room})</span>}
+                                  {hospital.address?.street && (
+                                    <span className="hospital-address">
+                                      {hospital.address.street}, {hospital.address.city}
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="no-location">Location to be confirmed</span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="col-status">
+                          <span className={`status-badge ${statusConfig.class}`}>
+                            {statusConfig.icon}
+                            {statusConfig.label}
+                          </span>
+                        </td>
+                        <td className="col-reason">
+                          {apt.reason || '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

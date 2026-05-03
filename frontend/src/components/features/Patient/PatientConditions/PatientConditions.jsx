@@ -32,7 +32,7 @@ export const PatientConditions = ({ conditions }) => {
   return (
     <div className="patient-conditions-card">
       <div className="card-header">
-        <h3><Activity size={16} /> Medical Conditions</h3>
+        <h3>Medical Conditions</h3>
       </div>
       
       <div className="conditions-list">

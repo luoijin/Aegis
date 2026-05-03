@@ -362,3 +362,133 @@
     width: 100%;
   }
 }
+
+/* Add to doctor-modal.css or a separate file */
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrapper svg {
+  position: absolute;
+  left: 12px;
+  color: #94A3B8;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3B82F6;
+}
+
+.patients-list-modal {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 16px;
+}
+
+.patient-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.patient-item:hover {
+  background: #F8FAFC;
+}
+
+.patient-name {
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 4px;
+}
+
+.patient-email {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.add-patient-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.add-patient-btn:hover {
+  background: #2563EB;
+}
+
+.add-patient-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.empty-state, .loading-state {
+  text-align: center;
+  padding: 40px;
+  color: #94A3B8;
+}
+
+.hospital-info-static {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+.hospital-info-static .hospital-details {
+  flex: 1;
+}
+
+.hospital-info-static .hospital-name {
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 4px;
+}
+
+.hospital-info-static .hospital-address,
+.hospital-info-static .hospital-phone {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.hospital-info-static .hospital-note {
+  font-size: 11px;
+  color: #94A3B8;
+  font-style: italic;
+}
+
+.loading-indicator {
+  padding: 12px;
+  color: #64748B;
+  font-size: 13px;
+}
+
+.field-note {
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 4px;
+}

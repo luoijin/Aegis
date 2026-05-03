@@ -1,4 +1,4 @@
-/* PatientAppointments.css - Clean professional table */
+/* PatientAppointments.css - Single line rows, horizontal scroll if needed */
 .appointments-card {
   background: white;
   border-radius: 16px;
@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 20px;
+  padding: 12px 20px;
   background: #F8FAFC;
   border-bottom: 1px solid #E2E8F0;
 }
@@ -56,129 +56,177 @@
 }
 
 .group-header span {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #0A0F1D;
 }
 
-/* Table Wrapper */
+/* Table Wrapper - enables horizontal scroll on small screens */
 .appointments-table-wrapper {
   overflow-x: auto;
 }
 
-/* Appointments Table */
+/* Appointments Table - fixed layout with nowrap */
 .appointments-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
+  min-width: 800px;  /* Ensures horizontal scroll on narrow screens */
+}
+
+/* Column widths */
+.appointments-table th:nth-child(1),
+.appointments-table td:nth-child(1) {
+  width: 120px;  /* Time column */
+}
+
+.appointments-table th:nth-child(2),
+.appointments-table td:nth-child(2) {
+  width: 100px;  /* Type column */
+}
+
+.appointments-table th:nth-child(3),
+.appointments-table td:nth-child(3) {
+  width: 280px;  /* Location column - enough for most addresses */
+}
+
+.appointments-table th:nth-child(4),
+.appointments-table td:nth-child(4) {
+  width: 110px;  /* Status column */
+}
+
+.appointments-table th:nth-child(5),
+.appointments-table td:nth-child(5) {
+  width: 200px;  /* Reason column */
 }
 
 .appointments-table th {
   text-align: left;
-  padding: 12px 80px;
+  padding: 12px 16px;
   font-size: 12px;
   font-weight: 600;
   color: #64748B;
   background: #F8FAFC;
   border-bottom: 1px solid #E2E8F0;
+  white-space: nowrap;
 }
 
 .appointments-table td {
-  padding: 14px 80px;
+  padding: 14px 16px;
   font-size: 13px;
   color: #475569;
   border-bottom: 1px solid #F1F5F9;
+  white-space: nowrap;        /* Keep content on one line */
+  overflow: hidden;
+  text-overflow: ellipsis;    /* Optional: add ellipsis if text overflows column width */
 }
 
-.appointments-table tbody tr:hover {
-  background: #F8FAFC;
-}
-
-/* Time Column */
+/* Time column */
 .col-time {
   white-space: nowrap;
-  width: 140px;
 }
 
 .col-time svg {
-  display: inline-block;
-  vertical-align: middle;
+  display: inline;
   margin-right: 6px;
-  color: #94A3B8;
-}
-
-.col-time span {
   vertical-align: middle;
+  color: #94A3B8;
 }
 
 .duration {
   font-size: 11px;
   color: #94A3B8;
-  margin-left: 6px;
+  margin-left: 4px;
 }
 
-/* Type Column */
-.col-type {
-  white-space: nowrap;
-  width: 110px;
-}
-
+/* Type column */
 .col-type svg {
-  display: inline-block;
-  vertical-align: middle;
   margin-right: 6px;
+  vertical-align: middle;
   color: #64748B;
 }
 
-.col-type span {
-  vertical-align: middle;
-}
-
-/* Status Column */
-.col-status {
+/* Location column - keep inline elements */
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   white-space: nowrap;
-  width: 110px;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.status-scheduled {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.status-confirmed {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-.status-completed {
-  background: #EFF6FF;
+.location-info svg {
+  flex-shrink: 0;
   color: #3B82F6;
 }
 
-.status-cancelled {
-  background: #FEE2E2;
-  color: #DC2626;
+.hospital-name {
+  font-weight: 500;
+  color: #0A0F1D;
 }
 
-.status-no-show {
-  background: #FEE2E2;
-  color: #DC2626;
-}
-
-/* Reason Column */
-.col-reason {
+.room-info {
+  font-size: 11px;
   color: #64748B;
-  max-width: 250px;
+  background: #F1F5F9;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.hospital-address {
+  font-size: 11px;
+  color: #64748B;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.video-link, .phone-call, .no-location {
+  font-style: italic;
+  color: #64748B;
+  white-space: nowrap;
+}
+
+/* Status column */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Status colors */
+.status-badge.scheduled {
+  background: #FEF3C7;
+  color: #D97706;
+}
+.status-badge.confirmed {
+  background: #D1FAE5;
+  color: #059669;
+}
+.status-badge.completed {
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+.status-badge.cancelled {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+.status-badge.no-show {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* Reason column */
+.col-reason {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 200px;
 }
 
 /* Empty State */
@@ -193,27 +241,9 @@
   color: #CBD5E1;
 }
 
-.empty-state p {
-  margin-bottom: 4px;
-  font-size: 14px;
-}
-
-.empty-state span {
-  font-size: 12px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .group-header {
-    padding: 10px 16px;
-  }
-  
-  .appointments-table th,
-  .appointments-table td {
-    padding: 10px 12px;
-  }
-  
-  .col-reason {
-    max-width: 150px;
+/* Responsive: allow horizontal scroll */
+@media (max-width: 900px) {
+  .appointments-table-wrapper {
+    overflow-x: auto;
   }
 }

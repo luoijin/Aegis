@@ -48,7 +48,7 @@ export const HospitalSelector = ({ value, onChange, className = '' }) => {
         <option value="">Select Hospital</option>
         {hospitals.map(hospital => (
           <option key={hospital._id} value={hospital._id}>
-            {hospital.name} - {hospital.address?.city}
+            {hospital.name} - {hospital.address?.city || 'No city'}
           </option>
         ))}
       </select>
@@ -56,19 +56,19 @@ export const HospitalSelector = ({ value, onChange, className = '' }) => {
       {selectedHospital && (
         <div className="hospital-info">
           <div className="info-row">
-            <MapPin size={14} />
-            <span>{selectedHospital.address?.street}, {selectedHospital.address?.city}</span>
+            <Building size={14} />
+            <span>{selectedHospital.name}</span>
           </div>
+          {selectedHospital.address?.street && (
+            <div className="info-row">
+              <MapPin size={14} />
+              <span>{selectedHospital.address.street}, {selectedHospital.address.city}</span>
+            </div>
+          )}
           {selectedHospital.phone && (
             <div className="info-row">
               <Phone size={14} />
               <span>{selectedHospital.phone}</span>
-            </div>
-          )}
-          {selectedHospital.email && (
-            <div className="info-row">
-              <Mail size={14} />
-              <span>{selectedHospital.email}</span>
             </div>
           )}
         </div>

@@ -8,7 +8,7 @@ export const CreatePrescription = ({ patients, onClose, onSubmit }) => {
     patientId: '',
     medications: [{ name: '', dosage: '', frequency: '', duration: '' }],
     notes: '',
-    refillsRemaining: 0
+    refillsRemaining: ''  // Start as empty string, not 0
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -35,8 +35,23 @@ export const CreatePrescription = ({ patients, onClose, onSubmit }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    await onSubmit(formData);
+    
+    // Convert refillsRemaining to number before submitting
+    const submitData = {
+      ...formData,
+      refillsRemaining: formData.refillsRemaining === '' ? 0 : parseInt(formData.refillsRemaining, 10)
+    };
+    
+    await onSubmit(submitData);
     setLoading(false);
+  };
+
+  const handleRefillsChange = (e) => {
+    // Allow only digits and empty string
+    const value = e.target.value;
+    if (value === '' || /^\d+$/.test(value)) {
+      setFormData({ ...formData, refillsRemaining: value });
+    }
   };
 
   return (
@@ -120,10 +135,12 @@ export const CreatePrescription = ({ patients, onClose, onSubmit }) => {
           <div className="doctor-form-group">
             <label>Refills Remaining</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="\d*"
               value={formData.refillsRemaining}
-              onChange={(e) => setFormData({...formData, refillsRemaining: parseInt(e.target.value)})}
-              min="0"
+              onChange={handleRefillsChange}
+              placeholder="0"
             />
           </div>
 

@@ -212,6 +212,7 @@ const DoctorDashboard = () => {
             onSearchChange={setSearchTerm}
             loading={loading}
             healthLogs={healthLogs}
+            onPatientAdd={fetchPatients} 
           />
         )}
 

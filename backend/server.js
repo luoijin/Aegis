@@ -14,6 +14,8 @@ const healthLogRoutes = require('./routes/healthLog.routes');
 const adminRoutes = require('./routes/admin.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const hospitalRoutes = require('./routes/hospital.routes');
+
 
 const app = express();
 
@@ -60,6 +62,8 @@ app.use('/api/health-logs', healthLogRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/hospitals', hospitalRoutes);
+
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {

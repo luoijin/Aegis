@@ -761,22 +761,17 @@ exports.getReferralById = async (req, res) => {
 // ========== APPOINTMENT SYSTEM ==========
 exports.getAppointments = async (req, res) => {
   try {
-    const { status, startDate, endDate } = req.query;
+    const { status } = req.query;
     let query = { doctor: req.user._id };
     
     if (status && status !== 'all') {
       query.status = status;
     }
     
-    if (startDate && endDate) {
-      query.dateTime = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      };
-    }
-    
     const appointments = await Appointment.find(query)
-      .populate('patient', 'user bloodType')
+      .populate('patient', 'user')
+      .populate('doctor', 'email profile')
+      .populate('hospital', 'name address phone')
       .sort({ dateTime: 1 });
     
     // Populate patient user details
@@ -795,7 +790,16 @@ exports.getAppointments = async (req, res) => {
 
 exports.createAppointment = async (req, res) => {
   try {
-    const { patientId, dateTime, duration, type, reason, notes } = req.body;
+    const { 
+      patientId, 
+      dateTime, 
+      duration, 
+      type, 
+      reason, 
+      notes,
+      hospitalId,
+      location 
+    } = req.body;
     
     // Verify patient exists and is assigned to this doctor
     const patient = await Patient.findById(patientId);
@@ -819,6 +823,7 @@ exports.createAppointment = async (req, res) => {
       return res.status(409).json({ message: 'You already have an appointment at this time' });
     }
     
+    // Create appointment
     const appointment = new Appointment({
       patient: patientId,
       doctor: req.user._id,
@@ -827,24 +832,28 @@ exports.createAppointment = async (req, res) => {
       type: type || 'in-person',
       reason: reason || '',
       notes: notes || '',
+      hospital: hospitalId || null,
+      location: {
+        room: location?.room || '',
+        floor: location?.floor || '',
+        instructions: location?.instructions || ''
+      },
       status: 'scheduled'
     });
     
     await appointment.save();
-    await appointment.populate('patient', 'user');
-    await appointment.populate('doctor', 'email profile');
     
-    // Create notification for patient
-    const notificationController = require('./notification.controller');
-    await notificationController.createNotification(
-      patient.user,
-      'appointment',
-      '📅 New Appointment Scheduled',
-      `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} scheduled an appointment with you on ${new Date(dateTime).toLocaleString()}`,
-      { appointmentId: appointment._id, dateTime }
-    );
+    // Fetch the complete appointment with populated fields
+    const createdAppointment = await Appointment.findById(appointment._id)
+      .populate('patient', 'user')
+      .populate('doctor', 'email profile')
+      .populate('hospital', 'name address phone');
     
-    res.status(201).json(appointment);
+    if (createdAppointment.patient) {
+      await createdAppointment.patient.populate('user', 'email profile');
+    }
+    
+    res.status(201).json(createdAppointment);
   } catch (error) {
     console.error('Create appointment error:', error);
     res.status(500).json({ message: error.message });
@@ -860,31 +869,16 @@ exports.updateAppointment = async (req, res) => {
       { _id: id, doctor: req.user._id },
       { status, notes, cancellationReason },
       { new: true }
-    ).populate('patient', 'user');
+    ).populate('patient', 'user')
+      .populate('doctor', 'email profile')
+      .populate('hospital', 'name address phone');
     
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
     
-    await appointment.populate('doctor', 'email profile');
-    
-    // Create notification for patient about status change
-    if (appointment.patient?.user) {
-      const statusMessages = {
-        confirmed: 'confirmed',
-        cancelled: 'cancelled',
-        completed: 'marked as completed',
-        'no-show': 'marked as no-show'
-      };
-      
-      const notificationController = require('./notification.controller');
-      await notificationController.createNotification(
-        appointment.patient.user,
-        'appointment',
-        `Appointment ${statusMessages[status] || 'updated'}`,
-        `Your appointment with Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} has been ${statusMessages[status] || 'updated'}.`,
-        { appointmentId: appointment._id, status }
-      );
+    if (appointment.patient) {
+      await appointment.patient.populate('user', 'email profile');
     }
     
     res.json(appointment);
@@ -913,21 +907,16 @@ exports.deleteAppointment = async (req, res) => {
 // Get appointment statistics
 exports.getAppointmentStats = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
     const stats = {
       total: await Appointment.countDocuments({ doctor: req.user._id }),
       scheduled: await Appointment.countDocuments({ doctor: req.user._id, status: 'scheduled' }),
       confirmed: await Appointment.countDocuments({ doctor: req.user._id, status: 'confirmed' }),
       completed: await Appointment.countDocuments({ doctor: req.user._id, status: 'completed' }),
       cancelled: await Appointment.countDocuments({ doctor: req.user._id, status: 'cancelled' }),
-      'no-show': await Appointment.countDocuments({ doctor: req.user._id, status: 'no-show' }),  // ← Add this
+      'no-show': await Appointment.countDocuments({ doctor: req.user._id, status: 'no-show' }),
       today: await Appointment.countDocuments({ 
         doctor: req.user._id, 
-        dateTime: { $gte: today, $lt: tomorrow },
+        dateTime: { $gte: new Date().setHours(0,0,0), $lt: new Date().setHours(24,0,0) },
         status: { $nin: ['cancelled', 'completed', 'no-show'] }
       }),
       upcoming: await Appointment.countDocuments({ 
