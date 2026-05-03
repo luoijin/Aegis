@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardHeader } from '../DashboardHeader/DashboardHeader';
 import { DashboardSidebar } from '../DashboardSidebar/DashboardSidebar';
-import { DashboardWelcome } from '../DashboardWelcome/DashboardWelcome';
 import { PatientInfoHeader } from '../PatientInfoHeader/PatientInfoHeader';
 import { VitalsGrid } from '../VitalsGrid/VitalsGrid';
 import { HealthChart } from '../HealthChart/HealthChart';
@@ -102,80 +101,95 @@ const DoctorDashboard = () => {
   const latestVitals = healthLogs[0]?.vitals;
 
   // Render content based on active tab
-const renderContent = () => {
-  switch(activeTab) {
-    case 'patients':
-      return (
-        <>
-          {selectedPatient ? (
-            <>
-              <DashboardWelcome user={user} />
-              <PatientInfoHeader 
-                patient={selectedPatient}
-                onRecordVitals={() => setShowVitalsForm(true)}
-              />
-              
-              {/* Two column layout for vitals and conditions */}
-              <div className="patient-dashboard-grid">
-                {/* Left Column - Vitals Section */}
-                <div className="vitals-column">
-                  <VitalsGrid latestVitals={latestVitals} />
-                  <HealthChart chartData={chartData} />
+  const renderContent = () => {
+    switch(activeTab) {
+      case 'patients':
+        return (
+          <>
+            {selectedPatient ? (
+              <>
+                <PatientInfoHeader 
+                  patient={selectedPatient}
+                  onRecordVitals={() => setShowVitalsForm(true)}
+                  onPatientUpdate={async () => {
+                    // Refresh patient data after blood type update
+                    if (selectedPatient) {
+                      try {
+                        const response = await api.get(`/doctor/patients/${selectedPatient._id}`);
+                        const updatedPatient = response.data;
+                        setSelectedPatient(updatedPatient);
+                        
+                        // Also refresh the patients list
+                        const patientsRes = await api.get('/doctor/patients');
+                        setPatients(patientsRes.data);
+                      } catch (error) {
+                        console.error('Error refreshing patient data:', error);
+                      }
+                    }
+                  }}
+                />
+                
+                {/* Two column layout for vitals and conditions */}
+                <div className="patient-dashboard-grid">
+                  {/* Left Column - Vitals Section */}
+                  <div className="vitals-column">
+                    <VitalsGrid latestVitals={latestVitals} />
+                    <HealthChart chartData={chartData} />
+                  </div>
+                  
+                  {/* Right Column - Conditions Section */}
+                  <div className="conditions-column">
+                    <ConditionManager 
+                      patient={selectedPatient} 
+                      onUpdate={async () => {
+                        // Refetch the selected patient data
+                        if (selectedPatient) {
+                          try {
+                            const response = await api.get(`/doctor/patients/${selectedPatient._id}`);
+                            const updatedPatient = response.data;
+                            setSelectedPatient(updatedPatient);
+                            
+                            // Also refresh health logs if needed
+                            const logsRes = await api.get(`/health-logs?patientId=${selectedPatient._id}`);
+                            setHealthLogs(logsRes.data);
+                          } catch (error) {
+                            console.error('Error refreshing patient data:', error);
+                          }
+                        }
+                      }} 
+                    />
+                  </div>
                 </div>
                 
-                {/* Right Column - Conditions Section */}
-                <div className="conditions-column">
-                  <ConditionManager 
-                    patient={selectedPatient} 
-                    onUpdate={async () => {
-                      // Refetch the selected patient data
-                      if (selectedPatient) {
-                        try {
-                          const response = await api.get(`/doctor/patients/${selectedPatient._id}`);
-                          const updatedPatient = response.data;
-                          setSelectedPatient(updatedPatient);
-                          
-                          // Also refresh health logs if needed
-                          const logsRes = await api.get(`/health-logs?patientId=${selectedPatient._id}`);
-                          setHealthLogs(logsRes.data);
-                        } catch (error) {
-                          console.error('Error adding condition:', error);
-                        }
-                      }
-                    }} 
-                  />
+                <HealthHistory healthLogs={healthLogs} />
+              </>
+            ) : (
+              <div className="no-selection">
+                <div className="no-selection-content">
+                  <h2>Select a Patient</h2>
+                  <p>Choose a patient from the list to view their health records</p>
                 </div>
               </div>
-              
-              <HealthHistory healthLogs={healthLogs} />
-            </>
-          ) : (
-            <div className="no-selection">
-              <div className="no-selection-content">
-                <h2>Select a Patient</h2>
-                <p>Choose a patient from the list to view their health records</p>
-              </div>
-            </div>
-          )}
-        </>
-      );
-    
-    case 'appointments':
-      return <AppointmentScheduler doctorId={user?._id} patients={patients} />;
-    
-    case 'referrals':
-      return <ReferralSystem doctorId={user?._id} patients={patients} />;
-    
-    case 'prescriptions':
-      return <PrescriptionManager doctorId={user?._id} patients={patients} />;
+            )}
+          </>
+        );
+      
+      case 'appointments':
+        return <AppointmentScheduler doctorId={user?._id} patients={patients} />;
+      
+      case 'referrals':
+        return <ReferralSystem doctorId={user?._id} patients={patients} />;
+      
+      case 'prescriptions':
+        return <PrescriptionManager doctorId={user?._id} patients={patients} />;
 
-    case 'analytics':
-      return <AnalyticsPanel doctorId={user?._id} />;
-    
-    default:
-      return null;
-  }
-};
+      case 'analytics':
+        return <AnalyticsPanel doctorId={user?._id} />;
+      
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="doctor-dashboard">

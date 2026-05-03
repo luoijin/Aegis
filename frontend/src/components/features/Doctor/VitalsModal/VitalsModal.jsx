@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import api from '../../../../services/api';
-import '../../../../styles/modal.css';
+import '../../../../styles/doctor-modal.css';
 
 export const VitalsModal = ({ patient, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -47,21 +47,21 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
   const firstName = patient.user?.profile?.firstName || '';
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container modal-md" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="doctor-modal-overlay" onClick={onClose}>
+      <div className="doctor-modal-container doctor-modal-md" onClick={(e) => e.stopPropagation()}>
+        <div className="doctor-modal-header">
           <h3>Record Vitals - {firstName}</h3>
-          <button className="close-btn" onClick={onClose}>
+          <button className="doctor-close-btn" onClick={onClose}>
             <X size={20} />
           </button>
         </div>
 
-        <form className="modal-form" onSubmit={handleSubmit}>
-          {error && <div className="error-message">{error}</div>}
+        <form className="doctor-modal-form" onSubmit={handleSubmit}>
+          {error && <div className="doctor-error-message">{error}</div>}
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Heart Rate <span className="required">*</span></label>
+          <div className="doctor-form-row">
+            <div className="doctor-form-group">
+              <label>Heart Rate <span className="doctor-required">*</span></label>
               <input
                 type="number"
                 value={vitals.heartRate}
@@ -69,10 +69,10 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
                 placeholder="60-100"
                 required
               />
-              <span className="field-hint">bpm</span>
+              <span className="doctor-field-hint">bpm</span>
             </div>
-            <div className="form-group">
-              <label>Systolic BP <span className="required">*</span></label>
+            <div className="doctor-form-group">
+              <label>Systolic BP <span className="doctor-required">*</span></label>
               <input
                 type="number"
                 value={vitals.systolicBP}
@@ -80,10 +80,10 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
                 placeholder="120"
                 required
               />
-              <span className="field-hint">mmHg</span>
+              <span className="doctor-field-hint">mmHg</span>
             </div>
-            <div className="form-group">
-              <label>Diastolic BP <span className="required">*</span></label>
+            <div className="doctor-form-group">
+              <label>Diastolic BP <span className="doctor-required">*</span></label>
               <input
                 type="number"
                 value={vitals.diastolicBP}
@@ -91,12 +91,12 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
                 placeholder="80"
                 required
               />
-              <span className="field-hint">mmHg</span>
+              <span className="doctor-field-hint">mmHg</span>
             </div>
           </div>
 
-          <div className="form-row-2">
-            <div className="form-group">
+          <div className="doctor-form-row-2">
+            <div className="doctor-form-group">
               <label>Temperature</label>
               <input
                 type="number"
@@ -105,9 +105,9 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
                 onChange={(e) => setVitals({...vitals, temperature: e.target.value})}
                 placeholder="36.5"
               />
-              <span className="field-hint">°C</span>
+              <span className="doctor-field-hint">°C</span>
             </div>
-            <div className="form-group">
+            <div className="doctor-form-group">
               <label>O₂ Saturation</label>
               <input
                 type="number"
@@ -115,11 +115,11 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
                 onChange={(e) => setVitals({...vitals, oxygenSaturation: e.target.value})}
                 placeholder="95-100"
               />
-              <span className="field-hint">%</span>
+              <span className="doctor-field-hint">%</span>
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="doctor-form-group">
             <label>Clinical Notes</label>
             <textarea
               value={vitals.notes}
@@ -129,11 +129,9 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
             />
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="submit-btn" disabled={loading}>
+          <div className="doctor-modal-actions">
+            <button type="button" className="doctor-cancel-btn" onClick={onClose}>Cancel</button>
+            <button type="submit" className="doctor-submit-btn" disabled={loading}>
               {loading ? 'Recording...' : 'Save Vitals'}
             </button>
           </div>

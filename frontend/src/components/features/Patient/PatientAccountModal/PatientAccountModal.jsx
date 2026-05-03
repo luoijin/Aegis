@@ -26,41 +26,35 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
     setError('');
   };
 
-    const handleUpdateProfile = async (e) => {
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
 
     try {
-        // Update user profile
-        const profileResponse = await api.put('/auth/profile', {
+      const profileResponse = await api.put('/auth/profile', {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone
-        });
-        
-        setSuccess('Profile updated successfully!');
-        
-        // Update local storage
-        const updatedUser = { ...user, profile: profileResponse.data.profile };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        
-        // Call onUpdate to refresh parent component
-        if (onUpdate) {
-        onUpdate(updatedUser);
-        }
-        
-        setTimeout(() => {
+      });
+      
+      setSuccess('Profile updated successfully!');
+      
+      const updatedUser = { ...user, profile: profileResponse.data.profile };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      if (onUpdate) onUpdate(updatedUser);
+      
+      setTimeout(() => {
         setSuccess('');
-        onClose(); // Close modal after success
-        }, 1500);
+        onClose();
+      }, 1500);
     } catch (err) {
-        setError(err.response?.data?.message || 'Failed to update profile');
+      setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-    };
+  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -103,7 +97,7 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="patient-account-modal modal-container modal-md" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container modal-md" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Account Settings</h3>
           <button className="close-btn" onClick={onClose}>
@@ -148,50 +142,42 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
               
               <div className="form-group">
                 <label>Phone Number</label>
-                <div className="input-with-icon">
-                  <Phone size={16} />
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Enter phone number"
-                  />
-                </div>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Enter phone number"
+                />
               </div>
               
               <div className="form-group">
                 <label>Email Address</label>
-                <div className="input-with-icon">
-                  <Mail size={16} />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    className="disabled-input"
-                  />
-                </div>
+                <input
+                  type="email"
+                  value={formData.email}
+                  disabled
+                  className="disabled-input"
+                />
               </div>
               
-              {/* Blood Type - READ ONLY for patients */}
               <div className="form-group">
                 <label>Blood Type</label>
-                <div className="input-with-icon">
-                  <Droplet size={16} />
-                  <input
-                    type="text"
-                    value={patientData?.bloodType || 'Not specified'}
-                    disabled
-                    className="disabled-input read-only-field"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={patientData?.bloodType || 'Not specified'}
+                  disabled
+                  className="disabled-input read-only-field"
+                />
                 <p className="field-note">Blood type can only be updated by your doctor.</p>
               </div>
               
-              <button type="submit" className="save-btn" disabled={loading}>
-                <Save size={16} />
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
+              <div className="modal-actions">
+                <button type="submit" className="submit-btn" disabled={loading}>
+                  <Save size={16} />
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
             </form>
           </div>
 
@@ -259,10 +245,12 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
                 />
               </div>
               
-              <button type="submit" className="password-btn" disabled={loading}>
-                <Lock size={16} />
-                {loading ? 'Updating...' : 'Update Password'}
-              </button>
+              <div className="modal-actions">
+                <button type="submit" className="password-btn" disabled={loading}>
+                  <Lock size={16} />
+                  {loading ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
             </form>
           </div>
         </div>

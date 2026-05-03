@@ -1,24 +1,139 @@
+/* PatientInfoHeader.css */
 .patient-info-header {
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #E2E8F0;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E2E8F0;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.patient-info-header h2 {
+.patient-details {
+  flex: 1;
+}
+
+.patient-details h2 {
   font-size: 20px;
   font-weight: 700;
   color: #0A0F1D;
   margin-bottom: 4px;
 }
 
-.patient-info-header p {
+.patient-details p {
   color: #64748B;
   font-size: 13px;
+  margin-bottom: 12px;
 }
 
+/* Blood Type Section */
+.blood-type-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.blood-type-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+}
+
+.blood-type-label svg {
+  color: #3B82F6;
+}
+
+.blood-type-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.blood-type-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0A0F1D;
+  background: #EFF6FF;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.edit-blood-type-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  color: #3B82F6;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.edit-blood-type-btn:hover {
+  background: #EFF6FF;
+}
+
+/* Blood Type Edit */
+.blood-type-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blood-type-select {
+  padding: 6px 10px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  cursor: pointer;
+}
+
+.blood-type-select:focus {
+  outline: none;
+  border-color: #3B82F6;
+}
+
+.blood-type-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.blood-type-action.save {
+  color: #10B981;
+}
+
+.blood-type-action.save:hover {
+  background: #D1FAE5;
+}
+
+.blood-type-action.cancel {
+  color: #EF4444;
+}
+
+.blood-type-action.cancel:hover {
+  background: #FEE2E2;
+}
+
+.blood-type-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Record Vitals Button */
 .record-vitals-btn {
   display: flex;
   align-items: center;
@@ -31,16 +146,21 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .record-vitals-btn:hover {
   background: #2563EB;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .patient-info-header {
     flex-direction: column;
-    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .blood-type-section {
+    flex-wrap: wrap;
   }
 }

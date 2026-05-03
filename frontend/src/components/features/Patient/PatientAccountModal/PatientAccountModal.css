@@ -1,13 +1,4 @@
-/* PatientAccountModal.css */
-.patient-account-modal {
-  background: white;
-  border-radius: 20px;
-  width: 550px;
-  max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
+/* PatientAccountModal.css - Only styles not in modal.css */
 .modal-body {
   padding: 24px;
 }
@@ -43,55 +34,6 @@
   margin-bottom: 16px;
 }
 
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: #64748B;
-  margin-bottom: 6px;
-}
-
-.input-with-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-with-icon svg {
-  position: absolute;
-  left: 12px;
-  color: #94A3B8;
-  pointer-events: none;
-}
-
-.input-with-icon input,
-.input-with-icon select {
-  width: 100%;
-  padding: 10px 12px 10px 36px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-  background: white;
-}
-
-.input-with-icon input:focus,
-.input-with-icon select:focus {
-  outline: none;
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.disabled-input {
-  background: #F8FAFC;
-  color: #94A3B8;
-  cursor: not-allowed;
-}
-
 .password-input-wrapper {
   position: relative;
   display: flex;
@@ -101,16 +43,6 @@
 .password-input-wrapper input {
   flex: 1;
   padding: 10px 40px 10px 12px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.password-input-wrapper input:focus {
-  outline: none;
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .password-toggle {
@@ -129,7 +61,25 @@
   color: #3B82F6;
 }
 
-.save-btn, .password-btn {
+.disabled-input {
+  background: #F8FAFC;
+  color: #94A3B8;
+  cursor: not-allowed;
+}
+
+.read-only-field {
+  background: #F8FAFC;
+  color: #475569;
+}
+
+.field-note {
+  font-size: 11px;
+  color: #94A3B8;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.password-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,11 +97,11 @@
   margin-top: 8px;
 }
 
-.save-btn:hover, .password-btn:hover {
+.password-btn:hover {
   background: #2563EB;
 }
 
-.save-btn:disabled, .password-btn:disabled {
+.password-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -160,15 +110,6 @@
   height: 1px;
   background: #E2E8F0;
   margin: 24px 0;
-}
-
-.error-message {
-  background: #FEE2E2;
-  color: #DC2626;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 16px;
 }
 
 .success-message {
@@ -180,24 +121,9 @@
   margin-bottom: 16px;
 }
 
-/* Responsive */
 @media (max-width: 640px) {
   .form-row-2 {
     grid-template-columns: 1fr;
     gap: 0;
   }
-}
-
-/* Add to PatientAccountModal.css */
-.field-note {
-  font-size: 11px;
-  color: #94A3B8;
-  margin-top: 4px;
-  font-style: italic;
-}
-
-.read-only-field {
-  background: #F8FAFC;
-  color: #475569;
-  cursor: default;
 }

@@ -4,6 +4,8 @@ import { PatientHeader } from '../PatientHeader/PatientHeader';
 import { PatientWelcome } from '../PatientWelcome/PatientWelcome';
 import { PatientInfoCard } from '../PatientInfoCard/PatientInfoCard';
 import { PatientVitals } from '../PatientVitals/PatientVitals';
+import { PatientHealthChart } from '../PatientHealthChart/PatientHealthChart';
+import { PatientConditions } from '../PatientConditions/PatientConditions';
 import { PatientHealthHistory } from '../PatientHealthHistory/PatientHealthHistory';
 import { PatientPrescriptions } from '../PatientPrescriptions/PatientPrescriptions';
 import { PatientAppointments } from '../PatientAppointments/PatientAppointments';
@@ -59,7 +61,6 @@ const PatientDashboard = () => {
     }
   };
 
-  // ✅ Add this function to refresh only patient and user data
   const refreshPatientProfile = async () => {
     try {
       const [patientRes, userRes] = await Promise.all([
@@ -70,7 +71,6 @@ const PatientDashboard = () => {
       setPatientData(patientRes.data);
       setDoctor(patientRes.data.assignedDoctor);
       
-      // Update user data in state and localStorage
       const updatedUser = userRes.data;
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -82,19 +82,35 @@ const PatientDashboard = () => {
     }
   };
 
+  const refreshPatientData = async () => {
+    try {
+      const patientRes = await api.get('/patient/profile');
+      setPatientData(patientRes.data);
+      setDoctor(patientRes.data.assignedDoctor);
+    } catch (error) {
+      console.error('Error refreshing patient data:', error);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/';
   };
 
-  // ✅ Update user and refresh data
   const handleUserUpdate = async (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    // Refresh patient data to update overview
     await refreshPatientProfile();
   };
+
+  // Prepare chart data from health logs
+  const chartData = healthLogs.slice().reverse().slice(0, 30).map(log => ({
+    date: new Date(log.createdAt).toLocaleDateString(),
+    heartRate: log.vitals?.heartRate || 0,
+    systolic: log.vitals?.bloodPressure?.systolic || 0,
+    diastolic: log.vitals?.bloodPressure?.diastolic || 0
+  }));
 
   const renderContent = () => {
     if (error) {
@@ -111,7 +127,17 @@ const PatientDashboard = () => {
         return (
           <>
             <PatientInfoCard patient={patientData} doctor={doctor} user={user} />
-            <PatientVitals latestVitals={healthLogs[0]?.vitals} />
+            
+            <div className="overview-grid">
+              <div className="overview-left">
+                <PatientVitals latestVitals={healthLogs[0]?.vitals} />
+                <PatientHealthChart chartData={chartData} />
+              </div>
+              <div className="overview-right">
+                <PatientConditions conditions={patientData?.conditions || []} />
+              </div>
+            </div>
+            
             <PatientHealthHistory healthLogs={healthLogs.slice(0, 5)} />
           </>
         );

@@ -131,9 +131,6 @@ export const PrescriptionManager = ({ doctorId, patients }) => {
                       <button className="action-btn" onClick={() => handleDownloadPDF(prescription)} title="Download PDF">
                         <Download size={16} />
                       </button>
-                      <button className="action-btn send" onClick={() => handleSendToPatient(prescription)} title="Send to Patient">
-                        <Send size={16} />
-                      </button>
                     </div>
                   </div>
                 </div>
