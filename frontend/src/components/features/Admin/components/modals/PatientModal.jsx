@@ -1,237 +1,281 @@
+// frontend/src/components/features/Admin/components/modals/PatientModal.jsx
 import React, { useState, useEffect } from 'react';
-import { X, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, User, Mail, Phone, Droplet, Stethoscope, AlertCircle, Calendar } from 'lucide-react';
 import api from '../../../../../utils/api';
 import './Modal.css';
 
 const PatientModal = ({ isOpen, onClose, editingPatient, doctors, onSuccess }) => {
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', password: '', assignedDoctor: ''
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    bloodType: '',
+    assignedDoctor: ''
   });
-  const [selectedSpecialization, setSelectedSpecialization] = useState('');
-  const [filteredDoctors, setFilteredDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-
-  // Get unique specializations from doctors
-  const specializationsList = [...new Set(doctors.map(d => d.specialization).filter(s => s && s !== ''))];
-
-  // Filter doctors when specialization changes
-  useEffect(() => {
-    if (selectedSpecialization) {
-      setFilteredDoctors(doctors.filter(d => d.specialization === selectedSpecialization && d.isActive !== false));
-    } else {
-      setFilteredDoctors([]);
-    }
-  }, [selectedSpecialization, doctors]);
+  const isEditing = !!editingPatient;
 
   useEffect(() => {
-    if (editingPatient) {
+    if (editingPatient && isOpen) {
+      console.log('Editing patient data:', editingPatient);
+      
+      // Safely extract data from the patient object
+      const userData = editingPatient.user || {};
+      const userProfile = userData.profile || {};
+      
       setFormData({
-        firstName: editingPatient.user?.profile?.firstName || '',
-        lastName: editingPatient.user?.profile?.lastName || '',
-        email: editingPatient.user?.email || '',
-        phone: editingPatient.user?.profile?.phone || '',
+        firstName: userProfile.firstName || '',
+        lastName: userProfile.lastName || '',
+        email: userData.email || '',
         password: '',
-        assignedDoctor: editingPatient.assignedDoctor?._id || ''
+        phone: userProfile.phone || '',
+        dateOfBirth: userProfile.dateOfBirth ? new Date(userProfile.dateOfBirth).toISOString().split('T')[0] : '',
+        gender: userProfile.gender || '',
+        bloodType: editingPatient.bloodType || '',
+        assignedDoctor: editingPatient.assignedDoctor?._id || editingPatient.assignedDoctor || ''
       });
-      // Pre-select specialization if doctor is assigned
-      if (editingPatient.assignedDoctor?._id) {
-        const assignedDoc = doctors.find(d => d._id === editingPatient.assignedDoctor?._id);
-        if (assignedDoc) {
-          setSelectedSpecialization(assignedDoc.specialization || '');
-        }
-      }
-    } else {
-      setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', assignedDoctor: '' });
-      setSelectedSpecialization('');
+    } else if (!isOpen) {
+      setFormData({
+        firstName: '', lastName: '', email: '', password: '', phone: '', 
+        dateOfBirth: '', gender: '', bloodType: '', assignedDoctor: ''
+      });
+      setError('');
     }
-  }, [editingPatient, doctors]);
+  }, [editingPatient, isOpen]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setSuccessMsg('');
     
-    if (!editingPatient && (!formData.password || formData.password.length < 6)) {
-      setError('Password must be at least 6 characters');
+    // Validation
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setError('First name and last name are required');
+      setLoading(false);
+      return;
+    }
+    
+    if (!isEditing && (!formData.email.trim() || !formData.password)) {
+      setError('Email and password are required for new patients');
       setLoading(false);
       return;
     }
     
     try {
-      if (editingPatient) {
-        await api.put(`/admin/patients/${editingPatient._id}`, {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
+      if (isEditing) {
+        // Update existing patient
+        const updateData = {
+          profile: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phone || '',
+            dateOfBirth: formData.dateOfBirth || null,
+            gender: formData.gender || ''
+          },
+          bloodType: formData.bloodType || '',
           assignedDoctor: formData.assignedDoctor || null
-        });
-        setSuccessMsg('Patient updated successfully');
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 1500);
+        };
+        
+        console.log('Sending update data:', updateData);
+        
+        const response = await api.put(`/admin/patients/${editingPatient._id}`, updateData);
+        console.log('Update response:', response.data);
+        
+        onSuccess();
+        onClose();
       } else {
-        const userRes = await api.post('/auth/register', {
+        // Create new patient
+        const registerResponse = await api.post('/auth/register', {
           email: formData.email,
           password: formData.password,
           role: 'patient',
           profile: {
             firstName: formData.firstName,
             lastName: formData.lastName,
-            phone: formData.phone || '1234567890'
+            phone: formData.phone || '',
+            dateOfBirth: formData.dateOfBirth || null,
+            gender: formData.gender || ''
           }
         });
         
-        const userId = userRes.data.user?.id || userRes.data.user?._id;
-        
-        if (!userId) {
-          throw new Error('User registration failed - no user ID returned');
-        }
-        
+        // After creating user, assign doctor if specified
         if (formData.assignedDoctor) {
-          const patientsRes = await api.get('/patients');
-          const patient = patientsRes.data.find(p => p.user?._id === userId);
-          
-          if (patient) {
-            await api.put(`/admin/patients/${patient._id}`, {
-              assignedDoctor: formData.assignedDoctor
-            });
+          // Get the newly created patient
+          const patientsRes = await api.get('/admin/patients');
+          const newPatient = patientsRes.data.find(p => p.user?.email === formData.email);
+          if (newPatient) {
+            await api.post(`/patients/${newPatient._id}/assign`, { doctorId: formData.assignedDoctor });
           }
         }
         
-        setSuccessMsg(`Patient ${formData.firstName} ${formData.lastName} created successfully!`);
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 1500);
+        onSuccess();
+        onClose();
       }
     } catch (err) {
-      console.error('Save patient error:', err);
-      setError(err.response?.data?.message || 'Failed to save patient');
+      console.error('Submit error:', err);
+      setError(err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} patient`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setError('');
-    setSuccessMsg('');
-    setSelectedSpecialization('');
-    setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', assignedDoctor: '' });
-    onClose();
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
+    <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{editingPatient ? 'Edit Patient' : 'Add New Patient'}</h3>
-          <button className="close-btn" onClick={handleClose}><X size={20} /></button>
+          <h3><User size={18} /> {isEditing ? 'Edit Patient' : 'Add New Patient'}</h3>
+          <button className="close-btn" onClick={onClose}><X size={18} /></button>
         </div>
         
         <form onSubmit={handleSubmit}>
           {error && (
             <div className="error-message">
-              <AlertCircle size={16} /> {error}
-            </div>
-          )}
-          
-          {successMsg && (
-            <div className="success-message">
-              <CheckCircle size={16} /> {successMsg}
+              <AlertCircle size={14} />
+              <span>{error}</span>
             </div>
           )}
           
           <div className="form-row">
-            <input 
-              type="text" 
-              placeholder="First Name *" 
-              value={formData.firstName} 
-              onChange={(e) => setFormData({...formData, firstName: e.target.value})} 
-              required 
-            />
-            <input 
-              type="text" 
-              placeholder="Last Name *" 
-              value={formData.lastName} 
-              onChange={(e) => setFormData({...formData, lastName: e.target.value})} 
-              required 
-            />
+            <div className="form-group">
+              <label><User size={12} /> First Name *</label>
+              <input
+                type="text"
+                name="firstName"
+                placeholder="First name"
+                value={formData.firstName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label><User size={12} /> Last Name *</label>
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Last name"
+                value={formData.lastName}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
           
-          <input 
-            type="email" 
-            placeholder="Email *" 
-            value={formData.email} 
-            onChange={(e) => setFormData({...formData, email: e.target.value})} 
-            required 
-          />
-          
-          {!editingPatient && (
-            <input 
-              type="password" 
-              placeholder="Password * (min 6 characters)" 
-              value={formData.password} 
-              onChange={(e) => setFormData({...formData, password: e.target.value})} 
-              required 
-              minLength="6"
-            />
-          )}
-          
-          <input 
-            type="tel" 
-            placeholder="Phone" 
-            value={formData.phone} 
-            onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-          />
-          
-          {/* Specialization Dropdown */}
-          <select 
-            value={selectedSpecialization} 
-            onChange={(e) => {
-              setSelectedSpecialization(e.target.value);
-              setFormData({...formData, assignedDoctor: ''});
-            }}
-          >
-            <option value="">Select Specialization First</option>
-            {specializationsList.map(spec => (
-              <option key={spec} value={spec}>{spec}</option>
-            ))}
-          </select>
-          
-          {/* Doctor Dropdown - Filtered by Specialization */}
-          <select 
-            value={formData.assignedDoctor} 
-            onChange={(e) => setFormData({...formData, assignedDoctor: e.target.value})}
-            disabled={!selectedSpecialization}
-          >
-            <option value="">
-              {selectedSpecialization ? 'Select Doctor' : 'Please select specialization first'}
-            </option>
-            {filteredDoctors.map(doc => (
-              <option key={doc._id} value={doc._id}>
-                Dr. {doc.profile?.firstName} {doc.profile?.lastName}
-              </option>
-            ))}
-          </select>
-          
-          {!editingPatient && (
-            <div className="info-note">
-              <AlertCircle size={14} />
-              <span>The patient can log in with the email and password you set.</span>
+          {!isEditing ? (
+            <>
+              <div className="form-group">
+                <label><Mail size={12} /> Email Address *</label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="patient@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Password *</label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Minimum 6 characters"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength="6"
+                />
+                <small>Patient will use this password to log in</small>
+              </div>
+            </>
+          ) : (
+            <div className="form-group">
+              <label><Mail size={12} /> Email Address</label>
+              <input
+                type="email"
+                value={formData.email}
+                disabled
+                className="disabled-input"
+              />
+              <small>Email cannot be changed</small>
             </div>
           )}
           
+          <div className="form-row">
+            <div className="form-group">
+              <label><Phone size={12} /> Phone Number</label>
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Contact number"
+                value={formData.phone}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group">
+              <label><Calendar size={12} /> Date of Birth</label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Gender</label>
+              <select name="gender" value={formData.gender} onChange={handleChange}>
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label><Droplet size={12} /> Blood Type</label>
+              <select name="bloodType" value={formData.bloodType} onChange={handleChange}>
+                <option value="">Not specified</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <label><Stethoscope size={12} /> Assign Doctor</label>
+            <select name="assignedDoctor" value={formData.assignedDoctor} onChange={handleChange}>
+              <option value="">— No Doctor Assigned —</option>
+              {doctors?.filter(d => d.isActive).map(doc => (
+                <option key={doc._id} value={doc._id}>
+                  Dr. {doc.profile?.firstName} {doc.profile?.lastName} - {doc.specialization || 'General'}
+                </option>
+              ))}
+            </select>
+          </div>
+          
           <div className="modal-actions">
-            <button type="button" onClick={handleClose}>Cancel</button>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : (editingPatient ? 'Update Patient' : 'Create Patient')}
+            <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
+            <button type="submit" className="submit-btn" disabled={loading}>
+              {loading ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Patient')}
             </button>
           </div>
         </form>

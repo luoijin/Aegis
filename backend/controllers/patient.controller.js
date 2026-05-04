@@ -1,3 +1,4 @@
+const User = require('../models/User.model');
 const Patient = require('../models/Patient.model');
 const HealthLog = require('../models/HealthLog.model');
 const Appointment = require('../models/Appointment.model');
@@ -449,14 +450,18 @@ exports.markNotificationRead = async (req, res) => {
 // Get logged-in patient's own profile
 exports.getOwnProfile = async (req, res) => {
   try {
+    console.log('=== getOwnProfile called ===');
+    console.log('User ID:', req.user._id);
+    
     const patient = await Patient.findOne({ user: req.user._id })
       .populate('user', 'email profile isActive')
-      .populate('assignedDoctor', 'email profile specialization licenseNumber');
+      .populate('assignedDoctor', 'email profile specialization');
     
     if (!patient) {
       return res.status(404).json({ message: 'Patient profile not found' });
     }
     
+    console.log('Patient found:', patient._id);
     res.json(patient);
   } catch (error) {
     console.error('Get own profile error:', error);
@@ -628,45 +633,80 @@ exports.getPrescriptionsByPatient = async (req, res) => {
 // ========== ADD THESE FUNCTIONS TO patient.controller.js ==========
 
 // Update patient's own profile (for patient dashboard)
+// Update logged-in patient's own profile (DEBUG VERSION)
 exports.updateOwnProfile = async (req, res) => {
   try {
+    console.log('=== updateOwnProfile START ===');
+    console.log('1. User ID:', req.user?._id);
+    console.log('2. Request body:', JSON.stringify(req.body, null, 2));
+    
+    // Check if user exists
+    if (!req.user || !req.user._id) {
+      console.log('ERROR: No user found in request');
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+    
+    const { firstName, lastName, phone, dateOfBirth, gender, emergencyContact } = req.body;
+    
+    // Find the patient
+    console.log('3. Looking for patient with user ID:', req.user._id);
     const patient = await Patient.findOne({ user: req.user._id });
+    
     if (!patient) {
+      console.log('ERROR: Patient not found for user:', req.user._id);
       return res.status(404).json({ message: 'Patient profile not found' });
     }
-
-    const { firstName, lastName, dateOfBirth, gender, phone, emergencyContact } = req.body;
-
-    // Update User profile
-    if (firstName || lastName || dateOfBirth || gender || phone) {
-      const updateData = {};
-      if (firstName) updateData['profile.firstName'] = firstName;
-      if (lastName) updateData['profile.lastName'] = lastName;
-      if (dateOfBirth) updateData['profile.dateOfBirth'] = dateOfBirth;
-      if (gender) updateData['profile.gender'] = gender;
-      if (phone) updateData['profile.phone'] = phone;
-      
-      await User.findByIdAndUpdate(req.user._id, updateData);
+    
+    console.log('4. Patient found:', patient._id);
+    
+    // Update User model
+    const userUpdates = {};
+    if (firstName !== undefined) userUpdates['profile.firstName'] = firstName;
+    if (lastName !== undefined) userUpdates['profile.lastName'] = lastName;
+    if (phone !== undefined) userUpdates['profile.phone'] = phone;
+    if (dateOfBirth !== undefined) userUpdates['profile.dateOfBirth'] = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (gender !== undefined) userUpdates['profile.gender'] = gender;
+    
+    console.log('5. User updates:', userUpdates);
+    
+    if (Object.keys(userUpdates).length > 0) {
+      const updatedUser = await User.findByIdAndUpdate(req.user._id, userUpdates, { new: true });
+      console.log('6. User updated:', updatedUser?._id);
     }
-
-    // Update Patient emergency contact
-    if (emergencyContact) {
-      patient.emergencyContact = emergencyContact;
+    
+    // Update Patient model - emergency contact
+    if (emergencyContact !== undefined) {
+      console.log('7. Updating emergency contact:', emergencyContact);
+      patient.emergencyContact = {
+        name: emergencyContact.name || '',
+        relationship: emergencyContact.relationship || '',
+        phone: emergencyContact.phone || ''
+      };
       await patient.save();
+      console.log('8. Emergency contact saved');
     }
-
+    
     // Return updated profile
     const updatedPatient = await Patient.findOne({ user: req.user._id })
       .populate('user', 'email profile isActive')
       .populate('assignedDoctor', 'email profile specialization');
-
-    res.json({ 
+    
+    console.log('9. Profile updated successfully');
+    console.log('=== updateOwnProfile END ===');
+    
+    res.json({
       message: 'Profile updated successfully',
-      patient: updatedPatient 
+      patient: updatedPatient
     });
   } catch (error) {
-    console.error('Update own profile error:', error);
-    res.status(500).json({ message: error.message });
+    console.error('!!! updateOwnProfile ERROR !!!');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 

@@ -31,6 +31,8 @@ const authenticate = async (req, res, next) => {
   }
 };
 
+
+
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -45,3 +47,20 @@ const authorize = (...roles) => {
 };
 
 module.exports = { authenticate, authorize };
+
+const authorizeDoctorOrAdmin = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    // Allow if role is doctor OR admin
+    if (req.user.role === 'doctor' || req.user.role === 'admin') {
+      return next();
+    }
+    
+    return res.status(403).json({ message: 'Access denied. Doctor or Admin role required.' });
+  };
+};
+
+module.exports = { authenticate, authorize, authorizeDoctorOrAdmin };

@@ -12,7 +12,7 @@ import { AppointmentScheduler } from '../AppointmentScheduler/AppointmentSchedul
 import { PrescriptionManager } from '../PrescriptionManager/PrescriptionManager';
 import { AnalyticsPanel } from '../AnalyticsPanel/AnalyticsPanel';
 import { ConditionManager } from '../ConditionManager/ConditionManager';
-import PatientChartModal from '../PatientChart/PatientChartModal'; // ✅ Correct path
+import PatientChartModal from '../PatientChart/PatientChartModal';
 import api from '../../../../services/api';
 import './DoctorDashboard.css';
 
@@ -97,6 +97,30 @@ const DoctorDashboard = () => {
         setSelectedPatient(updatedPatient);
         const patientsRes = await api.get('/doctor/patients');
         setPatients(patientsRes.data);
+        await fetchHealthLogs(selectedPatient._id);
+      } catch (error) {
+        console.error('Error refreshing patient data:', error);
+      }
+    }
+  };
+
+  // ONLY refresh when modal closes - NOT continuously
+  const handleModalClose = async () => {
+    setShowPatientChart(false);
+    // Refresh patient data once when modal closes
+    if (selectedPatient) {
+      try {
+        const response = await api.get(`/doctor/patients/${selectedPatient._id}`);
+        const updatedPatient = response.data;
+        setSelectedPatient(updatedPatient);
+        
+        // Also update in patients list
+        setPatients(prevPatients => 
+          prevPatients.map(p => 
+            p._id === updatedPatient._id ? updatedPatient : p
+          )
+        );
+        
         await fetchHealthLogs(selectedPatient._id);
       } catch (error) {
         console.error('Error refreshing patient data:', error);
@@ -222,7 +246,8 @@ const DoctorDashboard = () => {
       {showPatientChart && selectedPatient && (
         <PatientChartModal
           patient={selectedPatient}
-          onClose={() => setShowPatientChart(false)}
+          onClose={handleModalClose}
+          // Remove onDataUpdate to prevent continuous refreshes
         />
       )}
     </div>

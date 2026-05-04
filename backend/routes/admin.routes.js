@@ -15,11 +15,18 @@ router.post('/hospitals', adminController.createHospital);
 router.put('/hospitals/:id', adminController.updateHospital);
 router.delete('/hospitals/:id', adminController.deleteHospital);
 
+router.get('/hospitals/stats', authenticate, authorize('admin'), adminController.getAllHospitalsWithStats);
+router.get('/hospitals/:id/doctors', authenticate, authorize('admin'), adminController.getHospitalWithDoctors);
+router.put('/doctors/:doctorId/hospital', authenticate, authorize('admin'), adminController.updateDoctorHospital);
+
+router.put('/doctors/:id', authenticate, authorize('admin'), adminController.updateDoctor);
+
 // Doctors
 router.get('/doctors', adminController.getAllDoctors);
 router.put('/doctors/:id', adminController.updateDoctorByAdmin);
 router.patch('/doctors/:id/status', adminController.updateDoctorStatus);
 router.delete('/doctors/:id', adminController.deleteDoctorByAdmin);
+
 
 // Patients 
 router.get('/patients', adminController.getAllPatients);

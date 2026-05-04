@@ -1,6 +1,5 @@
 // frontend/src/components/features/Admin/AdminDashboard.jsx
-// frontend/src/components/features/Admin/AdminDashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { TrendingUp } from 'lucide-react';
 import { 
   BarChart, 
@@ -26,38 +25,44 @@ import PatientsTab from './components/PatientsTab/PatientsTab';
 import SpecializationsTab from './components/SpecializationsTab/SpecializationsTab';
 import AdminAnalytics from './components/AdminAnalytics/AdminAnalytics';
 import HospitalModal from './components/modals/HospitalModal';
+import EditHospitalModal from './components/modals/EditHospitalModal';
 import DoctorModal from './components/modals/DoctorModal';
 import EditDoctorModal from './components/modals/EditDoctorModal';
 import PatientModal from './components/modals/PatientModal';
 import SpecializationModal from './components/modals/SpecializationModal';
+import ConfirmModal from '../../common/ConfirmModal/ConfirmModal';
 import api from '../../../utils/api';
 import './AdminDashboard.css';
 
 const COLORS = [
-  '#3B82F6', // Blue
-  '#10B981', // Green
-  '#F59E0B', // Amber
-  '#EF4444', // Red
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#84CC16', // Lime
-  '#F97316', // Orange
-  '#6366F1', // Indigo
-  '#14B8A6', // Teal
-  '#D946EF', // Fuchsia
+  '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', 
+  '#06B6D4', '#84CC16', '#F97316', '#6366F1', '#14B8A6', '#D946EF'
 ];
 
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [modalState, setModalState] = useState({
-    hospital: false, doctor: false, editDoctor: false, patient: false, specialization: false
-  });
-  const [editingItem, setEditingItem] = useState(null);
+  
+  // Modal states
+  const [hospitalModal, setHospitalModal] = useState({ isOpen: false, editingItem: null });
+  const [doctorModal, setDoctorModal] = useState({ isOpen: false, editingItem: null });
+  const [patientModal, setPatientModal] = useState({ isOpen: false, editingItem: null });
+  const [specializationModal, setSpecializationModal] = useState({ isOpen: false, editingItem: null });
+  
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : {};
+  });
+
+  // Confirm Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning',
+    confirmText: 'Confirm',
+    onConfirmAction: null,
+    actionData: null
   });
 
   const {
@@ -65,14 +70,55 @@ const AdminDashboard = () => {
     loading, error, success, setError, setSuccess, fetchAllData
   } = useAdminData();
 
-  const openModal = (type, item = null) => {
-    setEditingItem(item);
-    setModalState(prev => ({ ...prev, [type]: true }));
+  // Refresh data function - can be called after any create/edit/delete
+  const refreshData = useCallback(async () => {
+    console.log('Refreshing admin data...');
+    await fetchAllData();
+  }, [fetchAllData]);
+
+  // Modal open/close functions
+  const openHospitalModal = (item = null) => {
+    setHospitalModal({ isOpen: true, editingItem: item });
   };
-  
-  const closeModal = (type) => {
-    setEditingItem(null);
-    setModalState(prev => ({ ...prev, [type]: false }));
+  const closeHospitalModal = () => {
+    setHospitalModal({ isOpen: false, editingItem: null });
+    refreshData();
+  };
+
+  const openDoctorModal = (item = null) => {
+    setDoctorModal({ isOpen: true, editingItem: item });
+  };
+  const closeDoctorModal = () => {
+    setDoctorModal({ isOpen: false, editingItem: null });
+    refreshData();
+  };
+
+  const openPatientModal = (item = null) => {
+    setPatientModal({ isOpen: true, editingItem: item });
+  };
+  const closePatientModal = () => {
+    setPatientModal({ isOpen: false, editingItem: null });
+    refreshData();
+  };
+
+  const openSpecializationModal = (item = null) => {
+    setSpecializationModal({ isOpen: true, editingItem: item });
+  };
+  const closeSpecializationModal = () => {
+    setSpecializationModal({ isOpen: false, editingItem: null });
+    refreshData();
+  };
+
+  const showConfirm = (title, message, type, onConfirm, actionData) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      type,
+      confirmText: type === 'danger' ? 'Delete' : type === 'warning' ? 'Confirm' : 'OK',
+      onConfirmAction: () => onConfirm(actionData),
+      actionData
+    });
   };
 
   const handleLogout = () => {
@@ -91,11 +137,11 @@ const AdminDashboard = () => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
-  // Helper to set messages
   const setSuccessMsg = (msg) => {
     setSuccess(msg);
     setTimeout(() => setSuccess(''), 3000);
   };
+  
   const setErrorMsg = (msg) => {
     setError(msg);
     setTimeout(() => setError(''), 3000);
@@ -105,84 +151,136 @@ const AdminDashboard = () => {
   // HOSPITAL CRUD HANDLERS
   // ============================================
   const handleDeleteHospital = async (id) => {
-    if (window.confirm('Are you sure you want to delete this hospital?')) {
-      try {
-        await api.delete(`/admin/hospitals/${id}`);
-        setSuccessMsg('Hospital deleted successfully');
-        await fetchAllData();
-      } catch (err) {
-        setErrorMsg(err.response?.data?.message || 'Failed to delete hospital');
-      }
+    try {
+      await api.delete(`/admin/hospitals/${id}`);
+      setSuccessMsg('Hospital deleted successfully');
+      await refreshData();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to delete hospital');
     }
+  };
+
+  const confirmDeleteHospital = (id, name) => {
+    showConfirm(
+      'Delete Hospital',
+      `Are you sure you want to permanently delete ${name}? This action cannot be undone.`,
+      'danger',
+      (data) => handleDeleteHospital(data.id),
+      { id }
+    );
   };
 
   // ============================================
   // DOCTOR CRUD HANDLERS
   // ============================================
   const handleDeleteDoctor = async (doctorId, doctorName) => {
-    if (window.confirm(`Are you sure you want to permanently delete Dr. ${doctorName}? This action cannot be undone.`)) {
-      try {
-        await api.delete(`/admin/doctors/${doctorId}`);
-        setSuccessMsg(`Dr. ${doctorName} has been permanently deleted.`);
-        await fetchAllData();
-      } catch (err) {
-        setErrorMsg(err.response?.data?.message || 'Failed to delete doctor');
-      }
+    try {
+      await api.delete(`/admin/doctors/${doctorId}`);
+      setSuccessMsg(`Dr. ${doctorName} has been permanently deleted.`);
+      await refreshData();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to delete doctor');
     }
+  };
+
+  const confirmDeleteDoctor = (doctorId, doctorName) => {
+    showConfirm(
+      'Delete Doctor',
+      `Are you sure you want to permanently delete Dr. ${doctorName}? This action cannot be undone.`,
+      'danger',
+      (data) => handleDeleteDoctor(data.id, data.name),
+      { id: doctorId, name: doctorName }
+    );
   };
 
   const handleToggleDoctorStatus = async (doctorId, currentStatus, doctorName) => {
     try {
       await api.patch(`/admin/doctors/${doctorId}/status`, { isActive: !currentStatus });
       setSuccessMsg(`Dr. ${doctorName} has been ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-      await fetchAllData();
+      await refreshData();
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to update doctor status');
     }
+  };
+
+  const confirmToggleDoctorStatus = (doctorId, currentStatus, doctorName) => {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    showConfirm(
+      `${currentStatus ? 'Deactivate' : 'Activate'} Doctor`,
+      `Are you sure you want to ${action} Dr. ${doctorName}?`,
+      'warning',
+      (data) => handleToggleDoctorStatus(data.id, data.currentStatus, data.name),
+      { id: doctorId, currentStatus, name: doctorName }
+    );
   };
 
   // ============================================
   // PATIENT CRUD HANDLERS
   // ============================================
   const handleDeletePatient = async (patientId, patientName) => {
-    if (window.confirm(`Are you sure you want to permanently delete ${patientName}? This will also delete all their health records.`)) {
-      try {
-        await api.delete(`/admin/patients/${patientId}`);
-        setSuccessMsg(`${patientName} has been permanently deleted.`);
-        await fetchAllData();
-      } catch (err) {
-        setErrorMsg(err.response?.data?.message || 'Failed to delete patient');
-      }
+    try {
+      await api.delete(`/admin/patients/${patientId}`);
+      setSuccessMsg(`${patientName} has been permanently deleted.`);
+      await refreshData();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to delete patient');
     }
+  };
+
+  const confirmDeletePatient = (patientId, patientName) => {
+    showConfirm(
+      'Delete Patient',
+      `Are you sure you want to permanently delete ${patientName}? This will also delete all their health records.`,
+      'danger',
+      (data) => handleDeletePatient(data.id, data.name),
+      { id: patientId, name: patientName }
+    );
   };
 
   const handleTogglePatientStatus = async (patientId, currentStatus, patientName) => {
     try {
       await api.patch(`/admin/patients/${patientId}/status`, { isActive: !currentStatus });
       setSuccessMsg(`${patientName} has been ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-      await fetchAllData();
+      await refreshData();
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to update patient status');
     }
   };
 
+  const confirmTogglePatientStatus = (patientId, currentStatus, patientName) => {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    showConfirm(
+      `${currentStatus ? 'Deactivate' : 'Activate'} Patient`,
+      `Are you sure you want to ${action} ${patientName}?`,
+      'warning',
+      (data) => handleTogglePatientStatus(data.id, data.currentStatus, data.name),
+      { id: patientId, currentStatus, name: patientName }
+    );
+  };
+
   // ============================================
   // SPECIALIZATION CRUD HANDLERS
   // ============================================
-  const handleSaveSpecialization = async () => {
-    await fetchAllData();
-  };
   const handleDeleteSpecialization = async (id, name) => {
     try {
       await api.delete(`/admin/specializations/${id}`);
       setSuccessMsg(`Specialization "${name}" deleted successfully`);
-      await fetchAllData();
+      await refreshData();
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to delete specialization');
     }
   };
 
-  // Get user data from localStorage
+  const confirmDeleteSpecialization = (id, name) => {
+    showConfirm(
+      'Delete Specialization',
+      `Are you sure you want to permanently delete "${name}"? This may affect doctors with this specialization.`,
+      'danger',
+      (data) => handleDeleteSpecialization(data.id, data.name),
+      { id, name }
+    );
+  };
+
   const userData = user;
 
   const doctorDistribution = specializations.slice(0, 6).map(spec => ({
@@ -206,7 +304,6 @@ const AdminDashboard = () => {
           <>
             <AdminStats stats={stats} />
             <div className="charts-row">
-              {/* Doctor Distribution Section - Donut Chart */}
               <div className="chart-card">
                 <div className="chart-header">
                   <div className="chart-title">
@@ -264,7 +361,6 @@ const AdminDashboard = () => {
                       </PieChart>
                     </ResponsiveContainer>
                     
-                    {/* Center Text */}
                     <div className="donut-center-text">
                       <div className="center-value">{doctors.length}</div>
                       <div className="center-label">Total Doctors</div>
@@ -279,33 +375,35 @@ const AdminDashboard = () => {
       case 'hospitals':
         return <HospitalsTab 
           hospitals={hospitals} 
-          onAdd={() => openModal('hospital')} 
-          onEdit={(h) => openModal('hospital', h)} 
-          onDelete={handleDeleteHospital} 
+          onAdd={() => openHospitalModal()} 
+          onEdit={(h) => openHospitalModal(h)} 
+          onDelete={confirmDeleteHospital} 
         />;
       case 'doctors':
         return <DoctorsTab 
           doctors={doctors} 
-          onAdd={() => openModal('doctor')} 
-          onEdit={(d) => openModal('editDoctor', d)} 
-          onDelete={handleDeleteDoctor} 
-          onToggleStatus={handleToggleDoctorStatus} 
+          patients={allPatients}
+          onAdd={() => openDoctorModal()} 
+          onEdit={(d) => openDoctorModal(d)} 
+          onDelete={confirmDeleteDoctor} 
+          onToggleStatus={confirmToggleDoctorStatus} 
         />;
       case 'patients':
         return <PatientsTab 
           patients={allPatients} 
           doctors={doctors} 
-          onAdd={() => openModal('patient')} 
-          onEdit={(p) => openModal('patient', p)} 
-          onDelete={handleDeletePatient} 
-          onToggleStatus={handleTogglePatientStatus} 
+          onAdd={() => openPatientModal()} 
+          onEdit={(p) => openPatientModal(p)} 
+          onDelete={confirmDeletePatient} 
+          onToggleStatus={confirmTogglePatientStatus} 
         />;
       case 'specializations':
         return <SpecializationsTab 
           specializations={specializations} 
-          onAdd={() => openModal('specialization')} 
-          onEdit={(s) => openModal('specialization', s)} 
-          onDelete={handleDeleteSpecialization} 
+          doctors={doctors}
+          onAdd={() => openSpecializationModal()} 
+          onEdit={(s) => openSpecializationModal(s)} 
+          onDelete={confirmDeleteSpecialization} 
         />;
       case 'analytics':
         return <AdminAnalytics />;
@@ -337,12 +435,67 @@ const AdminDashboard = () => {
         {renderContent()}
       </main>
 
-      {/* Modals */}
-      <HospitalModal isOpen={modalState.hospital} onClose={() => closeModal('hospital')} editingHospital={editingItem} onSuccess={fetchAllData} />
-      <DoctorModal isOpen={modalState.doctor} onClose={() => closeModal('doctor')} specializations={specializations} hospitals={hospitals} onSuccess={fetchAllData} />
-      <EditDoctorModal isOpen={modalState.editDoctor} onClose={() => closeModal('editDoctor')} editingDoctor={editingItem} specializations={specializations} hospitals={hospitals} onSuccess={fetchAllData} />
-      <PatientModal isOpen={modalState.patient} onClose={() => closeModal('patient')} editingPatient={editingItem} doctors={doctors} onSuccess={fetchAllData} />
-      <SpecializationModal isOpen={modalState.specialization} onClose={() => closeModal('specialization')} editingSpecialization={editingItem} onSuccess={fetchAllData} />
+      {/* Hospital Modals */}
+      <HospitalModal 
+        isOpen={hospitalModal.isOpen && !hospitalModal.editingItem} 
+        onClose={closeHospitalModal} 
+        onSuccess={refreshData} 
+      />
+      <EditHospitalModal 
+        isOpen={hospitalModal.isOpen && hospitalModal.editingItem} 
+        onClose={closeHospitalModal} 
+        editingHospital={hospitalModal.editingItem}
+        onSuccess={refreshData} 
+      />
+
+      {/* Doctor Modals */}
+      <DoctorModal 
+        isOpen={doctorModal.isOpen && !doctorModal.editingItem} 
+        onClose={closeDoctorModal} 
+        specializations={specializations} 
+        hospitals={hospitals} 
+        onSuccess={refreshData} 
+      />
+      <EditDoctorModal 
+        isOpen={doctorModal.isOpen && doctorModal.editingItem} 
+        onClose={closeDoctorModal} 
+        editingDoctor={doctorModal.editingItem}
+        specializations={specializations} 
+        hospitals={hospitals} 
+        onSuccess={refreshData} 
+      />
+
+      {/* Patient Modal */}
+      <PatientModal 
+        isOpen={patientModal.isOpen} 
+        onClose={closePatientModal} 
+        editingPatient={patientModal.editingItem}
+        doctors={doctors} 
+        onSuccess={refreshData} 
+      />
+
+      {/* Specialization Modal */}
+      <SpecializationModal 
+        isOpen={specializationModal.isOpen} 
+        onClose={closeSpecializationModal} 
+        editingSpecialization={specializationModal.editingItem}
+        onSuccess={refreshData} 
+      />
+
+      {/* Global Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={() => {
+          if (confirmModal.onConfirmAction) confirmModal.onConfirmAction();
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        }}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        cancelText="Cancel"
+      />
     </div>
   );
 };

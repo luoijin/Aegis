@@ -1,79 +1,68 @@
+// frontend/src/components/features/Admin/components/modals/SpecializationModal.jsx
 import React, { useState, useEffect } from 'react';
-import { X, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Award, AlertCircle } from 'lucide-react';
 import api from '../../../../../utils/api';
 import './Modal.css';
 
 const SpecializationModal = ({ isOpen, onClose, editingSpecialization, onSuccess }) => {
   const [formData, setFormData] = useState({
-    name: '', description: '', isActive: true
+    name: '',
+    description: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-  const [showWarning, setShowWarning] = useState(false);
+  const isEditing = !!editingSpecialization;
 
   useEffect(() => {
-    if (editingSpecialization) {
+    if (editingSpecialization && isOpen) {
       setFormData({
         name: editingSpecialization.name || '',
-        description: editingSpecialization.description || '',
-        isActive: editingSpecialization.isActive !== false
+        description: editingSpecialization.description || ''
       });
-    } else {
-      setFormData({ name: '', description: '', isActive: true });
+    } else if (!isOpen) {
+      setFormData({ name: '', description: '' });
+      setError('');
     }
-    setShowWarning(false);
-  }, [editingSpecialization]);
+  }, [editingSpecialization, isOpen]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setSuccessMsg('');
+    
+    if (!formData.name.trim()) {
+      setError('Specialization name is required');
+      setLoading(false);
+      return;
+    }
     
     try {
-      if (editingSpecialization) {
-        // Check if name changed - show warning
-        if (formData.name !== editingSpecialization.name && !showWarning) {
-          setShowWarning(true);
-          setLoading(false);
-          return;
-        }
-        
-        // Update specialization
-        const response = await api.put(`/admin/specializations/${editingSpecialization._id}`, {
+      if (isEditing) {
+        // Only update name and description - status is automatic based on doctor count
+        await api.put(`/admin/specializations/${editingSpecialization._id}`, {
           name: formData.name,
-          description: formData.description,
-          isActive: formData.isActive
+          description: formData.description
+          // Note: isActive is NOT included - status is determined by doctor count
         });
-        
-        console.log('Specialization updated:', response.data);
-        setSuccessMsg(`Specialization updated to "${formData.name}"`);
-        
-        // Wait a bit before closing to show success message
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 1500);
       } else {
-        // Create new specialization
-        const response = await api.post('/admin/specializations', {
+        await api.post('/admin/specializations', {
           name: formData.name,
-          description: formData.description,
-          isActive: true
+          description: formData.description
         });
-        
-        console.log('Specialization created:', response.data);
-        setSuccessMsg(`Specialization "${formData.name}" created successfully`);
-        
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 1500);
       }
+      
+      onSuccess();
+      onClose();
     } catch (err) {
-      console.error('Error saving specialization:', err);
-      setError(err.response?.data?.message || 'Failed to save specialization');
+      setError(err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} specialization`);
     } finally {
       setLoading(false);
     }
@@ -83,65 +72,58 @@ const SpecializationModal = ({ isOpen, onClose, editingSpecialization, onSuccess
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{editingSpecialization ? 'Edit Specialization' : 'Add New Specialization'}</h3>
-          <button className="close-btn" onClick={onClose}><X size={20} /></button>
+          <h3><Award size={18} /> {isEditing ? 'Edit Specialization' : 'Add New Specialization'}</h3>
+          <button className="close-btn" onClick={onClose}><X size={18} /></button>
         </div>
         
         <form onSubmit={handleSubmit}>
           {error && (
             <div className="error-message">
-              <AlertCircle size={16} /> {error}
+              <AlertCircle size={14} />
+              <span>{error}</span>
             </div>
           )}
           
-          {successMsg && (
-            <div className="success-message">
-              <CheckCircle size={16} /> {successMsg}
+          <div className="form-group">
+            <label><Award size={12} /> Specialization Name *</label>
+            <input
+              type="text"
+              name="name"
+              placeholder="e.g., Cardiology, Neurology, Pediatrics"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Description</label>
+            <textarea
+              name="description"
+              placeholder="Brief description of this specialization"
+              value={formData.description}
+              onChange={handleChange}
+              rows="3"
+            />
+          </div>
+          
+          {isEditing && (
+            <div className="info-note">
+              <AlertCircle size={14} />
+              <span>
+                Specialization status is automatically determined by the number of doctors assigned. 
+                It will be <strong>Active</strong> if at least one doctor has this specialization, 
+                otherwise <strong>Inactive</strong>.
+              </span>
             </div>
-          )}
-          
-          {showWarning && editingSpecialization && (
-            <div className="warning-message">
-              <AlertCircle size={16} />
-              <div>
-                <strong>Warning: Changing specialization name will affect all doctors using it.</strong>
-                <p>This will update the specialization for all doctors currently assigned to "{editingSpecialization.name}".</p>
-              </div>
-            </div>
-          )}
-          
-          <input 
-            type="text" 
-            placeholder="Specialization Name *" 
-            value={formData.name} 
-            onChange={(e) => setFormData({...formData, name: e.target.value})} 
-            required 
-          />
-          
-          <textarea 
-            placeholder="Description (optional)" 
-            value={formData.description} 
-            onChange={(e) => setFormData({...formData, description: e.target.value})} 
-            rows="3"
-          />
-          
-          {editingSpecialization && (
-            <label className="checkbox-label">
-              <input 
-                type="checkbox" 
-                checked={formData.isActive} 
-                onChange={(e) => setFormData({...formData, isActive: e.target.checked})} 
-              /> 
-              Active
-            </label>
           )}
           
           <div className="modal-actions">
-            <button type="button" onClick={onClose}>Cancel</button>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : (editingSpecialization ? (showWarning ? 'Confirm Update' : 'Update') : 'Add')}
+            <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
+            <button type="submit" className="submit-btn" disabled={loading}>
+              {loading ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Specialization')}
             </button>
           </div>
         </form>

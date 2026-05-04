@@ -3,9 +3,10 @@ const Hospital = require('../models/Hospital.model');
 // Get all hospitals
 exports.getHospitals = async (req, res) => {
   try {
-    const hospitals = await Hospital.find({ isActive: true });
+    const hospitals = await Hospital.find({});
     res.json(hospitals);
   } catch (error) {
+    console.error('Get hospitals error:', error);
     res.status(500).json({ message: error.message });
   }
 };

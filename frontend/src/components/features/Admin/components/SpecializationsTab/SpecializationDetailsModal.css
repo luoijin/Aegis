@@ -1,0 +1,279 @@
+/* frontend/src/components/features/Admin/components/SpecializationsTab/SpecializationDetailsModal.css */
+
+.spec-details-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spec-details-modal {
+  background: white;
+  width: 95%;
+  max-width: 900px;
+  max-height: 85vh;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #1a3a5c 0%, #0f2c48 100%);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.02);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  background: #f8fafc;
+}
+
+.details-section {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.details-section:last-child {
+  margin-bottom: 0;
+}
+
+.details-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 14px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.details-section h4 svg {
+  color: #3b82f6;
+}
+
+.details-table {
+  padding: 0;
+}
+
+.details-row {
+  display: flex;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.details-row:last-child {
+  border-bottom: none;
+}
+
+.details-label {
+  width: 140px;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  background: #fafbfc;
+  border-right: 1px solid #f1f5f9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.details-value {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-note {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+/* Doctors Table */
+.doctors-table-wrapper {
+  overflow-x: auto;
+  padding: 0 20px 20px 20px;
+}
+
+.doctors-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.doctors-table th {
+  background: #f8fafc;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.doctors-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.doctors-table tr:last-child td {
+  border-bottom: none;
+}
+
+.doctor-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.doctor-email-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+}
+
+.hospital-name {
+  color: #3b82f6;
+  font-size: 12px;
+}
+
+.unassigned-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.empty-doctors {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+}
+
+.empty-doctors svg {
+  margin-bottom: 12px;
+  color: #cbd5e1;
+}
+
+.empty-doctors p {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.empty-doctors span {
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .details-row {
+    flex-direction: column;
+  }
+  
+  .details-label {
+    width: auto;
+    border-right: none;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 10px 16px 4px 16px;
+  }
+  
+  .details-value {
+    padding: 4px 16px 10px 16px;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+  
+  .doctors-table {
+    min-width: 500px;
+  }
+}

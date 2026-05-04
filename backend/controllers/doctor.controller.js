@@ -67,14 +67,19 @@ exports.searchPatients = async (req, res) => {
 exports.getPatientById = async (req, res) => {
   try {
     const patient = await Patient.findById(req.params.id)
-      .populate('user', 'email profile isActive')  // This gets firstName, lastName, dateOfBirth, gender, phone
+      .populate('user', 'email profile isActive')
       .populate('assignedDoctor', 'email profile');
     
     if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
     
-    // Check if doctor has access
+    // ✅ Allow admin to view any patient
+    if (req.user.role === 'admin') {
+      return res.json(patient);
+    }
+    
+    // For doctors, check if they are assigned to this patient
     if (patient.assignedDoctor?._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -85,6 +90,7 @@ exports.getPatientById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 exports.updateMedicalRecord = async (req, res) => {
   try {
@@ -429,7 +435,19 @@ exports.getHealthLogs = async (req, res) => {
       return res.status(404).json({ message: 'Patient not found' });
     }
     
-    // Check if doctor has access
+    // ✅ Allow admin to view any patient's health logs
+    if (req.user.role === 'admin') {
+      let query = { patient: patientId };
+      if (startDate && endDate) {
+        query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      }
+      const healthLogs = await HealthLog.find(query)
+        .sort({ createdAt: -1 })
+        .limit(parseInt(limit));
+      return res.json(healthLogs);
+    }
+    
+    // For doctors, check access
     if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -937,14 +955,31 @@ exports.getAppointmentStats = async (req, res) => {
 // When fetching prescriptions, populate doctor details
 exports.getPrescriptions = async (req, res) => {
   try {
-    const prescriptions = await Prescription.find({ doctor: req.user._id })
-      .populate('patient', 'user')
-      .populate('doctor', 'email profile licenseNumber specialization hospital')  // ← Make sure this includes licenseNumber
+    const { patientId } = req.query;
+    let query = {};
+    
+    // ✅ If admin, allow access to all prescriptions or filter by patientId
+    if (req.user.role === 'admin') {
+      if (patientId) {
+        query.patient = patientId;
+      }
+    } else {
+      // Doctor access - only their own prescriptions
+      query.doctor = req.user._id;
+      if (patientId) {
+        query.patient = patientId;
+      }
+    }
+    
+    const prescriptions = await Prescription.find(query)
+      .populate('patient', 'user bloodType allergies')
+      .populate('doctor', 'email profile')
       .sort({ issuedDate: -1 });
     
-    // Also populate hospital if needed
     for (let pres of prescriptions) {
-      if (pres.patient) await pres.patient.populate('user', 'email profile');
+      if (pres.patient && pres.patient.user) {
+        await pres.patient.populate('user', 'email profile');
+      }
     }
     
     res.json(prescriptions);
@@ -953,6 +988,7 @@ exports.getPrescriptions = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 exports.createPrescription = async (req, res) => {
   try {
     const { patientId, medications, notes, refillsRemaining } = req.body;
@@ -1016,6 +1052,601 @@ exports.deletePrescription = async (req, res) => {
     res.json({ message: 'Prescription deleted successfully' });
   } catch (error) {
     console.error('Delete prescription error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== PRESCRIPTION MANAGEMENT ==========
+
+// Get all prescriptions for the logged-in doctor
+exports.getPrescriptions = async (req, res) => {
+  try {
+    const { patientId } = req.query;
+    let query = { doctor: req.user._id };
+    
+    if (patientId) {
+      query.patient = patientId;
+    }
+    
+    const prescriptions = await Prescription.find(query)
+      .populate('patient', 'user')
+      .populate('doctor', 'email profile')
+      .sort({ issuedDate: -1 });
+    
+    // Populate patient user details
+    for (let pres of prescriptions) {
+      if (pres.patient) {
+        await pres.patient.populate('user', 'email profile');
+      }
+    }
+    
+    res.json(prescriptions);
+  } catch (error) {
+    console.error('Get prescriptions error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get single prescription by ID
+exports.getPrescriptionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const prescription = await Prescription.findById(id)
+      .populate('patient', 'user')
+      .populate('doctor', 'email profile');
+    
+    if (!prescription) {
+      return res.status(404).json({ message: 'Prescription not found' });
+    }
+    
+    // Check if doctor has access
+    if (prescription.doctor._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    if (prescription.patient) {
+      await prescription.patient.populate('user', 'email profile');
+    }
+    
+    res.json(prescription);
+  } catch (error) {
+    console.error('Get prescription by ID error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create new prescription
+exports.createPrescription = async (req, res) => {
+  try {
+    const { patientId, medications, notes, refillsRemaining, expiryDate } = req.body;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if doctor has access to this patient
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied. This patient is not assigned to you.' });
+    }
+    
+    const prescription = new Prescription({
+      patient: patientId,
+      doctor: req.user._id,
+      medications: medications || [],
+      notes: notes || '',
+      refillsRemaining: refillsRemaining || 0,
+      isActive: true,
+      issuedDate: new Date(),
+      expiryDate: expiryDate || null
+    });
+    
+    await prescription.save();
+    
+    // Populate for response
+    await prescription.populate('patient', 'user');
+    await prescription.populate('doctor', 'email profile');
+    
+    if (prescription.patient) {
+      await prescription.patient.populate('user', 'email profile');
+    }
+    
+    // Create notification for patient
+    try {
+      const notificationController = require('./notification.controller');
+      await notificationController.createNotification(
+        patient.user,
+        'prescription_created',
+        '💊 New Prescription',
+        `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} has issued a new prescription for you.`,
+        { prescriptionId: prescription._id }
+      );
+    } catch (err) {
+      console.warn('Could not send notification:', err.message);
+    }
+    
+    res.status(201).json(prescription);
+  } catch (error) {
+    console.error('Create prescription error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update prescription
+exports.updatePrescription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { medications, notes, refillsRemaining, isActive, expiryDate } = req.body;
+    
+    const prescription = await Prescription.findOne({ _id: id, doctor: req.user._id });
+    if (!prescription) {
+      return res.status(404).json({ message: 'Prescription not found' });
+    }
+    
+    if (medications) prescription.medications = medications;
+    if (notes !== undefined) prescription.notes = notes;
+    if (refillsRemaining !== undefined) prescription.refillsRemaining = refillsRemaining;
+    if (isActive !== undefined) prescription.isActive = isActive;
+    if (expiryDate) prescription.expiryDate = expiryDate;
+    
+    await prescription.save();
+    await prescription.populate('patient', 'user');
+    await prescription.populate('doctor', 'email profile');
+    
+    res.json(prescription);
+  } catch (error) {
+    console.error('Update prescription error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete prescription
+exports.deletePrescription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const prescription = await Prescription.findOneAndDelete({ _id: id, doctor: req.user._id });
+    
+    if (!prescription) {
+      return res.status(404).json({ message: 'Prescription not found' });
+    }
+    
+    res.json({ message: 'Prescription deleted successfully' });
+  } catch (error) {
+    console.error('Delete prescription error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== APPOINTMENT MANAGEMENT ==========
+
+// Get appointments for the logged-in doctor
+exports.getAppointments = async (req, res) => {
+  try {
+    const { patientId, status } = req.query;
+    let query = {};
+    
+    // ✅ If admin, allow access to all appointments or filter by patientId
+    if (req.user.role === 'admin') {
+      if (patientId) {
+        query.patient = patientId;
+      }
+    } else {
+      // Doctor access - only their own appointments
+      query.doctor = req.user._id;
+      if (patientId) {
+        query.patient = patientId;
+      }
+    }
+    
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    const appointments = await Appointment.find(query)
+      .populate('patient', 'user bloodType allergies')
+      .populate('doctor', 'email profile')
+      .populate('hospital', 'name address phone')
+      .sort({ dateTime: 1 });
+    
+    for (let apt of appointments) {
+      if (apt.patient && apt.patient.user) {
+        await apt.patient.populate('user', 'email profile');
+      }
+    }
+    
+    res.json(appointments);
+  } catch (error) {
+    console.error('Get appointments error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get single appointment by ID
+exports.getAppointmentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const appointment = await Appointment.findById(id)
+      .populate('patient', 'user')
+      .populate('doctor', 'email profile')
+      .populate('hospital', 'name address phone');
+    
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    
+    // Check if doctor has access
+    if (appointment.doctor._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    if (appointment.patient) {
+      await appointment.patient.populate('user', 'email profile');
+    }
+    
+    res.json(appointment);
+  } catch (error) {
+    console.error('Get appointment by ID error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create new appointment
+exports.createAppointment = async (req, res) => {
+  try {
+    const { patientId, dateTime, duration, type, reason, notes, hospitalId, location } = req.body;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if doctor has access
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied. This patient is not assigned to you.' });
+    }
+    
+    // Check for scheduling conflicts
+    const existingAppointment = await Appointment.findOne({
+      doctor: req.user._id,
+      dateTime: new Date(dateTime),
+      status: { $nin: ['cancelled', 'completed'] }
+    });
+    
+    if (existingAppointment) {
+      return res.status(409).json({ message: 'You already have an appointment at this time' });
+    }
+    
+    const appointment = new Appointment({
+      patient: patientId,
+      doctor: req.user._id,
+      dateTime: new Date(dateTime),
+      duration: duration || 30,
+      type: type || 'in-person',
+      reason: reason || '',
+      notes: notes || '',
+      hospital: hospitalId || null,
+      location: location || {},
+      status: 'scheduled'
+    });
+    
+    await appointment.save();
+    await appointment.populate('patient', 'user');
+    await appointment.populate('doctor', 'email profile');
+    await appointment.populate('hospital', 'name address phone');
+    
+    if (appointment.patient) {
+      await appointment.patient.populate('user', 'email profile');
+    }
+    
+    // Create notification for patient
+    try {
+      const notificationController = require('./notification.controller');
+      await notificationController.createNotification(
+        patient.user,
+        'appointment_created',
+        '📅 New Appointment Scheduled',
+        `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} scheduled an appointment with you on ${new Date(dateTime).toLocaleString()}.`,
+        { appointmentId: appointment._id, dateTime }
+      );
+    } catch (err) {
+      console.warn('Could not send notification:', err.message);
+    }
+    
+    res.status(201).json(appointment);
+  } catch (error) {
+    console.error('Create appointment error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update appointment
+exports.updateAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { dateTime, duration, type, reason, notes, status, location, cancellationReason } = req.body;
+    
+    const appointment = await Appointment.findOne({ _id: id, doctor: req.user._id });
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    
+    if (dateTime) appointment.dateTime = new Date(dateTime);
+    if (duration) appointment.duration = duration;
+    if (type) appointment.type = type;
+    if (reason) appointment.reason = reason;
+    if (notes !== undefined) appointment.notes = notes;
+    if (status) appointment.status = status;
+    if (location) appointment.location = location;
+    if (cancellationReason) appointment.cancellationReason = cancellationReason;
+    
+    await appointment.save();
+    await appointment.populate('patient', 'user');
+    await appointment.populate('doctor', 'email profile');
+    
+    res.json(appointment);
+  } catch (error) {
+    console.error('Update appointment error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete appointment
+exports.deleteAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const appointment = await Appointment.findOneAndDelete({ _id: id, doctor: req.user._id });
+    
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    
+    res.json({ message: 'Appointment deleted successfully' });
+  } catch (error) {
+    console.error('Delete appointment error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ========== REFERRAL MANAGEMENT ==========
+
+// Get all referrals (both sent and received)
+exports.getReferrals = async (req, res) => {
+  try {
+    const { patientId } = req.query;
+    let query = {};
+    
+    // ✅ If admin, allow access to all referrals or filter by patientId
+    if (req.user.role === 'admin') {
+      if (patientId) {
+        query.patient = patientId;
+      }
+    } else {
+      // Doctor access - only their own sent/received referrals
+      query = {
+        $or: [
+          { fromDoctor: req.user._id },
+          { toDoctor: req.user._id }
+        ]
+      };
+      if (patientId) {
+        query.patient = patientId;
+      }
+    }
+    
+    const referrals = await Referral.find(query)
+      .populate('patient', 'user bloodType allergies')
+      .populate('fromDoctor', 'email profile')
+      .populate('toDoctor', 'email profile')
+      .sort({ createdAt: -1 });
+    
+    for (let ref of referrals) {
+      if (ref.patient && ref.patient.user) {
+        await ref.patient.populate('user', 'email profile');
+      }
+    }
+    
+    res.json(referrals);
+  } catch (error) {
+    console.error('Get referrals error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get sent referrals
+exports.getSentReferrals = async (req, res) => {
+  try {
+    const referrals = await Referral.find({ fromDoctor: req.user._id })
+      .populate('patient', 'user')
+      .populate('toDoctor', 'email profile')
+      .sort({ createdAt: -1 });
+    
+    for (let ref of referrals) {
+      if (ref.patient) {
+        await ref.patient.populate('user', 'email profile');
+      }
+    }
+    
+    res.json(referrals);
+  } catch (error) {
+    console.error('Get sent referrals error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get received referrals
+exports.getReceivedReferrals = async (req, res) => {
+  try {
+    const referrals = await Referral.find({ toDoctor: req.user._id, status: 'pending' })
+      .populate('patient', 'user')
+      .populate('fromDoctor', 'email profile')
+      .sort({ createdAt: -1 });
+    
+    for (let ref of referrals) {
+      if (ref.patient) {
+        await ref.patient.populate('user', 'email profile');
+      }
+    }
+    
+    res.json(referrals);
+  } catch (error) {
+    console.error('Get received referrals error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create new referral
+exports.createReferral = async (req, res) => {
+  try {
+    const { patientId, toDoctorId, reason, priority, notes } = req.body;
+    
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Check if doctor has access to this patient
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied. This patient is not assigned to you.' });
+    }
+    
+    const toDoctor = await User.findById(toDoctorId);
+    if (!toDoctor || toDoctor.role !== 'doctor') {
+      return res.status(404).json({ message: 'Target doctor not found' });
+    }
+    
+    const referral = new Referral({
+      patient: patientId,
+      fromDoctor: req.user._id,
+      toDoctor: toDoctorId,
+      reason: reason || '',
+      priority: priority || 'normal',
+      notes: notes || '',
+      status: 'pending'
+    });
+    
+    await referral.save();
+    await referral.populate('patient', 'user');
+    await referral.populate('fromDoctor', 'email profile');
+    await referral.populate('toDoctor', 'email profile');
+    
+    if (referral.patient) {
+      await referral.patient.populate('user', 'email profile');
+    }
+    
+    // Create notification for target doctor
+    try {
+      const notificationController = require('./notification.controller');
+      await notificationController.createNotification(
+        toDoctorId,
+        'referral_received',
+        '🩺 New Referral Received',
+        `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} referred a patient to you.`,
+        { referralId: referral._id, patientId, priority }
+      );
+    } catch (err) {
+      console.warn('Could not send notification:', err.message);
+    }
+    
+    res.status(201).json(referral);
+  } catch (error) {
+    console.error('Create referral error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Respond to referral
+exports.respondToReferral = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, responseNotes } = req.body;
+    
+    if (!['accepted', 'denied'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Must be "accepted" or "denied"' });
+    }
+    
+    const referral = await Referral.findById(id);
+    if (!referral) {
+      return res.status(404).json({ message: 'Referral not found' });
+    }
+    
+    // Check if this doctor is the recipient
+    if (referral.toDoctor.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied. This referral is not for you.' });
+    }
+    
+    if (referral.status !== 'pending') {
+      return res.status(400).json({ message: `Referral has already been ${referral.status}` });
+    }
+    
+    referral.status = status;
+    referral.responseNotes = responseNotes || '';
+    referral.respondedAt = new Date();
+    await referral.save();
+    
+    // If accepted, reassign the patient
+    if (status === 'accepted') {
+      const patient = await Patient.findById(referral.patient);
+      if (patient) {
+        patient.assignedDoctor = referral.toDoctor;
+        await patient.save();
+      }
+    }
+    
+    await referral.populate('patient', 'user');
+    await referral.populate('fromDoctor', 'email profile');
+    await referral.populate('toDoctor', 'email profile');
+    
+    if (referral.patient) {
+      await referral.patient.populate('user', 'email profile');
+    }
+    
+    // Create notification for referring doctor
+    try {
+      const notificationController = require('./notification.controller');
+      await notificationController.createNotification(
+        referral.fromDoctor,
+        'referral_responded',
+        status === 'accepted' ? '✅ Referral Accepted' : '❌ Referral Declined',
+        `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} has ${status} your referral.`,
+        { referralId: referral._id, status }
+      );
+    } catch (err) {
+      console.warn('Could not send notification:', err.message);
+    }
+    
+    res.json(referral);
+  } catch (error) {
+    console.error('Respond to referral error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get referral by ID
+exports.getReferralById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const referral = await Referral.findById(id)
+      .populate('patient', 'user')
+      .populate('fromDoctor', 'email profile')
+      .populate('toDoctor', 'email profile');
+    
+    if (!referral) {
+      return res.status(404).json({ message: 'Referral not found' });
+    }
+    
+    // Check if doctor is involved
+    if (referral.fromDoctor._id.toString() !== req.user._id.toString() &&
+        referral.toDoctor._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    if (referral.patient) {
+      await referral.patient.populate('user', 'email profile');
+    }
+    
+    res.json(referral);
+  } catch (error) {
+    console.error('Get referral by ID error:', error);
     res.status(500).json({ message: error.message });
   }
 };

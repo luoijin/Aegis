@@ -3,60 +3,68 @@ const router = express.Router();
 const doctorController = require('../controllers/doctor.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-// All doctor routes require authentication and doctor role
+// Custom middleware to allow both doctor and admin
+const authorizeDoctorOrAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  if (req.user.role === 'doctor' || req.user.role === 'admin') {
+    return next();
+  }
+  return res.status(403).json({ message: 'Access denied. Doctor or Admin role required.' });
+};
+
+// Apply authentication to all routes
 router.use(authenticate);
-router.use(authorize('doctor'));
 
-// ========== DASHBOARD ==========
-router.get('/dashboard/stats', doctorController.getDashboardStats);
+// ========== DASHBOARD (Doctor only) ==========
+router.get('/dashboard/stats', authorize('doctor'), doctorController.getDashboardStats);
 
-// ========== PATIENT MANAGEMENT ==========
-router.get('/patients', doctorController.getPatients);
-router.get('/patients/search', doctorController.searchPatients);
-router.get('/patients/:id', doctorController.getPatientById);
-router.put('/patients/:id/medical-record', doctorController.updateMedicalRecord);
-router.post('/patients/:patientId/assign', doctorController.assignPatientToDoctor);
-router.delete('/patients/:patientId/remove', doctorController.removePatient);
+// ========== PATIENT MANAGEMENT (Doctor only for write operations) ==========
+router.get('/patients', authorize('doctor'), doctorController.getPatients);
+router.get('/patients/search', authorize('doctor'), doctorController.searchPatients);
+router.put('/patients/:id/medical-record', authorize('doctor'), doctorController.updateMedicalRecord);
+router.post('/patients/:patientId/assign', authorize('doctor'), doctorController.assignPatientToDoctor);
+router.delete('/patients/:patientId/remove', authorize('doctor'), doctorController.removePatient);
+
+// ========== PATIENT VIEW (Allow both doctor and admin) ==========
+router.get('/patients/:id', authorizeDoctorOrAdmin, doctorController.getPatientById);
 
 // ========== HEALTH LOGS (VITALS) ==========
-router.post('/patients/:patientId/health-logs', doctorController.addHealthLog);
-router.get('/patients/:patientId/health-logs', doctorController.getHealthLogs);
-router.get('/patients/:patientId/trends', doctorController.getVitalsTrends);
-router.put('/health-logs/:logId', doctorController.updateHealthLog);
-router.delete('/health-logs/:logId', doctorController.deleteHealthLog);
+router.post('/patients/:patientId/health-logs', authorize('doctor'), doctorController.addHealthLog);
+router.get('/patients/:patientId/health-logs', authorizeDoctorOrAdmin, doctorController.getHealthLogs);
+router.get('/patients/:patientId/trends', authorize('doctor'), doctorController.getVitalsTrends);
+router.put('/health-logs/:logId', authorize('doctor'), doctorController.updateHealthLog);
+router.delete('/health-logs/:logId', authorize('doctor'), doctorController.deleteHealthLog);
 
-// ========== REFERRAL SYSTEM ==========
-router.get('/doctors', doctorController.getAllDoctors);
-router.post('/referrals', doctorController.createReferral);
-router.get('/referrals/sent', doctorController.getSentReferrals);
-router.get('/referrals/received', doctorController.getReceivedReferrals);
-router.put('/referrals/:id/respond', doctorController.respondToReferral);
-router.get('/referrals/:id', doctorController.getReferralById);
+// ========== PRESCRIPTION ROUTES ==========
+router.get('/prescriptions', authorizeDoctorOrAdmin, doctorController.getPrescriptions);
+router.get('/prescriptions/:id', authorizeDoctorOrAdmin, doctorController.getPrescriptionById);
+router.post('/prescriptions', authorize('doctor'), doctorController.createPrescription);
+router.put('/prescriptions/:id', authorize('doctor'), doctorController.updatePrescription);
+router.delete('/prescriptions/:id', authorize('doctor'), doctorController.deletePrescription);
 
-// ========== APPOINTMENT SYSTEM ==========
-router.get('/appointments', doctorController.getAppointments);
-router.get('/appointments/stats', doctorController.getAppointmentStats);
-router.post('/appointments', doctorController.createAppointment);
-router.put('/appointments/:id', doctorController.updateAppointment);
-router.delete('/appointments/:id', doctorController.deleteAppointment);
+// ========== APPOINTMENT ROUTES ==========
+router.get('/appointments', authorizeDoctorOrAdmin, doctorController.getAppointments);
+router.get('/appointments/:id', authorizeDoctorOrAdmin, doctorController.getAppointmentById);
+router.get('/appointments/stats', authorize('doctor'), doctorController.getAppointmentStats);
+router.post('/appointments', authorize('doctor'), doctorController.createAppointment);
+router.put('/appointments/:id', authorize('doctor'), doctorController.updateAppointment);
+router.delete('/appointments/:id', authorize('doctor'), doctorController.deleteAppointment);
 
-// ========== PRESCRIPTION SYSTEM ==========
+// ========== REFERRAL ROUTES ==========
+router.get('/referrals', authorizeDoctorOrAdmin, doctorController.getReferrals);
+router.get('/referrals/sent', authorize('doctor'), doctorController.getSentReferrals);
+router.get('/referrals/received', authorize('doctor'), doctorController.getReceivedReferrals);
+router.get('/referrals/:id', authorizeDoctorOrAdmin, doctorController.getReferralById);
+router.post('/referrals', authorize('doctor'), doctorController.createReferral);
+router.put('/referrals/:id/respond', authorize('doctor'), doctorController.respondToReferral);
 
-router.get('/prescriptions', doctorController.getPrescriptions);
-router.post('/prescriptions', doctorController.createPrescription);
-router.put('/prescriptions/:id', doctorController.updatePrescription);
-router.delete('/prescriptions/:id', doctorController.deletePrescription);
-
-// ========== ANALYTICS ==========
-router.get('/analytics/patient-stats', doctorController.getPatientAnalytics);
-router.get('/analytics/conditions', doctorController.getConditionOptions);
-router.post('/patients/:patientId/conditions', doctorController.addPatientCondition);
-router.put('/patients/:patientId/conditions/:conditionId', doctorController.updatePatientCondition);
-
-// ========== CONDITION MANAGEMENT ==========
-router.get('/analytics/conditions', doctorController.getConditionOptions);
-router.post('/patients/:patientId/conditions', doctorController.addPatientCondition);
-router.put('/patients/:patientId/conditions/:conditionId', doctorController.updatePatientCondition);
-router.delete('/patients/:patientId/conditions/:conditionId', doctorController.deletePatientCondition);
+// ========== CONDITION MANAGEMENT (Doctor only) ==========
+router.get('/analytics/conditions', authorize('doctor'), doctorController.getConditionOptions);
+router.get('/analytics/patient-stats', authorize('doctor'), doctorController.getPatientAnalytics);
+router.post('/patients/:patientId/conditions', authorize('doctor'), doctorController.addPatientCondition);
+router.put('/patients/:patientId/conditions/:conditionId', authorize('doctor'), doctorController.updatePatientCondition);
+router.delete('/patients/:patientId/conditions/:conditionId', authorize('doctor'), doctorController.deletePatientCondition);
 
 module.exports = router;

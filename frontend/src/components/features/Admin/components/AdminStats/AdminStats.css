@@ -1,3 +1,5 @@
+/* frontend/src/components/features/Admin/components/AdminStats/AdminStats.css */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -11,13 +13,19 @@
   padding: 20px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  border: 1px solid #E2E8F0;
+  gap: 16px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .stat-icon {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 14px;
   display: flex;
   align-items: center;
@@ -27,14 +35,17 @@
 .stat-info h3 {
   font-size: 13px;
   font-weight: 500;
-  color: #64748B;
+  color: #64748b;
   margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
-  color: #0A0F1D;
+  color: #0f172a;
+  line-height: 1.2;
 }
 
 @media (max-width: 1024px) {
@@ -45,10 +56,15 @@
   .stat-card {
     padding: 16px;
   }
+  
+  .stat-value {
+    font-size: 24px;
+  }
 }
 
 @media (max-width: 768px) {
   .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 }

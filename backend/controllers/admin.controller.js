@@ -77,13 +77,183 @@ exports.getDashboardStats = async (req, res) => {
 // Hospital CRUD
 exports.getHospitals = async (req, res) => {
   try {
-    const hospitals = await Hospital.find({});
-    res.json(hospitals);
+    const hospitals = await Hospital.find({}).sort({ createdAt: -1 });
+    
+    // Get doctor count for each hospital
+    const hospitalsWithStats = await Promise.all(
+      hospitals.map(async (hospital) => {
+        const doctorCount = await User.countDocuments({ 
+          hospital: hospital._id, 
+          role: 'doctor',
+          isActive: true
+        });
+        return {
+          ...hospital.toObject(),
+          doctorCount
+        };
+      })
+    );
+    
+    res.json(hospitalsWithStats);
   } catch (error) {
+    console.error('Get hospitals error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
+exports.getHospitalById = async (req, res) => {
+  try {
+    const hospital = await Hospital.findById(req.params.id);
+    if (!hospital) {
+      return res.status(404).json({ message: 'Hospital not found' });
+    }
+    
+    const doctorCount = await User.countDocuments({ 
+      hospital: hospital._id, 
+      role: 'doctor',
+      isActive: true
+    });
+    
+    const doctors = await User.find({ 
+      hospital: hospital._id, 
+      role: 'doctor',
+      isActive: true
+    }).select('email profile specialization licenseNumber isActive');
+    
+    res.json({
+      ...hospital.toObject(),
+      doctorCount,
+      doctors
+    });
+  } catch (error) {
+    console.error('Get hospital by ID error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get hospital with doctor details
+exports.getHospitalWithDoctors = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const hospital = await Hospital.findById(id);
+    
+    if (!hospital) {
+      return res.status(404).json({ message: 'Hospital not found' });
+    }
+    
+    // Get doctors assigned to this hospital
+    const doctors = await User.find({ 
+      hospital: id, 
+      role: 'doctor',
+      isActive: true
+    }).select('email profile specialization licenseNumber isActive');
+    
+    // Get doctor count
+    const doctorCount = doctors.length;
+    
+    res.json({
+      ...hospital.toObject(),
+      doctorCount,
+      doctors
+    });
+  } catch (error) {
+    console.error('Get hospital with doctors error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get all hospitals with doctor counts
+exports.getAllHospitalsWithStats = async (req, res) => {
+  try {
+    const hospitals = await Hospital.find({}).sort({ createdAt: -1 });
+    
+    const hospitalsWithStats = await Promise.all(
+      hospitals.map(async (hospital) => {
+        const doctorCount = await User.countDocuments({ 
+          hospital: hospital._id, 
+          role: 'doctor',
+          isActive: true
+        });
+        return {
+          ...hospital.toObject(),
+          doctorCount
+        };
+      })
+    );
+    
+    res.json(hospitalsWithStats);
+  } catch (error) {
+    console.error('Get hospitals with stats error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Add/update this function
+exports.updateDoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { profile, licenseNumber, specialization, hospital, isActive } = req.body;
+    
+    const doctor = await User.findById(id);
+    if (!doctor || doctor.role !== 'doctor') {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+    
+    // Update profile
+    if (profile) {
+      if (profile.firstName) doctor.profile.firstName = profile.firstName;
+      if (profile.lastName) doctor.profile.lastName = profile.lastName;
+      if (profile.phone) doctor.profile.phone = profile.phone;
+    }
+    
+    // Update other fields
+    if (licenseNumber !== undefined) doctor.licenseNumber = licenseNumber;
+    if (specialization !== undefined) doctor.specialization = specialization;
+    if (hospital !== undefined) doctor.hospital = hospital;
+    if (isActive !== undefined) doctor.isActive = isActive;
+    
+    await doctor.save();
+    
+    // Populate hospital for response
+    await doctor.populate('hospital', 'name address phone');
+    
+    res.json({ 
+      message: 'Doctor updated successfully', 
+      doctor 
+    });
+  } catch (error) {
+    console.error('Update doctor error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update doctor's hospital assignment
+exports.updateDoctorHospital = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const { hospitalId } = req.body;
+    
+    const doctor = await User.findById(doctorId);
+    if (!doctor || doctor.role !== 'doctor') {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+    
+    doctor.hospital = hospitalId === '' || hospitalId === null ? null : hospitalId;
+    await doctor.save();
+    
+    const updatedDoctor = await User.findById(doctorId)
+      .select('-password')
+      .populate('hospital', 'name address phone');
+    
+    res.json({ 
+      message: 'Doctor hospital updated successfully', 
+      doctor: updatedDoctor 
+    });
+  } catch (error) {
+    console.error('Update doctor hospital error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
 exports.createHospital = async (req, res) => {
   try {
     const hospital = new Hospital(req.body);
@@ -120,24 +290,34 @@ exports.deleteHospital = async (req, res) => {
 exports.getAllDoctors = async (req, res) => {
   try {
     const doctors = await User.find({ role: 'doctor' })
-      .select('-password');
+      .select('-password')
+      .populate('hospital', 'name address phone')
+      .sort({ createdAt: -1 });
+    
     res.json(doctors);
   } catch (error) {
+    console.error('Get all doctors error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
 exports.updateDoctorStatus = async (req, res) => {
   try {
+    const { id } = req.params;
     const { isActive } = req.body;
-    const doctor = await User.findByIdAndUpdate(
-      req.params.id,
-      { isActive },
-      { new: true }
-    ).select('-password');
-    res.json(doctor);
+    
+    const doctor = await User.findById(id);
+    if (!doctor || doctor.role !== 'doctor') {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+    
+    doctor.isActive = isActive;
+    await doctor.save();
+    
+    res.json({ message: `Doctor ${isActive ? 'activated' : 'deactivated'} successfully` });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Update doctor status error:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -176,19 +356,13 @@ exports.deleteDoctorByAdmin = async (req, res) => {
 exports.getAllPatients = async (req, res) => {
   try {
     const patients = await Patient.find({})
-      .populate('user', 'email profile isActive')  // Make sure isActive is included
-      .populate('assignedDoctor', 'email profile');
-    
-    console.log(`📊 Admin fetched ${patients.length} patients`);
-    console.log('Patient statuses:', patients.map(p => ({
-      name: p.user?.profile?.firstName,
-      email: p.user?.email,
-      isActive: p.user?.isActive
-    })));
+      .populate('user', 'email profile isActive')
+      .populate('assignedDoctor', 'email profile specialization')
+      .sort({ createdAt: -1 });
     
     res.json(patients);
   } catch (error) {
-    console.error('Error fetching patients:', error);
+    console.error('Get all patients error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -223,38 +397,49 @@ exports.deletePatientByAdmin = async (req, res) => {
 exports.updatePatientByAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, phone, bloodType, allergies, assignedDoctor } = req.body;
+    const { profile, bloodType, assignedDoctor, isActive } = req.body;
     
-    // Find the patient record
+    console.log('Updating patient:', id);
+    console.log('Update data:', req.body);
+    
+    // Find the patient
     const patient = await Patient.findById(id);
     if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
     
-    // Update User collection
-    const user = await User.findById(patient.user);
-    if (user) {
-      if (firstName) user.profile.firstName = firstName;
-      if (lastName) user.profile.lastName = lastName;
-      if (phone) user.profile.phone = phone;
-      if (email) user.email = email;
-      await user.save();
+    // Update patient-specific fields
+    if (bloodType !== undefined) patient.bloodType = bloodType;
+    if (assignedDoctor !== undefined) patient.assignedDoctor = assignedDoctor;
+    if (isActive !== undefined) patient.isActive = isActive;
+    
+    // Update user profile if provided
+    if (profile) {
+      const user = await User.findById(patient.user);
+      if (user) {
+        if (profile.firstName !== undefined) user.profile.firstName = profile.firstName;
+        if (profile.lastName !== undefined) user.profile.lastName = profile.lastName;
+        if (profile.phone !== undefined) user.profile.phone = profile.phone;
+        if (profile.dateOfBirth !== undefined) user.profile.dateOfBirth = profile.dateOfBirth || null;
+        if (profile.gender !== undefined) user.profile.gender = profile.gender;
+        
+        await user.save();
+        console.log('User updated:', user.email);
+      }
     }
     
-    // Update Patient collection
-    if (bloodType) patient.bloodType = bloodType;
-    if (allergies) patient.allergies = allergies;
-    if (assignedDoctor !== undefined) patient.assignedDoctor = assignedDoctor || null;
     await patient.save();
     
-    // Return updated patient with populated user data
+    // Return updated patient with populated data
     const updatedPatient = await Patient.findById(id)
-      .populate('user', 'email profile')
-      .populate('assignedDoctor', 'email profile');
+      .populate('user', 'email profile isActive')
+      .populate('assignedDoctor', 'email profile specialization');
     
-    console.log(`✅ Admin updated patient: ${user?.email}`);
-    
-    res.json(updatedPatient);
+    console.log('Patient updated successfully');
+    res.json({ 
+      message: 'Patient updated successfully', 
+      patient: updatedPatient 
+    });
   } catch (error) {
     console.error('Update patient error:', error);
     res.status(500).json({ message: error.message });
@@ -262,48 +447,27 @@ exports.updatePatientByAdmin = async (req, res) => {
 };
 
 // Update patient status (activate/deactivate)
-// Update patient status (activate/deactivate)
 exports.updatePatientStatus = async (req, res) => {
   try {
-    const { isActive } = req.body;
     const { id } = req.params;
+    const { isActive } = req.body;
     
-    console.log(`📝 Updating patient status - Patient ID: ${id}, isActive: ${isActive}`);
-    
-    // Find the patient record
     const patient = await Patient.findById(id);
     if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
     
-    console.log(`   Found patient, user ID: ${patient.user}`);
-    
     // Update the user's isActive status
-    const updatedUser = await User.findByIdAndUpdate(
-      patient.user,
-      { isActive: isActive === true || isActive === 'true' },
-      { new: true }  // This returns the updated document
-    );
-    
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
+    const user = await User.findById(patient.user);
+    if (user) {
+      user.isActive = isActive;
+      await user.save();
     }
     
-    console.log(`✅ User updated: ${updatedUser.email} is now ${updatedUser.isActive ? 'ACTIVE' : 'INACTIVE'}`);
-    
-    // Return the updated patient with fresh user data
-    const updatedPatient = await Patient.findById(id)
-      .populate('user', 'email profile isActive')
-      .populate('assignedDoctor', 'email profile');
-    
-    res.json({ 
-      success: true,
-      message: `Patient ${isActive ? 'activated' : 'deactivated'} successfully`,
-      patient: updatedPatient
-    });
+    res.json({ message: `Patient ${isActive ? 'activated' : 'deactivated'} successfully` });
   } catch (error) {
     console.error('Update patient status error:', error);
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -400,32 +564,46 @@ exports.deleteSpecialization = async (req, res) => {
 exports.updateDoctorByAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, phone, licenseNumber, specialization, hospital, isActive } = req.body;
+    const { profile, licenseNumber, specialization, hospital, isActive } = req.body;
     
+    console.log('Updating doctor:', id);
+    console.log('Update data:', req.body);
+    
+    // Find the doctor
     const doctor = await User.findById(id);
     if (!doctor || doctor.role !== 'doctor') {
       return res.status(404).json({ message: 'Doctor not found' });
     }
     
-    if (firstName) doctor.profile.firstName = firstName;
-    if (lastName) doctor.profile.lastName = lastName;
-    if (phone) doctor.profile.phone = phone;
-    if (licenseNumber) doctor.licenseNumber = licenseNumber;
-    
-    // Handle specialization - store the name, not the ID
-    if (specialization !== undefined) {
-      doctor.specialization = specialization || '';
+    // Update profile fields
+    if (profile) {
+      if (profile.firstName !== undefined) doctor.profile.firstName = profile.firstName;
+      if (profile.lastName !== undefined) doctor.profile.lastName = profile.lastName;
+      if (profile.phone !== undefined) doctor.profile.phone = profile.phone;
+      if (profile.dateOfBirth !== undefined) doctor.profile.dateOfBirth = profile.dateOfBirth || null;
+      if (profile.gender !== undefined) doctor.profile.gender = profile.gender;
     }
     
-    if (hospital !== undefined) doctor.hospital = hospital;
+    // Update other fields
+    if (licenseNumber !== undefined) doctor.licenseNumber = licenseNumber;
+    if (specialization !== undefined) doctor.specialization = specialization;
+    if (hospital !== undefined) doctor.hospital = hospital === '' || hospital === null ? null : hospital;
     if (isActive !== undefined) doctor.isActive = isActive;
     
     await doctor.save();
+    console.log('Doctor saved successfully');
     
-    console.log(`✅ Admin updated doctor: ${doctor.email} - Specialization: ${doctor.specialization || 'None'}`);
+    // Return updated doctor with populated data
+    const updatedDoctor = await User.findById(id)
+      .select('-password')
+      .populate('hospital', 'name address phone');
     
-    const updatedDoctor = await User.findById(id).select('-password');
-    res.json(updatedDoctor);
+    console.log('Updated doctor:', updatedDoctor.email);
+    
+    res.json({ 
+      message: 'Doctor updated successfully', 
+      doctor: updatedDoctor 
+    });
   } catch (error) {
     console.error('Update doctor error:', error);
     res.status(500).json({ message: error.message });
@@ -555,6 +733,59 @@ exports.cleanupOrphanedSpecializations = async (req, res) => {
       cleaned
     });
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.createDoctorByAdmin = async (req, res) => {
+  try {
+    const { email, password, profile, licenseNumber, specialization, hospital } = req.body;
+    
+    console.log('Creating doctor with data:', { email, profile, licenseNumber, specialization, hospital });
+    
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+    
+    // Validate required fields
+    if (!profile.firstName || !profile.lastName) {
+      return res.status(400).json({ message: 'First name and last name are required' });
+    }
+    
+    // Create doctor user
+    const user = new User({
+      email,
+      password: password || 'doctor123',
+      role: 'doctor',
+      profile: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone || '',
+        dateOfBirth: profile.dateOfBirth || null,
+        gender: profile.gender || ''
+      },
+      licenseNumber: licenseNumber || '',
+      specialization: specialization || '',
+      hospital: hospital || null,
+      isActive: true
+    });
+    
+    await user.save();
+    console.log('Doctor created successfully:', user._id);
+    
+    // Return populated doctor data
+    const createdDoctor = await User.findById(user._id)
+      .select('-password')
+      .populate('hospital', 'name address phone');
+    
+    res.status(201).json({ 
+      message: 'Doctor created successfully',
+      doctor: createdDoctor
+    });
+  } catch (error) {
+    console.error('Create doctor error:', error);
     res.status(500).json({ message: error.message });
   }
 };

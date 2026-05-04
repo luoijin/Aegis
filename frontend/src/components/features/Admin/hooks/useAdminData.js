@@ -1,8 +1,14 @@
+// frontend/src/components/features/Admin/hooks/useAdminData.js
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../../../utils/api';
 
 export const useAdminData = () => {
-  const [stats, setStats] = useState({ totalPatients: 0, totalDoctors: 0, totalHospitals: 0, totalAppointments: 0 });
+  const [stats, setStats] = useState({
+    totalPatients: 0,
+    totalDoctors: 0,
+    totalHospitals: 0,
+    totalAppointments: 0
+  });
   const [recentPatients, setRecentPatients] = useState([]);
   const [recentDoctors, setRecentDoctors] = useState([]);
   const [hospitals, setHospitals] = useState([]);
@@ -15,38 +21,66 @@ export const useAdminData = () => {
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
+    setError('');
+    
     try {
-      const [statsRes, hospitalsRes, doctorsRes, patientsRes, specializationsRes] = await Promise.all([
-        api.get('/admin/dashboard/stats'),
-        api.get('/admin/hospitals'),
-        api.get('/admin/doctors'),
-        api.get('/admin/patients'),
-        api.get('/admin/specializations')
-      ]);
-      setStats(statsRes.data.stats);
-      setRecentPatients(statsRes.data.recentPatients || []);
-      setRecentDoctors(statsRes.data.recentDoctors || []);
+      console.log('Fetching admin data...');
+      
+      // Fetch dashboard stats
+      const statsRes = await api.get('/admin/dashboard/stats');
+      setStats(statsRes.data);
+      
+      // Fetch hospitals
+      const hospitalsRes = await api.get('/admin/hospitals');
       setHospitals(hospitalsRes.data);
+      
+      // Fetch doctors
+      const doctorsRes = await api.get('/admin/doctors');
       setDoctors(doctorsRes.data);
+      setRecentDoctors(doctorsRes.data.slice(0, 5));
+      
+      // Fetch patients
+      const patientsRes = await api.get('/admin/patients');
       setAllPatients(patientsRes.data);
-      setSpecializations(specializationsRes.data);
+      setRecentPatients(patientsRes.data.slice(0, 5));
+      
+      // Fetch specializations
+      const specsRes = await api.get('/admin/specializations');
+      setSpecializations(specsRes.data);
+      
+      console.log('Data fetched successfully:', {
+        doctors: doctorsRes.data.length,
+        patients: patientsRes.data.length,
+        hospitals: hospitalsRes.data.length,
+        specializations: specsRes.data.length
+      });
+      
     } catch (err) {
-      setError('Failed to load data');
+      console.error('Error fetching admin data:', err);
+      setError(err.response?.data?.message || 'Failed to load data');
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        setError('');
-        setSuccess('');
-      }, 3000);
     }
   }, []);
 
+  // Initial load
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
 
   return {
-    stats, recentPatients, recentDoctors, hospitals, doctors, allPatients, specializations,
-    loading, error, success, setError, setSuccess, fetchAllData
+    stats,
+    recentPatients,
+    recentDoctors,
+    hospitals,
+    doctors,
+    allPatients,
+    specializations,
+    loading,
+    error,
+    success,
+    setError,
+    setSuccess,
+    fetchAllData
   };
 };

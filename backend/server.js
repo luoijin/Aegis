@@ -15,6 +15,9 @@ const adminRoutes = require('./routes/admin.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const hospitalRoutes = require('./routes/hospital.routes');
+const Prescription = require('./models/Prescription.model');
+const Appointment = require('./models/Appointment.model');
+const Referral = require('./models/Referral.model');
 
 
 const app = express();

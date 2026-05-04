@@ -1,3 +1,4 @@
+// backend/models/Referral.model.js
 const mongoose = require('mongoose');
 
 const referralSchema = new mongoose.Schema({
@@ -22,17 +23,17 @@ const referralSchema = new mongoose.Schema({
   },
   priority: {
     type: String,
-    enum: ['normal', 'urgent', 'emergency'],
+    enum: ['low', 'normal', 'high', 'urgent'],
     default: 'normal'
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'accepted', 'denied', 'cancelled'],
+    default: 'pending'
   },
   notes: {
     type: String,
     default: ''
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'accepted', 'denied'],
-    default: 'pending'
   },
   responseNotes: {
     type: String,
@@ -44,8 +45,9 @@ const referralSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes for efficient queries
-referralSchema.index({ toDoctor: 1, status: 1 });
-referralSchema.index({ fromDoctor: 1, createdAt: -1 });
 referralSchema.index({ patient: 1 });
+referralSchema.index({ fromDoctor: 1 });
+referralSchema.index({ toDoctor: 1 });
+referralSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Referral', referralSchema);

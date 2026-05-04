@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User.model');  // ← ADD THIS
-const { register, login, getProfile, createDoctorByAdmin } = require('../controllers/auth.controller');
+const User = require('../models/User.model');
+const { register, login, getProfile, createDoctorByAdmin, fixMissingPatientRecords } = require('../controllers/auth.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-// Public routes - no authentication required
-router.post('/register', authenticate, register);
+// ========== PUBLIC ROUTES ==========
 router.post('/login', login);
 
-// Protected routes
+// ========== PROTECTED ROUTES ==========
 router.get('/profile', authenticate, getProfile);
 
 // Update profile (doctor/patient can update their own profile)
@@ -47,18 +46,15 @@ router.put('/change-password', authenticate, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Verify current password
     const isValid = await user.comparePassword(currentPassword);
     if (!isValid) {
       return res.status(401).json({ message: 'Current password is incorrect' });
     }
     
-    // Validate new password length
     if (!newPassword || newPassword.length < 6) {
       return res.status(400).json({ message: 'New password must be at least 6 characters' });
     }
     
-    // Update password (will be hashed by pre-save hook)
     user.password = newPassword;
     await user.save();
     
@@ -69,7 +65,14 @@ router.put('/change-password', authenticate, async (req, res) => {
   }
 });
 
-// Admin-only routes
+// ========== REGISTRATION ROUTES ==========
+// Admin-only: Create doctor account (must be before the register route)
 router.post('/create-doctor', authenticate, authorize('admin'), createDoctorByAdmin);
+
+// Public registration (only patients)
+router.post('/register', register);
+
+// ========== ADMIN ONLY ROUTES ==========
+router.post('/fix-patient-records', authenticate, authorize('doctor'), fixMissingPatientRecords);
 
 module.exports = router;

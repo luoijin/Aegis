@@ -1,3 +1,5 @@
+/* frontend/src/components/features/Admin/components/HospitalsTab/HospitalsTab.css */
+
 .hospitals-tab {
   padding: 0;
 }
@@ -18,21 +20,21 @@
 }
 
 .header-title svg {
-  color: #3B82F6;
+  color: #3b82f6;
 }
 
 .header-title h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #0A0F1D;
+  color: #0f172a;
   margin: 0;
 }
 
 .item-count {
   font-size: 12px;
   font-weight: 500;
-  color: #64748B;
-  background: #E2E8F0;
+  color: #64748b;
+  background: #e2e8f0;
   padding: 2px 8px;
   border-radius: 20px;
 }
@@ -42,22 +44,24 @@
   max-width: 320px;
 }
 
+/* Grid Layout */
 .items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 20px;
 }
 
+/* Card Style */
 .item-card {
   background: white;
   border-radius: 16px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   overflow: hidden;
   transition: all 0.2s;
 }
 
 .item-card:hover {
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -66,26 +70,26 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .item-icon {
-  width: 36px;
-  height: 36px;
-  background: #EFF6FF;
+  width: 40px;
+  height: 40px;
+  background: #eff6ff;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3B82F6;
+  color: #3b82f6;
 }
 
 .item-name {
   flex: 1;
   font-weight: 600;
   font-size: 15px;
-  color: #0A0F1D;
+  color: #0f172a;
 }
 
 .card-actions {
@@ -101,31 +105,31 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
   background: white;
   border: none;
-  color: #64748B;
+  color: #64748b;
+  transition: all 0.2s;
 }
 
 .action-icon:hover {
-  background: #F1F5F9;
+  background: #f1f5f9;
 }
 
 .action-icon.edit:hover {
-  background: #EFF6FF;
-  color: #3B82F6;
+  background: #eff6ff;
+  color: #3b82f6;
 }
 
 .action-icon.delete:hover {
-  background: #FEE2E2;
-  color: #EF4444;
+  background: #fee2e2;
+  color: #ef4444;
 }
 
 .card-body {
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .detail-row {
@@ -133,29 +137,31 @@
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  color: #64748B;
+  color: #64748b;
 }
 
 .detail-row svg {
-  color: #94A3B8;
+  color: #94a3b8;
   flex-shrink: 0;
 }
 
+/* Empty State */
 .empty-state {
   text-align: center;
   padding: 60px;
-  color: #94A3B8;
+  color: #94a3b8;
   background: white;
   border-radius: 16px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   grid-column: 1 / -1;
 }
 
 .empty-state svg {
   margin-bottom: 12px;
-  color: #CBD5E1;
+  color: #cbd5e1;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .items-grid {
     grid-template-columns: 1fr;
@@ -164,4 +170,98 @@
   .search-bar {
     max-width: none;
   }
+}
+
+/* Add to HospitalsTab.css */
+
+/* Stats Row */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.stat-mini {
+  background: white;
+  border-radius: 12px;
+  padding: 12px 20px;
+  min-width: 100px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.stat-mini .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.stat-mini .stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-mini.info .stat-value {
+  color: #3b82f6;
+}
+
+.stat-mini.success .stat-value {
+  color: #10b981;
+}
+
+.stat-mini.warning .stat-value {
+  color: #f59e0b;
+}
+
+/* Doctors Info */
+.doctors-info {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  justify-content: space-between;
+}
+
+.doctors-info strong {
+  color: #0f172a;
+}
+
+.view-doctors-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.view-doctors-btn:hover {
+  background: #eff6ff;
+}
+
+/* View Button */
+.action-icon.view {
+  color: #8b5cf6;
+}
+
+.action-icon.view:hover {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 60px;
+  color: #94a3b8;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
 }

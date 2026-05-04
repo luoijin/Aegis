@@ -1,4 +1,28 @@
+// backend/models/Prescription.model.js
 const mongoose = require('mongoose');
+
+const medicationSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  dosage: {
+    type: String,
+    required: true
+  },
+  frequency: {
+    type: String,
+    required: true
+  },
+  duration: {
+    type: String,
+    default: ''
+  },
+  instructions: {
+    type: String,
+    default: ''
+  }
+});
 
 const prescriptionSchema = new mongoose.Schema({
   patient: {
@@ -11,15 +35,7 @@ const prescriptionSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  medications: [{
-    name: {
-      type: String,
-      required: true
-    },
-    dosage: String,
-    frequency: String,
-    duration: String
-  }],
+  medications: [medicationSchema],
   notes: {
     type: String,
     default: ''
@@ -35,7 +51,15 @@ const prescriptionSchema = new mongoose.Schema({
   issuedDate: {
     type: Date,
     default: Date.now
+  },
+  expiryDate: {
+    type: Date
   }
 }, { timestamps: true });
+
+// Indexes
+prescriptionSchema.index({ patient: 1 });
+prescriptionSchema.index({ doctor: 1 });
+prescriptionSchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('Prescription', prescriptionSchema);

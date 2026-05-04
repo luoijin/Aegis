@@ -11,12 +11,6 @@ exports.register = async (req, res) => {
   try {
     const { email, password, role, profile } = req.body;
     
-    console.log('Registration request received:');
-    console.log('- Email:', email);
-    console.log('- Role from body:', role);
-    console.log('- Auth header present:', !!req.headers.authorization);
-    console.log('- User from token:', req.user ? { id: req.user.id, role: req.user.role } : 'No user token');
-    
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -27,12 +21,10 @@ exports.register = async (req, res) => {
     const isAdmin = req.user && req.user.role === 'admin';
     
     // Determine the role
-    let userRole = 'patient'; // Default role
+    let userRole = 'patient';
     
     if (isAdmin) {
-      // Admin can create any role, but we'll default to what's provided or patient
       userRole = role === 'doctor' ? 'doctor' : 'patient';
-      console.log('Admin creating account with role:', userRole);
     } else {
       // Public registration - only patients allowed
       if (role === 'doctor') {
@@ -52,7 +44,6 @@ exports.register = async (req, res) => {
     });
     
     await user.save();
-    console.log(`✅ User created: ${email} as ${user.role} ${isAdmin ? '(by admin)' : '(self-registered)'}`);
     
     // If role is patient, create patient record
     if (user.role === 'patient') {
@@ -65,10 +56,9 @@ exports.register = async (req, res) => {
         assignedDoctor: null
       });
       await patient.save();
-      console.log(`✅ Auto-created patient record for: ${email}`);
     }
     
-    // Only return token for self-registration, not for admin-created accounts
+    // Only return token for self-registration
     let token = null;
     if (!isAdmin) {
       token = generateToken(user._id);
@@ -90,7 +80,6 @@ exports.register = async (req, res) => {
   }
 };
 
-
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -100,7 +89,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     
-    // ✅ ADD THIS CHECK - PREVENTS DEACTIVATED USERS FROM LOGGING IN
+    // Check if account is active
     if (!user.isActive) {
       return res.status(401).json({ message: 'Your account has been deactivated. Please contact your administrator.' });
     }
@@ -146,8 +135,6 @@ exports.fixMissingPatientRecords = async (req, res) => {
     }
     
     const patientUsers = await User.find({ role: 'patient' });
-    console.log(`Found ${patientUsers.length} patient users`);
-    
     let created = 0;
     let existing = 0;
     
@@ -164,7 +151,6 @@ exports.fixMissingPatientRecords = async (req, res) => {
           assignedDoctor: null
         });
         created++;
-        console.log(`✅ Created patient record for: ${user.email}`);
       } else {
         existing++;
       }
@@ -185,16 +171,17 @@ exports.fixMissingPatientRecords = async (req, res) => {
 // Admin-only: Create doctor account
 exports.createDoctorByAdmin = async (req, res) => {
   try {
-    // Verify admin role
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied. Admin only.' });
-    }
-    
     const { email, password, profile, licenseNumber, specialization, hospital } = req.body;
     
+    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email already registered' });
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+    
+    // Validate required fields
+    if (!profile.firstName || !profile.lastName) {
+      return res.status(400).json({ message: 'First name and last name are required' });
     }
     
     // Create doctor user
@@ -205,30 +192,37 @@ exports.createDoctorByAdmin = async (req, res) => {
       profile: {
         firstName: profile.firstName,
         lastName: profile.lastName,
-        phone: profile.phone
+        phone: profile.phone || ''
       },
-      licenseNumber,
-      specialization,
-      hospital,
+      licenseNumber: licenseNumber || '',
+      specialization: specialization || '',
+      hospital: hospital || null,
       isActive: true
     });
     
     await user.save();
-    console.log(`✅ Doctor account created by admin: ${email}`);
     
-    res.status(201).json({
-      message: 'Doctor account created successfully',
+    res.status(201).json({ 
+      message: 'Doctor created successfully',
       user: {
         id: user._id,
         email: user.email,
         role: user.role,
         profile: user.profile,
-        specialization,
-        licenseNumber
+        specialization: user.specialization,
+        licenseNumber: user.licenseNumber
       }
     });
   } catch (error) {
-    console.error('Doctor creation error:', error);
-    res.status(400).json({ message: error.message });
+    console.error('Create doctor error:', error);
+    res.status(500).json({ message: error.message });
   }
+};
+
+module.exports = {
+  register: exports.register,
+  login: exports.login,
+  getProfile: exports.getProfile,
+  fixMissingPatientRecords: exports.fixMissingPatientRecords,
+  createDoctorByAdmin: exports.createDoctorByAdmin
 };

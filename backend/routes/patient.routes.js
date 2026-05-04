@@ -26,6 +26,9 @@ router.get('/my-appointments', authorize('patient'), patientController.getMyAppo
 router.get('/my-referrals', authorize('patient'), patientController.getMyReferrals);
 router.get('/my-doctor', authorize('patient'), patientController.getMyDoctorInfo);
 
+router.get('/profile', authenticate, authorize('patient'), patientController.getOwnProfile);
+router.put('/profile', authenticate, authorize('patient'), patientController.updateOwnProfile);
+
 // ========== AVAILABLE PATIENTS FOR DOCTORS ==========
 router.get('/available', authorize('doctor'), patientController.getAvailablePatients);
 

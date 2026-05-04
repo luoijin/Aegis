@@ -1,10 +1,10 @@
-// frontend/src/components/features/Admin/components/modals/HospitalModal.jsx
+// frontend/src/components/features/Admin/components/modals/EditHospitalModal.jsx
 import React, { useState, useEffect } from 'react';
 import { X, Building, Phone, Mail, MapPin, AlertCircle } from 'lucide-react';
 import api from '../../../../../utils/api';
 import './Modal.css';
 
-const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
+const EditHospitalModal = ({ isOpen, onClose, editingHospital, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
     address: {
@@ -20,8 +20,45 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Debug: Log when modal opens and what data it receives
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      console.log('EditHospitalModal opened with editingHospital:', editingHospital);
+    }
+  }, [isOpen, editingHospital]);
+
+  useEffect(() => {
+    if (editingHospital && isOpen && editingHospital._id) {
+      console.log('Setting form data for hospital:', editingHospital.name);
+      
+      let address = {
+        street: '',
+        city: '',
+        province: '',
+        zipCode: '',
+        country: 'Philippines'
+      };
+      
+      if (typeof editingHospital.address === 'string') {
+        address.street = editingHospital.address;
+      } else if (editingHospital.address && typeof editingHospital.address === 'object') {
+        address = {
+          street: editingHospital.address.street || '',
+          city: editingHospital.address.city || '',
+          province: editingHospital.address.province || editingHospital.address.state || '',
+          zipCode: editingHospital.address.zipCode || '',
+          country: editingHospital.address.country || 'Philippines'
+        };
+      }
+      
+      setFormData({
+        name: editingHospital.name || '',
+        address: address,
+        phone: editingHospital.phone || '',
+        email: editingHospital.email || ''
+      });
+    } else if (!isOpen) {
+      // Reset form when modal closes
       setFormData({
         name: '',
         address: {
@@ -36,7 +73,7 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
       });
       setError('');
     }
-  }, [isOpen]);
+  }, [editingHospital, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,12 +99,26 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
       return;
     }
     
+    if (!editingHospital || !editingHospital._id) {
+      setError('Hospital data is missing. Please try again.');
+      setLoading(false);
+      return;
+    }
+    
     try {
-      await api.post('/admin/hospitals', formData);
+      console.log('Updating hospital:', editingHospital._id, formData);
+      await api.put(`/admin/hospitals/${editingHospital._id}`, {
+        name: formData.name,
+        address: formData.address,
+        phone: formData.phone,
+        email: formData.email
+      });
+      
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create hospital');
+      console.error('Update error:', err);
+      setError(err.response?.data?.message || 'Failed to update hospital');
     } finally {
       setLoading(false);
     }
@@ -75,11 +126,30 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
 
   if (!isOpen) return null;
 
+  // Show loading or error if no hospital data
+  if (!editingHospital || !editingHospital._id) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3><Building size={18} /> Edit Hospital</h3>
+            <button className="close-btn" onClick={onClose}><X size={18} /></button>
+          </div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>
+            <AlertCircle size={48} />
+            <p>Hospital data not found. Please try again.</p>
+            <button onClick={onClose} style={{ marginTop: '16px', padding: '8px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Close</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3><Building size={18} /> Add New Hospital</h3>
+          <h3><Building size={18} /> Edit Hospital: {formData.name || editingHospital?.name}</h3>
           <button className="close-btn" onClick={onClose}><X size={18} /></button>
         </div>
         
@@ -200,7 +270,7 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
             <button type="submit" className="submit-btn" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Hospital'}
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
@@ -209,4 +279,4 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
   );
 };
 
-export default HospitalModal;
+export default EditHospitalModal;

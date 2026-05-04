@@ -11,7 +11,7 @@ const api = axios.create({
 // Request interceptor - add token
 api.interceptors.request.use(
   (config) => {
-    // FIX: Use 'token' instead of 'accessToken' to match your login storage
+    // Use consistent token key - 'token' only
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -21,36 +21,40 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - handle token refresh
+// Response interceptor - handle errors (no token refresh for now)
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+  (error) => {
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401) {
+      // Clear all auth data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('accessToken');
       
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const response = await axios.post(`${api.defaults.baseURL}/auth/refresh-token`, { refreshToken });
-        
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken);
-        
-        originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('token');  // Also remove 'token'
-        localStorage.removeItem('user');
-        localStorage.removeItem('userRole');
+      // Show error message
+      toast.error('Session expired. Please login again.');
+      
+      // Redirect to login if not already there
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
         window.location.href = '/login';
-        toast.error('Session expired. Please login again.');
       }
+    } else if (error.response?.status === 500) {
+      // Log 500 errors for debugging
+      console.error('API Error (500):', {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data,
+        response: error.response?.data
+      });
+      toast.error(error.response?.data?.message || 'Server error. Please try again.');
+    } else {
+      // Handle other errors
+      toast.error(error.response?.data?.message || 'Something went wrong');
     }
     
-    toast.error(error.response?.data?.message || 'Something went wrong');
     return Promise.reject(error);
   }
 );
