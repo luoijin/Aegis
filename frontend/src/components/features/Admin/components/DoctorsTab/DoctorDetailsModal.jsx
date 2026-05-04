@@ -70,10 +70,6 @@ const DoctorDetailsModal = ({ doctor, patients, onClose }) => {
                 <div className="details-value">{doctor.licenseNumber || 'N/A'}</div>
               </div>
               <div className="details-row">
-                <div className="details-label">Consultation Fee</div>
-                <div className="details-value">${doctor.consultationFee || 'N/A'}</div>
-              </div>
-              <div className="details-row">
                 <div className="details-label">Status</div>
                 <div className="details-value">
                   <span className={`status-badge ${doctor.isActive ? 'active' : 'inactive'}`}>
