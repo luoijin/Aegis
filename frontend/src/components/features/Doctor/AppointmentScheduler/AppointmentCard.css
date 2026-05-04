@@ -3,96 +3,47 @@
   border-radius: 12px;
   border: 1px solid #E2E8F0;
   margin-bottom: 12px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-header {
-  padding: 16px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  padding: 12px 16px;
+  background: #F8FAFC;
   border-bottom: 1px solid #E2E8F0;
 }
 
-.patient-avatar {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #3B82F6, #2563EB);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-}
+.patient-info { display: flex; align-items: center; gap: 8px; }
+.patient-name { font-weight: 600; font-size: 14px; color: #0A0F1D; }
 
-.patient-details {
-  flex: 1;
-}
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.status-badge.scheduled { background: #FEF3C7; color: #D97706; }
+.status-badge.confirmed { background: #D1FAE5; color: #059669; }
+.status-badge.completed { background: #EFF6FF; color: #3B82F6; }
+.status-badge.cancelled { background: #FEE2E2; color: #DC2626; }
+.status-badge.no-show { background: #FEE2E2; color: #DC2626; }
 
-.patient-details h4 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
+.card-body { padding: 12px 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.info-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; flex-wrap: wrap; }
+.duration-badge { background: #F1F5F9; padding: 2px 6px; border-radius: 10px; font-size: 10px; }
+.location-row { align-items: flex-start; }
+.location-details { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.hospital-name { font-weight: 500; color: #0A0F1D; }
+.room-info, .hospital-address, .no-location { font-size: 11px; color: #64748B; }
+.reason-row { font-size: 12px; color: #64748B; padding-top: 6px; border-top: 1px solid #F1F5F9; }
+.reason-row strong { color: #0A0F1D; }
 
-.reason {
-  font-size: 13px;
-  color: #64748B;
-}
+.card-actions { display: flex; gap: 8px; padding: 10px 16px; background: #F8FAFC; border-top: 1px solid #E2E8F0; }
+.card-actions button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; }
+.confirm-btn, .complete-btn { background: #10B981; color: white; }
+.cancel-btn { background: #EF4444; color: white; }
+.noshow-btn { background: #F59E0B; color: white; }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.badge.scheduled { background: #EFF6FF; color: #3B82F6; }
-.badge.confirmed { background: #D1FAE5; color: #10B981; }
-.badge.completed { background: #D1FAE5; color: #10B981; }
-.badge.cancelled { background: #FEE2E2; color: #EF4444; }
-
-.card-body {
-  padding: 12px 16px;
-}
-
-.info-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: #475569;
-}
-
-.card-actions {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #F8FAFC;
-  border-top: 1px solid #E2E8F0;
-}
-
-.confirm-btn, .cancel-btn {
-  flex: 1;
-  padding: 6px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.confirm-btn {
-  background: #10B981;
-  color: white;
-}
-
-.cancel-btn {
-  background: #EF4444;
-  color: white;
+@media (max-width: 768px) {
+  .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .card-actions { flex-direction: column; }
+  .card-actions button { width: 100%; }
 }

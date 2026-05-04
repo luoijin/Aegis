@@ -1,21 +1,36 @@
+/* AdminHeader.css */
+
 .admin-header {
   position: fixed;
   top: 0;
   right: 0;
-  left: 260px;
+  left: 260px; /* Default when sidebar is expanded */
   height: 64px;
   background: white;
   border-bottom: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 32px;
   z-index: 90;
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.admin-header.sidebar-collapsed {
+/* When sidebar is collapsed */
+.admin-header.collapsed {
   left: 80px;
+}
+
+.admin-logo {
+  height: 32px;
+  width: auto;
+  margin-right: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
 .page-title {
@@ -31,67 +46,90 @@
   gap: 24px;
 }
 
-.notification-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #64748B;
-  padding: 8px;
-  border-radius: 8px;
-  transition: all 0.2s;
+.account-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1E293B;
 }
 
-.notification-btn:hover {
+.account-btn:hover {
   background: #F1F5F9;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.dropdown-menu {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  width: 260px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  z-index: 1000;
 }
 
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.dropdown-header {
+  padding: 12px 16px;
+  background: #F8FAFC;
+}
+
+.dropdown-name {
   font-weight: 600;
   font-size: 14px;
-  color: white;
-  flex-shrink: 0;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-size: 13px;
-  font-weight: 600;
   color: #0A0F1D;
 }
 
-.user-role {
-  font-size: 10px;
+.dropdown-email, .dropdown-role {
+  font-size: 11px;
   color: #64748B;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #E2E8F0;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #475569;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: #F8FAFC;
+  color: #3B82F6;
 }
 
 @media (max-width: 768px) {
   .admin-header {
     left: 80px;
     padding: 0 16px;
-    height: 56px;
   }
-  
-  .user-details {
+  .admin-header.collapsed {
+    left: 80px; /* On mobile, sidebar is always collapsed style? Adjust as needed */
+  }
+  .page-title {
+    font-size: 16px;
+  }
+  .account-btn span {
     display: none;
   }
 }

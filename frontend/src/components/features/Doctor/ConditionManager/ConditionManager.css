@@ -297,3 +297,52 @@
     flex: 1;
   }
 }
+
+/* Add to ConditionManager.css for severity options */
+.doctor-severity-options {
+  display: flex;
+  gap: 12px;
+}
+
+.doctor-severity-option {
+  flex: 1;
+  padding: 10px 12px;
+  background: white;
+  border: 2px solid #E2E8F0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748B;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.doctor-severity-option:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+
+.doctor-severity-option.selected {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+
+.doctor-severity-option.selected.mild {
+  border-color: #10B981;
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.doctor-severity-option.selected.moderate {
+  border-color: #F59E0B;
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.doctor-severity-option.selected.severe {
+  border-color: #EF4444;
+  background: #FEE2E2;
+  color: #DC2626;
+}

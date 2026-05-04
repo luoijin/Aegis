@@ -37,6 +37,43 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
+// Get global patient condition analytics
+  exports.getGlobalPatientAnalytics = async (req, res) => {
+    try {
+      const Patient = require('../models/Patient.model');
+      const patients = await Patient.find().populate('user', 'profile');
+
+      const conditionStats = {};
+      let totalConditions = 0;
+
+      patients.forEach(patient => {
+        if (patient.conditions && patient.conditions.length > 0) {
+          patient.conditions.forEach(condition => {
+            if (condition.isActive !== false) {
+              conditionStats[condition.name] = (conditionStats[condition.name] || 0) + 1;
+              totalConditions++;
+            }
+          });
+        }
+      });
+
+      const analyticsData = Object.entries(conditionStats).map(([name, count]) => ({
+        name,
+        value: count,
+        percentage: ((count / totalConditions) * 100).toFixed(1)
+      })).sort((a, b) => b.value - a.value);
+
+      res.json({
+        totalPatients: patients.length,
+        totalConditions,
+        conditions: analyticsData
+      });
+    } catch (error) {
+      console.error('Global analytics error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  };
+
 // Hospital CRUD
 exports.getHospitals = async (req, res) => {
   try {

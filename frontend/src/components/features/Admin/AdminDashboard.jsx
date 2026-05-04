@@ -1,6 +1,20 @@
+// frontend/src/components/features/Admin/AdminDashboard.jsx
+// frontend/src/components/features/Admin/AdminDashboard.jsx
 import React, { useState } from 'react';
 import { TrendingUp } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
 import { useAdminData } from './hooks/useAdminData';
 import AdminSidebar from './components/AdminSidebar/AdminSidebar';
 import AdminHeader from './components/AdminHeader/AdminHeader';
@@ -10,6 +24,7 @@ import HospitalsTab from './components/HospitalsTab/HospitalsTab';
 import DoctorsTab from './components/DoctorsTab/DoctorsTab';
 import PatientsTab from './components/PatientsTab/PatientsTab';
 import SpecializationsTab from './components/SpecializationsTab/SpecializationsTab';
+import AdminAnalytics from './components/AdminAnalytics/AdminAnalytics';
 import HospitalModal from './components/modals/HospitalModal';
 import DoctorModal from './components/modals/DoctorModal';
 import EditDoctorModal from './components/modals/EditDoctorModal';
@@ -18,6 +33,21 @@ import SpecializationModal from './components/modals/SpecializationModal';
 import api from '../../../utils/api';
 import './AdminDashboard.css';
 
+const COLORS = [
+  '#3B82F6', // Blue
+  '#10B981', // Green
+  '#F59E0B', // Amber
+  '#EF4444', // Red
+  '#8B5CF6', // Purple
+  '#EC4899', // Pink
+  '#06B6D4', // Cyan
+  '#84CC16', // Lime
+  '#F97316', // Orange
+  '#6366F1', // Indigo
+  '#14B8A6', // Teal
+  '#D946EF', // Fuchsia
+];
+
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -25,7 +55,11 @@ const AdminDashboard = () => {
     hospital: false, doctor: false, editDoctor: false, patient: false, specialization: false
   });
   const [editingItem, setEditingItem] = useState(null);
-  
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : {};
+  });
+
   const {
     stats, recentPatients, recentDoctors, hospitals, doctors, allPatients, specializations,
     loading, error, success, setError, setSuccess, fetchAllData
@@ -50,6 +84,21 @@ const AdminDashboard = () => {
 
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed);
+  };
+
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
+  // Helper to set messages
+  const setSuccessMsg = (msg) => {
+    setSuccess(msg);
+    setTimeout(() => setSuccess(''), 3000);
+  };
+  const setErrorMsg = (msg) => {
+    setError(msg);
+    setTimeout(() => setError(''), 3000);
   };
 
   // ============================================
@@ -84,11 +133,9 @@ const AdminDashboard = () => {
 
   const handleToggleDoctorStatus = async (doctorId, currentStatus, doctorName) => {
     try {
-      const response = await api.patch(`/admin/doctors/${doctorId}/status`, { isActive: !currentStatus });
-      if (response.data) {
-        setSuccessMsg(`Dr. ${doctorName} has been ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-        await fetchAllData();
-      }
+      await api.patch(`/admin/doctors/${doctorId}/status`, { isActive: !currentStatus });
+      setSuccessMsg(`Dr. ${doctorName} has been ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      await fetchAllData();
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to update doctor status');
     }
@@ -111,11 +158,9 @@ const AdminDashboard = () => {
 
   const handleTogglePatientStatus = async (patientId, currentStatus, patientName) => {
     try {
-      const response = await api.patch(`/admin/patients/${patientId}/status`, { isActive: !currentStatus });
-      if (response.data) {
-        setSuccessMsg(`${patientName} has been ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-        await fetchAllData();
-      }
+      await api.patch(`/admin/patients/${patientId}/status`, { isActive: !currentStatus });
+      setSuccessMsg(`${patientName} has been ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      await fetchAllData();
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to update patient status');
     }
@@ -125,36 +170,24 @@ const AdminDashboard = () => {
   // SPECIALIZATION CRUD HANDLERS
   // ============================================
   const handleSaveSpecialization = async () => {
-    // This will refresh all data including doctors list
     await fetchAllData();
   };
   const handleDeleteSpecialization = async (id, name) => {
     try {
       await api.delete(`/admin/specializations/${id}`);
       setSuccessMsg(`Specialization "${name}" deleted successfully`);
-      await fetchAllData(); // Refresh all data including doctors
+      await fetchAllData();
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to delete specialization');
     }
   };
 
-  // Helper to set messages
-  const setSuccessMsg = (msg) => {
-    setSuccess(msg);
-    setTimeout(() => setSuccess(''), 3000);
-  };
-
-  const setErrorMsg = (msg) => {
-    setError(msg);
-    setTimeout(() => setError(''), 3000);
-  };
-
   // Get user data from localStorage
-  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+  const userData = user;
 
   const doctorDistribution = specializations.slice(0, 6).map(spec => ({
     name: spec.name,
-    value: doctors.filter(d => d.specialization === spec.name).length || 5
+    value: doctors.filter(d => d.specialization === spec.name).length || 0
   }));
 
   const pageTitles = {
@@ -162,7 +195,8 @@ const AdminDashboard = () => {
     hospitals: 'Hospital Management',
     doctors: 'Doctor Management',
     patients: 'Patient Management',
-    specializations: 'Specializations'
+    specializations: 'Specializations',
+    analytics: 'Analytics Dashboard'
   };
 
   const renderContent = () => {
@@ -172,17 +206,71 @@ const AdminDashboard = () => {
           <>
             <AdminStats stats={stats} />
             <div className="charts-row">
+              {/* Doctor Distribution Section - Donut Chart */}
               <div className="chart-card">
-                <h3><TrendingUp size={16} /> Doctor Distribution by Specialization</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={doctorDistribution}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="name" stroke="#64748B" fontSize={12} angle={-45} textAnchor="end" height={60} />
-                    <YAxis stroke="#64748B" />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#3B82F6" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="chart-header">
+                  <div className="chart-title">
+                    <TrendingUp size={18} />
+                    <h3>Doctor Distribution by Specialization</h3>
+                  </div>
+                  <div className="chart-stats">
+                    <span className="stat-badge">Total Specializations: {doctorDistribution.length}</span>
+                    <span className="stat-badge">Total Doctors: {doctors.length}</span>
+                  </div>
+                </div>
+                {doctorDistribution.length === 0 ? (
+                  <div className="no-data">No doctor data available</div>
+                ) : (
+                  <div className="donut-chart-container">
+                    <ResponsiveContainer width="100%" height={380}>
+                      <PieChart>
+                        <Pie
+                          data={doctorDistribution}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={80}
+                          outerRadius={130}
+                          paddingAngle={3}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          labelLine={{ stroke: '#94A3B8', strokeWidth: 1 }}
+                        >
+                          {doctorDistribution.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={COLORS[index % COLORS.length]} 
+                              stroke="white"
+                              strokeWidth={2}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #E2E8F0', 
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                          formatter={(value, name) => [`${value} doctors`, name]}
+                        />
+                        <Legend 
+                          verticalAlign="bottom" 
+                          align="center" 
+                          layout="horizontal"
+                          wrapperStyle={{ paddingTop: '20px' }}
+                          formatter={(value) => <span style={{ fontSize: '12px', color: '#475569' }}>{value}</span>}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    
+                    {/* Center Text */}
+                    <div className="donut-center-text">
+                      <div className="center-value">{doctors.length}</div>
+                      <div className="center-label">Total Doctors</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <OverviewTab recentPatients={recentPatients} recentDoctors={recentDoctors} />
@@ -219,6 +307,8 @@ const AdminDashboard = () => {
           onEdit={(s) => openModal('specialization', s)} 
           onDelete={handleDeleteSpecialization} 
         />;
+      case 'analytics':
+        return <AdminAnalytics />;
       default:
         return null;
     }
@@ -237,6 +327,8 @@ const AdminDashboard = () => {
         user={userData} 
         pageTitle={pageTitles[activePage]} 
         isSidebarCollapsed={isSidebarCollapsed}
+        onLogout={handleLogout}
+        onUserUpdate={handleUserUpdate}
       />
       
       <main className={`admin-main-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>

@@ -32,9 +32,7 @@ export const PrescriptionList = ({ prescriptions, loading, onSelect }) => {
               <button className="action-btn" title="Print" onClick={() => onSelect(prescription)}>
                 <Printer size={16} />
               </button>
-              <button className="action-btn" title="Send to Patient">
-                <Send size={16} />
-              </button>
+
             </div>
           </div>
           <div className="prescription-body">

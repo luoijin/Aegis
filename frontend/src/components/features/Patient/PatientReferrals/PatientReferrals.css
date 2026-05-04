@@ -1,0 +1,137 @@
+/* PatientReferrals.css */
+.referrals-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.referrals-list {
+  padding: 0;
+}
+
+.referral-item {
+  padding: 16px 20px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.referral-item:last-child {
+  border-bottom: none;
+}
+
+.referral-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.referral-doctors {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.doctor-from,
+.doctor-to {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.doctor-arrow {
+  color: #94A3B8;
+  font-size: 14px;
+}
+
+.referral-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.priority-badge.urgent {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.priority-badge.emergency {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge.pending {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.status-badge.accepted {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.status-badge.denied {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.referral-body {
+  margin-top: 8px;
+}
+
+.referral-reason,
+.referral-notes {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.referral-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #94A3B8;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .referral-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .referral-doctors {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .doctor-arrow {
+    transform: rotate(90deg);
+  }
+}

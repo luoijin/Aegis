@@ -1,5 +1,6 @@
 const Patient = require('../models/Patient.model');
 const HealthLog = require('../models/HealthLog.model');
+const Appointment = require('../models/Appointment.model');
 
 const calculateAverage = (numbers) => {
   const validNumbers = numbers.filter(n => n && !isNaN(n));
@@ -441,8 +442,6 @@ exports.markNotificationRead = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-<<<<<<< Updated upstream
-=======
 };
 
 // ========== PATIENT DASHBOARD FUNCTIONS (ADD THESE) ==========
@@ -607,5 +606,5 @@ exports.updatePatientBloodType = async (req, res) => {
     console.error('Update blood type error:', error);
     res.status(500).json({ message: error.message });
   }
->>>>>>> Stashed changes
+
 };

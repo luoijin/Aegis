@@ -1,72 +1,238 @@
-.health-history-container {
+/* HealthHistory.css - Doctor side, matching patient design */
+.health-history-card {
   background: white;
   border-radius: 16px;
-  padding: 20px;
   border: 1px solid #E2E8F0;
+  overflow: hidden;
+  margin-top: 24px;
 }
 
-.history-header {
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.history-header h3 {
-  font-size: 16px;
+.card-header h3 {
+  font-size: 14px;
   font-weight: 600;
-  color: #0A0F1D;
+  color: #64748B;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.history-filters {
+.card-header h3 svg {
+  color: #3B82F6;
+}
+
+/* Filter Buttons */
+.filter-buttons {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
-.filter-badge {
+.filter-btn {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
-  background: #F1F5F9;
-  color: #64748B;
-  border: none;
+  background: white;
+  border: 1px solid #E2E8F0;
   cursor: pointer;
   transition: all 0.2s;
+  color: #64748B;
 }
 
-.filter-badge:hover {
-  background: #E2E8F0;
+.filter-btn:hover {
+  background: #F1F5F9;
 }
 
-.filter-badge.active {
+.filter-btn.active {
   background: #3B82F6;
+  border-color: #3B82F6;
   color: white;
 }
 
-.filter-badge.critical.active {
-  background: #EF4444;
+.filter-btn.critical.active {
+  background: #DC2626;
+  border-color: #DC2626;
 }
 
-.filter-badge.warning.active {
-  background: #F59E0B;
+.filter-btn.warning.active {
+  background: #D97706;
+  border-color: #D97706;
 }
 
-.filter-badge.normal.active {
-  background: #10B981;
+.filter-btn.normal.active {
+  background: #059669;
+  border-color: #059669;
 }
 
+/* Records Table */
+.records-table-wrapper {
+  overflow-x: auto;
+}
+
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.records-table th,
+.records-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.records-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  background: #F8FAFC;
+}
+
+.records-table td {
+  font-size: 13px;
+  color: #475569;
+}
+
+.records-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+/* Doctor Cell */
+.doctor-cell .doctor-name {
+  font-weight: 500;
+  color: #3B82F6;
+}
+
+/* Status Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge.critical {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.badge.warning {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.badge.normal {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+/* View Details Button */
+.view-details-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #3B82F6;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.view-details-btn:hover {
+  background: #EFF6FF;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94A3B8;
+}
+
+.empty-state svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+.empty-state p {
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.empty-state span {
+  font-size: 12px;
+}
+
+/* Modal Styles (using existing modal.css) */
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 14px;
+  color: #475569;
+}
+
+.detail-row svg {
+  color: #3B82F6;
+}
+
+.detail-row strong {
+  min-width: 110px;
+  color: #0A0F1D;
+}
+
+.notes-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.notes-section p {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .health-history-container {
-    padding: 16px;
-  }
-  
-  .history-header {
+  .card-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+  
+  .records-table th,
+  .records-table td {
+    padding: 8px 12px;
+  }
+  
+  .records-table th:nth-child(6),
+  .records-table td:nth-child(6) {
+    display: none;
+  }
+  
+  .detail-row {
+    flex-wrap: wrap;
+  }
+  
+  .detail-row strong {
+    min-width: auto;
   }
 }

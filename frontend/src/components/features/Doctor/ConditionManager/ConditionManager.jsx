@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Activity, CheckCircle, History, Eye, X } from 'lucide-react';
 import api from '../../../../services/api';
-import '../../../../styles/modal.css';  // Import shared modal styles
+import '../../../../styles/doctor-modal.css';
 import './ConditionManager.css';
 
 export const ConditionManager = ({ patient, onUpdate }) => {
   const [activeConditions, setActiveConditions] = useState([]);
-  const [resolvedConditions, setResolvedConditions] =useState([]);
+  const [resolvedConditions, setResolvedConditions] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
   const [updating, setUpdating] = useState(null);
@@ -170,9 +170,6 @@ export const ConditionManager = ({ patient, onUpdate }) => {
                           <span className="updating-badge">Updating...</span>
                         ) : (
                           <>
-                            <span className="severity-badge" style={{ background: style.bg, color: style.color }}>
-                              {style.text}
-                            </span>
                             <span className="diagnosed-date">
                               Diagnosed: {new Date(condition.diagnosedDate).toLocaleDateString()}
                             </span>
@@ -239,22 +236,22 @@ export const ConditionManager = ({ patient, onUpdate }) => {
         )}
       </div>
 
-      {/* Add Condition Modal - Clean version */}
+      {/* Add Condition Modal - Using doctor-modal CSS */}
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal-container modal-md" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="doctor-modal-overlay" onClick={() => setShowForm(false)}>
+          <div className="doctor-modal-container doctor-modal-md" onClick={(e) => e.stopPropagation()}>
+            <div className="doctor-modal-header">
               <h3>Add Medical Condition</h3>
-              <button className="close-btn" onClick={() => setShowForm(false)}>
+              <button className="doctor-close-btn" onClick={() => setShowForm(false)}>
                 <X size={20} />
               </button>
             </div>
 
-            <div className="modal-form">
-              {error && <div className="error-message">{error}</div>}
+            <div className="doctor-modal-form">
+              {error && <div className="doctor-error-message">{error}</div>}
               
-              <div className="form-group">
-                <label>Condition <span className="required">*</span></label>
+              <div className="doctor-form-group">
+                <label>Condition <span className="doctor-required">*</span></label>
                 <select
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
@@ -266,26 +263,26 @@ export const ConditionManager = ({ patient, onUpdate }) => {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label>Severity <span className="required">*</span></label>
-                <div className="severity-options">
+              <div className="doctor-form-group">
+                <label>Severity <span className="doctor-required">*</span></label>
+                <div className="doctor-severity-options">
                   <button
                     type="button"
-                    className={`severity-option ${formSeverity === 'mild' ? 'selected mild' : ''}`}
+                    className={`doctor-severity-option ${formSeverity === 'mild' ? 'selected mild' : ''}`}
                     onClick={() => setFormSeverity('mild')}
                   >
                     Mild
                   </button>
                   <button
                     type="button"
-                    className={`severity-option ${formSeverity === 'moderate' ? 'selected moderate' : ''}`}
+                    className={`doctor-severity-option ${formSeverity === 'moderate' ? 'selected moderate' : ''}`}
                     onClick={() => setFormSeverity('moderate')}
                   >
                     Moderate
                   </button>
                   <button
                     type="button"
-                    className={`severity-option ${formSeverity === 'severe' ? 'selected severe' : ''}`}
+                    className={`doctor-severity-option ${formSeverity === 'severe' ? 'selected severe' : ''}`}
                     onClick={() => setFormSeverity('severe')}
                   >
                     Severe
@@ -293,7 +290,7 @@ export const ConditionManager = ({ patient, onUpdate }) => {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="doctor-form-group">
                 <label>Diagnosed Date</label>
                 <input
                   type="date"
@@ -302,11 +299,11 @@ export const ConditionManager = ({ patient, onUpdate }) => {
                 />
               </div>
 
-              <div className="modal-actions">
-                <button type="button" className="cancel-btn" onClick={() => setShowForm(false)}>
+              <div className="doctor-modal-actions">
+                <button type="button" className="doctor-cancel-btn" onClick={() => setShowForm(false)}>
                   Cancel
                 </button>
-                <button type="button" className="submit-btn" onClick={handleAddCondition} disabled={submitting}>
+                <button type="button" className="doctor-submit-btn" onClick={handleAddCondition} disabled={submitting}>
                   {submitting ? 'Adding...' : 'Add Condition'}
                 </button>
               </div>

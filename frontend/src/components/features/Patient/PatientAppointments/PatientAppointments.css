@@ -1,0 +1,249 @@
+/* PatientAppointments.css - Single line rows, horizontal scroll if needed */
+.appointments-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.card-header {
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.card-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header h3 svg {
+  color: #3B82F6;
+}
+
+/* Appointments List */
+.appointments-list {
+  padding: 0;
+}
+
+/* Appointment Group */
+.appointment-group {
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.appointment-group:last-child {
+  border-bottom: none;
+}
+
+/* Group Header */
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.group-header svg {
+  color: #64748B;
+}
+
+.group-header span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0A0F1D;
+}
+
+/* Table Wrapper - enables horizontal scroll on small screens */
+.appointments-table-wrapper {
+  overflow-x: auto;
+}
+
+/* Appointments Table - fixed layout with nowrap */
+.appointments-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  min-width: 800px;  /* Ensures horizontal scroll on narrow screens */
+}
+
+/* Column widths */
+.appointments-table th:nth-child(1),
+.appointments-table td:nth-child(1) {
+  width: 120px;  /* Time column */
+}
+
+.appointments-table th:nth-child(2),
+.appointments-table td:nth-child(2) {
+  width: 100px;  /* Type column */
+}
+
+.appointments-table th:nth-child(3),
+.appointments-table td:nth-child(3) {
+  width: 280px;  /* Location column - enough for most addresses */
+}
+
+.appointments-table th:nth-child(4),
+.appointments-table td:nth-child(4) {
+  width: 110px;  /* Status column */
+}
+
+.appointments-table th:nth-child(5),
+.appointments-table td:nth-child(5) {
+  width: 200px;  /* Reason column */
+}
+
+.appointments-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.appointments-table td {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #475569;
+  border-bottom: 1px solid #F1F5F9;
+  white-space: nowrap;        /* Keep content on one line */
+  overflow: hidden;
+  text-overflow: ellipsis;    /* Optional: add ellipsis if text overflows column width */
+}
+
+/* Time column */
+.col-time {
+  white-space: nowrap;
+}
+
+.col-time svg {
+  display: inline;
+  margin-right: 6px;
+  vertical-align: middle;
+  color: #94A3B8;
+}
+
+.duration {
+  font-size: 11px;
+  color: #94A3B8;
+  margin-left: 4px;
+}
+
+/* Type column */
+.col-type svg {
+  margin-right: 6px;
+  vertical-align: middle;
+  color: #64748B;
+}
+
+/* Location column - keep inline elements */
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.location-info svg {
+  flex-shrink: 0;
+  color: #3B82F6;
+}
+
+.hospital-name {
+  font-weight: 500;
+  color: #0A0F1D;
+}
+
+.room-info {
+  font-size: 11px;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.hospital-address {
+  font-size: 11px;
+  color: #64748B;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.video-link, .phone-call, .no-location {
+  font-style: italic;
+  color: #64748B;
+  white-space: nowrap;
+}
+
+/* Status column */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Status colors */
+.status-badge.scheduled {
+  background: #FEF3C7;
+  color: #D97706;
+}
+.status-badge.confirmed {
+  background: #D1FAE5;
+  color: #059669;
+}
+.status-badge.completed {
+  background: #EFF6FF;
+  color: #3B82F6;
+}
+.status-badge.cancelled {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+.status-badge.no-show {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* Reason column */
+.col-reason {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94A3B8;
+}
+
+.empty-state svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+/* Responsive: allow horizontal scroll */
+@media (max-width: 900px) {
+  .appointments-table-wrapper {
+    overflow-x: auto;
+  }
+}

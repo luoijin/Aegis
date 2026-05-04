@@ -1,13 +1,12 @@
 // frontend/src/components/features/Doctor/PatientManagement/AddPatientModal.jsx
 import React, { useState, useEffect } from 'react';
-import { X, Search, UserPlus, User } from 'lucide-react';
+import { X, Search, UserPlus } from 'lucide-react';
 import api from '../../../../services/api';
 import '../../../../styles/doctor-modal.css';
 
 export const AddPatientModal = ({ onClose, onSuccess }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [availablePatients, setAvailablePatients] = useState([]);
-  const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
@@ -16,27 +15,14 @@ export const AddPatientModal = ({ onClose, onSuccess }) => {
     fetchAvailablePatients();
   }, []);
 
-  useEffect(() => {
-    const filtered = availablePatients.filter(patient =>
-      (patient.user?.profile?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       patient.user?.profile?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       patient.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    setFilteredPatients(filtered);
-  }, [searchTerm, availablePatients]);
-
   const fetchAvailablePatients = async () => {
     setLoading(true);
-    setError('');
     try {
-      // Using the new /available endpoint
-      const response = await api.get('/patients/available');
-      console.log('Available patients:', response.data);
+      const response = await api.get('/patients/all/for-selection');
       setAvailablePatients(response.data);
-      setFilteredPatients(response.data);
     } catch (error) {
       console.error('Error fetching available patients:', error);
-      setError(error.response?.data?.message || 'Failed to load patients');
+      setError('Failed to load patients');
     } finally {
       setLoading(false);
     }
@@ -44,17 +30,25 @@ export const AddPatientModal = ({ onClose, onSuccess }) => {
 
   const handleAddPatient = async (patientId) => {
     setAdding(true);
-    setError('');
     try {
-      await api.post(`/patients/${patientId}/assign`);
+      await api.post(`/patients/${patientId}/assign-doctor`);
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
       console.error('Error adding patient:', error);
-      setError(error.response?.data?.message || 'Failed to add patient');
+      alert(error.response?.data?.message || 'Failed to add patient');
+    } finally {
       setAdding(false);
     }
   };
+
+  const filteredPatients = availablePatients.filter(patient =>
+    !patient.assignedDoctor && (
+      patient.user?.profile?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.user?.profile?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
 
   return (
     <div className="doctor-modal-overlay" onClick={onClose}>
@@ -87,7 +81,6 @@ export const AddPatientModal = ({ onClose, onSuccess }) => {
               <div className="loading-state">Loading patients...</div>
             ) : filteredPatients.length === 0 ? (
               <div className="empty-state">
-                <User size={48} />
                 <p>No available patients found</p>
                 <span>All patients may already be assigned to a doctor</span>
               </div>
@@ -97,9 +90,6 @@ export const AddPatientModal = ({ onClose, onSuccess }) => {
                 return (
                   <div key={patient._id} className="patient-item">
                     <div className="patient-info">
-                      <div className="patient-avatar-small">
-                        {patient.user?.profile?.firstName?.[0]}{patient.user?.profile?.lastName?.[0]}
-                      </div>
                       <div className="patient-details">
                         <div className="patient-name">{name || 'Unknown Patient'}</div>
                         <div className="patient-email">{patient.user?.email}</div>

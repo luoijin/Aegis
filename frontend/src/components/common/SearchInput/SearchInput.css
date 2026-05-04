@@ -1,0 +1,51 @@
+/* frontend/src/components/common/SearchInput/SearchInput.css */
+.search-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F8FAFC;
+  padding: 8px 16px;
+  border-radius: 40px;
+  border: 1px solid #E2E8F0;
+  transition: all 0.2s;
+}
+
+.search-input-container:focus-within {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-icon {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.search-input-field {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 13px;
+  flex: 1;
+  color: #1E293B;
+}
+
+.search-input-field::placeholder {
+  color: #94A3B8;
+}
+
+.search-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.search-clear:hover {
+  background: #E2E8F0;
+  color: #475569;
+}

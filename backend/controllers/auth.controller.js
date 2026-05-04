@@ -129,7 +129,9 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user._id)
+      .select('-password')
+      .populate('hospital', 'name address phone');
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });

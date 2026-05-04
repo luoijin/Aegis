@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Video, Phone, MapPin, CheckCircle, XCircle, AlertCircle, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, User, Video, Phone, MapPin, CheckCircle, XCircle, AlertCircle, Plus, ChevronLeft, ChevronRight, Building } from 'lucide-react';
 import { AppointmentForm } from './AppointmentForm';
 import api from '../../../../services/api';
 import './AppointmentScheduler.css';
@@ -20,7 +20,9 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
 
   const fetchAppointments = async () => {
     try {
+      setLoading(true);
       const response = await api.get(`/doctor/appointments?status=${filter}`);
+      console.log('Fetched appointments:', response.data.length);
       setAppointments(response.data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -40,10 +42,13 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
 
   const handleCreateAppointment = async (appointmentData) => {
     try {
-      await api.post('/doctor/appointments', appointmentData);
+      console.log('Creating appointment:', appointmentData);
+      const response = await api.post('/doctor/appointments', appointmentData);
+      console.log('Appointment created:', response.data);
       setShowForm(false);
-      fetchAppointments();
-      fetchStats();
+      // Refetch appointments and stats to show the new appointment
+      await fetchAppointments();
+      await fetchStats();
     } catch (error) {
       console.error('Error creating appointment:', error);
       alert(error.response?.data?.message || 'Failed to schedule appointment');
@@ -53,8 +58,8 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
   const handleUpdateStatus = async (appointmentId, status) => {
     try {
       await api.put(`/doctor/appointments/${appointmentId}`, { status });
-      fetchAppointments();
-      fetchStats();
+      await fetchAppointments();
+      await fetchStats();
     } catch (error) {
       console.error('Error updating appointment:', error);
       alert(error.response?.data?.message || 'Failed to update appointment');
@@ -85,13 +90,11 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
     return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Filter appointments for calendar view
   const getFilteredAppointmentsForCalendar = () => {
     if (filter === 'all') return appointments;
     return appointments.filter(apt => apt.status === filter);
   };
 
-  // Calendar View Functions
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -137,7 +140,6 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
 
   return (
     <div className="appointment-scheduler">
-      {/* Header */}
       <div className="appointment-header">
         <div>
           <h2>Appointments</h2>
@@ -145,16 +147,10 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
         </div>
         <div className="header-actions">
           <div className="view-toggle">
-            <button 
-              className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
-            >
+            <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
               List View
             </button>
-            <button 
-              className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-              onClick={() => setViewMode('calendar')}
-            >
+            <button className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`} onClick={() => setViewMode('calendar')}>
               Calendar View
             </button>
           </div>
@@ -164,7 +160,6 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="stats-grid">
         {statsConfig.map(stat => (
           <div key={stat.label} className="stat-card">
@@ -177,7 +172,6 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
         ))}
       </div>
 
-      {/* Filter Tabs */}
       <div className="filter-tabs">
         <button className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
           All ({stats?.total || 0})
@@ -199,22 +193,15 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
         </button>
       </div>
 
-      {/* Calendar View */}
       {viewMode === 'calendar' && (
         <div className="calendar-view">
           <div className="calendar-header">
-            <button className="month-nav" onClick={() => changeMonth(-1)}>
-              <ChevronLeft size={20} />
-            </button>
+            <button className="month-nav" onClick={() => changeMonth(-1)}><ChevronLeft size={20} /></button>
             <h3>{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h3>
-            <button className="month-nav" onClick={() => changeMonth(1)}>
-              <ChevronRight size={20} />
-            </button>
+            <button className="month-nav" onClick={() => changeMonth(1)}><ChevronRight size={20} /></button>
           </div>
           <div className="calendar-grid">
-            {daysOfWeek.map(day => (
-              <div key={day} className="calendar-weekday">{day}</div>
-            ))}
+            {daysOfWeek.map(day => <div key={day} className="calendar-weekday">{day}</div>)}
             {calendarDays.map((day, index) => {
               const dayAppointments = day ? getAppointmentsForDay(day) : [];
               const isToday = day && day.toDateString() === new Date().toDateString();
@@ -226,18 +213,14 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
                       <div className="day-appointments">
                         {dayAppointments.slice(0, 3).map(apt => {
                           const patientName = `${apt.patient?.user?.profile?.firstName || ''} ${apt.patient?.user?.profile?.lastName || ''}`.trim();
-                          const statusConfig = getStatusConfig(apt.status);
                           return (
-                            <div key={apt._id} className={`day-appointment ${statusConfig.class}`} title={patientName}>
+                            <div key={apt._id} className={`day-appointment status-${apt.status}`} title={patientName}>
                               <Clock size={10} />
                               <span>{formatTime(apt.dateTime)}</span>
-                              <span className="appointment-patient">{patientName.substring(0, 12)}</span>
                             </div>
                           );
                         })}
-                        {dayAppointments.length > 3 && (
-                          <div className="more-appointments">+{dayAppointments.length - 3} more</div>
-                        )}
+                        {dayAppointments.length > 3 && <div className="more-appointments">+{dayAppointments.length - 3} more</div>}
                       </div>
                     </>
                   )}
@@ -248,7 +231,6 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
         </div>
       )}
 
-      {/* List View - Grouped by Date */}
       {viewMode === 'list' && (
         <div className="appointments-list-wrapper">
           {loading ? (
@@ -261,7 +243,6 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
             </div>
           ) : (
             (() => {
-              // Group appointments by date
               const grouped = {};
               filteredAppointments.forEach(apt => {
                 const dateKey = new Date(apt.dateTime).toDateString();
@@ -283,60 +264,55 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
                       const patientName = `${appointment.patient?.user?.profile?.firstName || ''} ${appointment.patient?.user?.profile?.lastName || ''}`.trim();
                       const appointmentDate = new Date(appointment.dateTime);
                       const formattedTime = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      const hospitalName = appointment.hospital?.name || '';
                       
                       return (
                         <div key={appointment._id} className="appointment-card">
                           <div className="card-header">
                             <div className="patient-info">
-                              <div className="patient-initial">
-                                {patientName.charAt(0) || 'P'}
-                              </div>
-                              <div>
-                                <div className="patient-name">{patientName || 'Unknown Patient'}</div>
-                                <div className="appointment-time">
-                                  <Clock size={12} />
-                                  <span>{formattedTime}</span>
-                                  <span className="duration-badge">{appointment.duration} min</span>
-                                </div>
-                              </div>
+                              <User size={16} />
+                              <span className="patient-name">{patientName || 'Unknown Patient'}</span>
                             </div>
                             <div className={`status-badge ${statusConfig.class}`}>
-                              {statusConfig.icon}
-                              {statusConfig.label}
+                              {statusConfig.icon}{statusConfig.label}
                             </div>
                           </div>
 
                           <div className="card-body">
-                            <div className="info-item">
-                              {typeConfig.icon}
-                              <span>{typeConfig.label}</span>
+                            <div className="info-row">
+                              <Calendar size={14} /><span>{appointmentDate.toLocaleDateString()}</span>
+                              <Clock size={14} /><span>{formattedTime}</span>
+                              <span className="duration-badge">{appointment.duration || 30} min</span>
                             </div>
-                            {appointment.reason && (
-                              <div className="reason-row">
-                                <strong>Reason:</strong> {appointment.reason}
+                            <div className="info-row">
+                              {typeConfig.icon}<span>{typeConfig.label}</span>
+                            </div>
+                            {appointment.type === 'in-person' && (
+                              <div className="info-row location-row">
+                                <Building size={14} />
+                                <div className="location-details">
+                                  {hospitalName ? (
+                                    <>
+                                      <span className="hospital-name">{hospitalName}</span>
+                                      {appointment.location?.room && <span className="room-info">({appointment.location.room})</span>}
+                                    </>
+                                  ) : <span className="no-location">Location not specified</span>}
+                                </div>
                               </div>
                             )}
+                            {appointment.reason && <div className="reason-row"><strong>Reason:</strong> {appointment.reason}</div>}
                           </div>
 
                           {appointment.status === 'scheduled' && (
                             <div className="card-actions">
-                              <button className="confirm-btn" onClick={() => handleUpdateStatus(appointment._id, 'confirmed')}>
-                                <CheckCircle size={14} /> Confirm
-                              </button>
-                              <button className="cancel-action-btn" onClick={() => handleUpdateStatus(appointment._id, 'cancelled')}>
-                                <XCircle size={14} /> Cancel
-                              </button>
+                              <button className="confirm-btn" onClick={() => handleUpdateStatus(appointment._id, 'confirmed')}><CheckCircle size={14} /> Confirm</button>
+                              <button className="cancel-btn" onClick={() => handleUpdateStatus(appointment._id, 'cancelled')}><XCircle size={14} /> Cancel</button>
                             </div>
                           )}
-
                           {appointment.status === 'confirmed' && (
                             <div className="card-actions">
-                              <button className="complete-btn" onClick={() => handleUpdateStatus(appointment._id, 'completed')}>
-                                <CheckCircle size={14} /> Mark Completed
-                              </button>
-                              <button className="noshow-btn" onClick={() => handleUpdateStatus(appointment._id, 'no-show')}>
-                                <AlertCircle size={14} /> No Show
-                              </button>
+                              <button className="complete-btn" onClick={() => handleUpdateStatus(appointment._id, 'completed')}><CheckCircle size={14} /> Mark Completed</button>
+                              <button className="noshow-btn" onClick={() => handleUpdateStatus(appointment._id, 'no-show')}><AlertCircle size={14} /> No Show</button>
                             </div>
                           )}
                         </div>
@@ -350,7 +326,6 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
         </div>
       )}
 
-      {/* Schedule Modal */}
       {showForm && (
         <AppointmentForm
           patients={patients}

@@ -10,13 +10,11 @@ exports.getHospitals = async (req, res) => {
   }
 };
 
-// Get hospital by ID
+// Get single hospital
 exports.getHospitalById = async (req, res) => {
   try {
     const hospital = await Hospital.findById(req.params.id);
-    if (!hospital) {
-      return res.status(404).json({ message: 'Hospital not found' });
-    }
+    if (!hospital) return res.status(404).json({ message: 'Hospital not found' });
     res.json(hospital);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -42,31 +40,19 @@ exports.updateHospital = async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
+    if (!hospital) return res.status(404).json({ message: 'Hospital not found' });
     res.json(hospital);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
-// Get hospitals near location
-exports.getNearbyHospitals = async (req, res) => {
+// Delete hospital (Admin only)
+exports.deleteHospital = async (req, res) => {
   try {
-    const { lng, lat, radius = 10 } = req.query;
-    
-    const hospitals = await Hospital.find({
-      location: {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [parseFloat(lng), parseFloat(lat)]
-          },
-          $maxDistance: radius * 1000 // Convert km to meters
-        }
-      },
-      isActive: true
-    });
-    
-    res.json(hospitals);
+    const hospital = await Hospital.findByIdAndDelete(req.params.id);
+    if (!hospital) return res.status(404).json({ message: 'Hospital not found' });
+    res.json({ message: 'Hospital deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

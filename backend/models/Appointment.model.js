@@ -41,10 +41,19 @@ const appointmentSchema = new mongoose.Schema({
   cancellationReason: {
     type: String,
     default: ''
+  },
+  hospital: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Hospital',
+    default: null
+  },
+  location: {
+    room: { type: String, default: '' },
+    floor: { type: String, default: '' },
+    instructions: { type: String, default: '' }
   }
 }, { timestamps: true });
 
-// Indexes for efficient queries
 appointmentSchema.index({ doctor: 1, dateTime: 1 });
 appointmentSchema.index({ patient: 1 });
 appointmentSchema.index({ status: 1 });

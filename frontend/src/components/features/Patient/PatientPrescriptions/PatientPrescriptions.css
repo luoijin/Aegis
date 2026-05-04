@@ -1,0 +1,123 @@
+/* PatientPrescriptions.css */
+.prescriptions-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.prescriptions-list {
+  padding: 0;
+}
+
+.prescription-item {
+  padding: 16px 20px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.prescription-item:last-child {
+  border-bottom: none;
+}
+
+.prescription-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.prescription-icon {
+  width: 40px;
+  height: 40px;
+  background: #EFF6FF;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3B82F6;
+}
+
+.prescription-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.prescription-status {
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.prescription-status.active {
+  color: #059669;
+}
+
+.prescription-status.inactive {
+  color: #64748B;
+}
+
+.prescription-medications {
+  margin-bottom: 12px;
+}
+
+.medication-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: #475569;
+  padding: 6px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.medication-line:last-child {
+  border-bottom: none;
+}
+
+.medication-line strong {
+  color: #0A0F1D;
+  min-width: 120px;
+}
+
+.prescription-notes {
+  background: #F8FAFC;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #64748B;
+  margin: 8px 0;
+}
+
+.prescription-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #E2E8F0;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.download-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #3B82F6;
+  transition: all 0.2s;
+}
+
+.download-btn:hover {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+}

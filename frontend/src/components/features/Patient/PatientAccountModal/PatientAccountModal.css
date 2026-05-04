@@ -1,0 +1,129 @@
+/* PatientAccountModal.css - Only styles not in modal.css */
+.modal-body {
+  padding: 24px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.section-title h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin: 0;
+}
+
+.section-title svg {
+  color: #3B82F6;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+  padding: 10px 40px 10px 12px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle:hover {
+  color: #3B82F6;
+}
+
+.disabled-input {
+  background: #F8FAFC;
+  color: #94A3B8;
+  cursor: not-allowed;
+}
+
+.read-only-field {
+  background: #F8FAFC;
+  color: #475569;
+}
+
+.field-note {
+  font-size: 11px;
+  color: #94A3B8;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.password-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.password-btn:hover {
+  background: #2563EB;
+}
+
+.password-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-divider {
+  height: 1px;
+  background: #E2E8F0;
+  margin: 24px 0;
+}
+
+.success-message {
+  background: #D1FAE5;
+  color: #059669;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 640px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

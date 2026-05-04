@@ -14,6 +14,8 @@ const healthLogRoutes = require('./routes/healthLog.routes');
 const adminRoutes = require('./routes/admin.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const hospitalRoutes = require('./routes/hospital.routes');
+
 
 const app = express();
 
@@ -55,16 +57,14 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-<<<<<<< Updated upstream
 app.use('/api/patients', patientRoutes);
-=======
 app.use('/api/patient', patientRoutes);
-app.use('/api/patients', patientRoutes); 
->>>>>>> Stashed changes
 app.use('/api/health-logs', healthLogRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/hospitals', hospitalRoutes);
+
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {

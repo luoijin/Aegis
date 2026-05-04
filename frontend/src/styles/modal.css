@@ -17,7 +17,7 @@
   z-index: 10000;
 }
 
-/* Modal Container - Base styles, extend per modal */
+/* Modal Container */
 .modal-container {
   background: white;
   border-radius: 20px;
@@ -25,14 +25,32 @@
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  animation: modalFadeIn 0.2s ease;
 }
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Modal Sizes */
+.modal-sm { width: 400px; }
+.modal-md { width: 500px; }
+.modal-lg { width: 600px; }
+.modal-xl { width: 700px; }
 
 /* Modal Header */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 16px 20px;  /* Changed from 20px 24px */
   border-bottom: 1px solid #E2E8F0;
   position: sticky;
   top: 0;
@@ -41,7 +59,7 @@
 }
 
 .modal-header h3 {
-  font-size: 18px;
+  font-size: 16px;  /* Changed from 18px */
   font-weight: 600;
   color: #0A0F1D;
   margin: 0;
@@ -64,12 +82,65 @@
   color: #EF4444;
 }
 
-/* Modal Form */
-.modal-form {
-  padding: 24px;
+/* Modal Body */
+.modal-body {
+  padding: 16px 20px;
 }
 
-/* Form Groups */
+/* Detail Row - For record details */
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 14px;
+  color: #475569;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row svg {
+  color: #3B82F6;
+  flex-shrink: 0;
+}
+
+.detail-row strong {
+  color: #0A0F1D;
+  font-weight: 600;
+  min-width: 110px;
+}
+
+.detail-row span {
+  color: #475569;
+}
+
+/* Notes Section */
+.notes-section {
+  margin-top: 16px;
+  padding: 16px;
+  background: #F8FAFC;
+  border-radius: 12px;
+}
+
+.notes-section strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0A0F1D;
+  margin-bottom: 8px;
+}
+
+.notes-section p {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* Form Groups (keep existing) */
 .form-group {
   margin-bottom: 20px;
 }
@@ -86,7 +157,7 @@
   color: #EF4444;
 }
 
-/* Form Row (multiple columns) */
+/* Form Rows */
 .form-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -106,7 +177,7 @@
   margin-bottom: 0;
 }
 
-/* Inputs, Selects, Textareas */
+/* Inputs */
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -139,7 +210,7 @@
   margin-top: 4px;
 }
 
-/* Type Options (Appointment Type, etc) */
+/* Type Options */
 .type-options {
   display: flex;
   gap: 12px;
@@ -341,7 +412,7 @@
   border: 1px solid #FECACA;
 }
 
-/* Modal Actions (Buttons) */
+/* Modal Actions */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -410,5 +481,15 @@
   
   .cancel-btn, .submit-btn {
     width: 100%;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  
+  .detail-row strong {
+    min-width: auto;
   }
 }
