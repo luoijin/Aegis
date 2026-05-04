@@ -1,6 +1,4 @@
 /* frontend/src/components/features/Doctor/DashboardSidebar/DashboardSidebar.css */
-=======
-/* DashboardSidebar.css */
 .dashboard-sidebar {
   width: 260px;
   background: white;
@@ -90,13 +88,46 @@
   background: #EFF6FF;
 }
 
-.sidebar-patient-item .patient-name {
+.patient-name {
   font-weight: 500;
   font-size: 14px;
   color: #1E293B;
 }
 
-.sidebar-patient-item .patient-chevron {
+.patient-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remove-patient-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94A3B8;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  opacity: 0;
+}
+
+.sidebar-patient-item:hover .remove-patient-btn {
+  opacity: 1;
+}
+
+.remove-patient-btn:hover {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+.remove-patient-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.patient-chevron {
   color: #94A3B8;
   opacity: 0;
   transition: opacity 0.2s;

@@ -12,6 +12,7 @@ import { AppointmentScheduler } from '../AppointmentScheduler/AppointmentSchedul
 import { PrescriptionManager } from '../PrescriptionManager/PrescriptionManager';
 import { AnalyticsPanel } from '../AnalyticsPanel/AnalyticsPanel';
 import { ConditionManager } from '../ConditionManager/ConditionManager';
+import PatientChartModal from '../PatientChart/PatientChartModal'; // ✅ Correct path
 import api from '../../../../services/api';
 import './DoctorDashboard.css';
 
@@ -22,6 +23,7 @@ const DoctorDashboard = () => {
   const [healthLogs, setHealthLogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showVitalsForm, setShowVitalsForm] = useState(false);
+  const [showPatientChart, setShowPatientChart] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('patients');
 
@@ -32,8 +34,6 @@ const DoctorDashboard = () => {
       setUser(parsedUser);
     }
     fetchPatients();
-    
-    // Also fetch fresh user data to ensure specialization
     fetchUserProfile();
   }, []);
 
@@ -59,27 +59,49 @@ const DoctorDashboard = () => {
     }
   };
 
-  const handleUserUpdate = (updatedUser) => {
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+  const fetchHealthLogs = async (patientId) => {
+    try {
+      const response = await api.get(`/doctor/patients/${patientId}/health-logs`);
+      setHealthLogs(response.data);
+    } catch (error) {
+      console.error('Error fetching health logs:', error);
+      setHealthLogs([]);
+    }
   };
 
   const handleSelectPatient = async (patient) => {
     setSelectedPatient(patient);
-    try {
-      const logsRes = await api.get(`/health-logs?patientId=${patient._id}`);
-      setHealthLogs(logsRes.data);
-    } catch (error) {
-      console.error('Error fetching health logs:', error);
-    }
+    await fetchHealthLogs(patient._id);
   };
 
   const handleVitalsRecorded = async () => {
     if (selectedPatient) {
-      const logsRes = await api.get(`/health-logs?patientId=${selectedPatient._id}`);
-      setHealthLogs(logsRes.data);
+      await fetchHealthLogs(selectedPatient._id);
+      try {
+        const updatedPatient = await api.get(`/doctor/patients/${selectedPatient._id}`);
+        setSelectedPatient(updatedPatient.data);
+        const patientsRes = await api.get('/doctor/patients');
+        setPatients(patientsRes.data);
+      } catch (error) {
+        console.error('Error refreshing patient data after vitals:', error);
+      }
     }
     setShowVitalsForm(false);
+  };
+
+  const handlePatientUpdate = async () => {
+    if (selectedPatient) {
+      try {
+        const response = await api.get(`/doctor/patients/${selectedPatient._id}`);
+        const updatedPatient = response.data;
+        setSelectedPatient(updatedPatient);
+        const patientsRes = await api.get('/doctor/patients');
+        setPatients(patientsRes.data);
+        await fetchHealthLogs(selectedPatient._id);
+      } catch (error) {
+        console.error('Error refreshing patient data:', error);
+      }
+    }
   };
 
   const handleLogout = () => {
@@ -93,14 +115,17 @@ const DoctorDashboard = () => {
     p.user?.profile?.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const chartData = healthLogs.slice().reverse().slice(0, 30).map(log => ({
-    date: new Date(log.createdAt).toLocaleDateString(),
-    heartRate: log.vitals?.heartRate || 0
-  }));
+  const chartData = [...healthLogs]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 30)
+    .reverse()
+    .map(log => ({
+      date: new Date(log.createdAt).toLocaleDateString(),
+      heartRate: log.vitals?.heartRate || 0,
+    }));
 
   const latestVitals = healthLogs[0]?.vitals;
 
-  // Render content based on active tab
   const renderContent = () => {
     switch(activeTab) {
       case 'patients':
@@ -111,52 +136,19 @@ const DoctorDashboard = () => {
                 <PatientInfoHeader 
                   patient={selectedPatient}
                   onRecordVitals={() => setShowVitalsForm(true)}
-                  onPatientUpdate={async () => {
-                    // Refresh patient data after blood type update
-                    if (selectedPatient) {
-                      try {
-                        const response = await api.get(`/doctor/patients/${selectedPatient._id}`);
-                        const updatedPatient = response.data;
-                        setSelectedPatient(updatedPatient);
-                        
-                        // Also refresh the patients list
-                        const patientsRes = await api.get('/doctor/patients');
-                        setPatients(patientsRes.data);
-                      } catch (error) {
-                        console.error('Error refreshing patient data:', error);
-                      }
-                    }
-                  }}
+                  onViewChart={() => setShowPatientChart(true)}
+                  onPatientUpdate={handlePatientUpdate}
                 />
                 
-                {/* Two column layout for vitals and conditions */}
                 <div className="patient-dashboard-grid">
-                  {/* Left Column - Vitals Section */}
                   <div className="vitals-column">
                     <VitalsGrid latestVitals={latestVitals} />
                     <HealthChart chartData={chartData} />
                   </div>
-                  
-                  {/* Right Column - Conditions Section */}
                   <div className="conditions-column">
                     <ConditionManager 
                       patient={selectedPatient} 
-                      onUpdate={async () => {
-                        // Refetch the selected patient data
-                        if (selectedPatient) {
-                          try {
-                            const response = await api.get(`/doctor/patients/${selectedPatient._id}`);
-                            const updatedPatient = response.data;
-                            setSelectedPatient(updatedPatient);
-                            
-                            // Also refresh health logs if needed
-                            const logsRes = await api.get(`/health-logs?patientId=${selectedPatient._id}`);
-                            setHealthLogs(logsRes.data);
-                          } catch (error) {
-                            console.error('Error refreshing patient data:', error);
-                          }
-                        }
-                      }} 
+                      onUpdate={handlePatientUpdate}
                     />
                   </div>
                 </div>
@@ -176,16 +168,12 @@ const DoctorDashboard = () => {
       
       case 'appointments':
         return <AppointmentScheduler doctorId={user?._id} patients={patients} />;
-      
       case 'referrals':
         return <ReferralSystem doctorId={user?._id} patients={patients} />;
-      
       case 'prescriptions':
         return <PrescriptionManager doctorId={user?._id} patients={patients} />;
-
       case 'analytics':
         return <AnalyticsPanel doctorId={user?._id} />;
-      
       default:
         return null;
     }
@@ -198,11 +186,13 @@ const DoctorDashboard = () => {
         onLogout={handleLogout}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onUserUpdate={handleUserUpdate} 
+        onUserUpdate={(updatedUser) => {
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }}
       />
 
       <div className="dashboard-body">
-        {/* Only show sidebar on patients tab */}
         {activeTab === 'patients' && (
           <DashboardSidebar
             patients={filteredPatients}
@@ -212,7 +202,7 @@ const DoctorDashboard = () => {
             onSearchChange={setSearchTerm}
             loading={loading}
             healthLogs={healthLogs}
-            onPatientAdd={fetchPatients} 
+            onPatientAdd={fetchPatients}
           />
         )}
 
@@ -226,6 +216,13 @@ const DoctorDashboard = () => {
           patient={selectedPatient}
           onClose={() => setShowVitalsForm(false)}
           onSuccess={handleVitalsRecorded}
+        />
+      )}
+
+      {showPatientChart && selectedPatient && (
+        <PatientChartModal
+          patient={selectedPatient}
+          onClose={() => setShowPatientChart(false)}
         />
       )}
     </div>

@@ -608,3 +608,19 @@ exports.updatePatientBloodType = async (req, res) => {
   }
 
 };
+
+// Get prescriptions for a specific patient (for doctor)
+exports.getPrescriptionsByPatient = async (req, res) => {
+  try {
+    const { patientId } = req.query;
+    if (!patientId) return res.status(400).json({ message: 'patientId required' });
+    
+    const prescriptions = await Prescription.find({ patient: patientId })
+      .populate('doctor', 'email profile')
+      .populate('patient', 'user')
+      .sort({ issuedDate: -1 });
+    res.json(prescriptions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

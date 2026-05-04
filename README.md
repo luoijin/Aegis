@@ -453,7 +453,7 @@ This project is for educational purposes as part of a school project.
 | <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Anne Loraine Pardillo** | [@luoijin](https://github.com/luoijin) | Project Manager, Developer |
 | <img src="https://github.com/La4ca.png" width="50" height="50"/> | **Laica Cabatana** | [@La4ca](https://github.com/La4ca) | Developer |
 | <img src="https://github.com/SHYNAsLIBRARY.png" width="50" height="50"/> | **Shyna Labay** | [@SHYNAsLIBRARY](https://github.com/SHYNAsLIBRARY) | Documentation |
-| <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Vincent Dumaguet** | [@](https://github.com/luoijin) | Tester |
+| <img src="https://github.com/TRIPIXSTEVEOFFICIAL.png" width="50" height="50"/> | **Vincent Dumaguet** | [@](https://github.com/TRIPIXSTEVEOFFICIAL) | Tester |
 | <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Kashana Mabanto** | [@](https://github.com/luoiijn) | Documentation |
 
 

@@ -41,6 +41,7 @@ router.put('/appointments/:id', doctorController.updateAppointment);
 router.delete('/appointments/:id', doctorController.deleteAppointment);
 
 // ========== PRESCRIPTION SYSTEM ==========
+
 router.get('/prescriptions', doctorController.getPrescriptions);
 router.post('/prescriptions', doctorController.createPrescription);
 router.put('/prescriptions/:id', doctorController.updatePrescription);

@@ -20,12 +20,6 @@ router.get('/test', (req, res) => {
 router.get('/available', authorize('doctor'), patientController.getAvailablePatients);
 
 // ========== PATIENT DASHBOARD ROUTES (for patients themselves) ==========
-// ========== TEST ROUTE ==========
-router.get('/test', (req, res) => {
-  res.json({ message: 'Patient routes working', userId: req.user?._id });
-});
-
-// ========== PATIENT DASHBOARD ROUTES ==========
 router.get('/profile', authorize('patient'), patientController.getOwnProfile);
 router.get('/my-health-logs', authorize('patient'), patientController.getMyHealthLogs);
 router.get('/my-prescriptions', authorize('patient'), patientController.getMyPrescriptions);
@@ -41,11 +35,6 @@ router.delete('/:patientId/remove', authorize('doctor'), patientController.remov
 router.put('/:id/blood-type', authenticate, authorize('doctor', 'admin'), patientController.updatePatientBloodType);
 
 // ========== GENERAL CRUD ROUTES (must be after specific routes) ==========
-
-// ========== BLOOD TYPE UPDATE - MUST BE BEFORE /:id ==========
-router.put('/:id/blood-type', authenticate, authorize('doctor', 'admin'), patientController.updatePatientBloodType);
-
-// ========== EXISTING ROUTES ==========
 router.get('/', patientController.getAllPatients);
 router.get('/:id', patientController.getPatientById);
 router.get('/:id/summary', patientController.getPatientHealthSummary);
@@ -62,7 +51,6 @@ router.put('/:id', authorize('doctor'), patientController.updatePatient);
 router.delete('/:id', authorize('doctor'), patientController.deletePatient);
 
 // ========== DOCTOR CHANGE REQUEST ROUTES ==========
-
 router.post('/:patientId/request-doctor-change', authorize('doctor'), patientController.requestDoctorChange);
 router.post('/:patientId/approve-doctor-change', authenticate, patientController.approveDoctorChange);
 router.post('/:patientId/reject-doctor-change', authenticate, patientController.rejectDoctorChange);

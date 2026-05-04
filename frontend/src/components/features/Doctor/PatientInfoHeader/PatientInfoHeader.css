@@ -164,3 +164,29 @@
     flex-wrap: wrap;
   }
 }
+
+/* Add these styles to PatientInfoHeader.css */
+.patient-header-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.view-chart-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #3B82F6;
+  border-radius: 8px;
+  color: #3B82F6;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-chart-btn:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
