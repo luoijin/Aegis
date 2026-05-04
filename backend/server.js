@@ -55,7 +55,12 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+<<<<<<< Updated upstream
 app.use('/api/patients', patientRoutes);
+=======
+app.use('/api/patient', patientRoutes);
+app.use('/api/patients', patientRoutes); 
+>>>>>>> Stashed changes
 app.use('/api/health-logs', healthLogRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
