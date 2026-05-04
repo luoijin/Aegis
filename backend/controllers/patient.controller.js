@@ -624,3 +624,121 @@ exports.getPrescriptionsByPatient = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ========== ADD THESE FUNCTIONS TO patient.controller.js ==========
+
+// Update patient's own profile (for patient dashboard)
+exports.updateOwnProfile = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.user._id });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient profile not found' });
+    }
+
+    const { firstName, lastName, dateOfBirth, gender, phone, emergencyContact } = req.body;
+
+    // Update User profile
+    if (firstName || lastName || dateOfBirth || gender || phone) {
+      const updateData = {};
+      if (firstName) updateData['profile.firstName'] = firstName;
+      if (lastName) updateData['profile.lastName'] = lastName;
+      if (dateOfBirth) updateData['profile.dateOfBirth'] = dateOfBirth;
+      if (gender) updateData['profile.gender'] = gender;
+      if (phone) updateData['profile.phone'] = phone;
+      
+      await User.findByIdAndUpdate(req.user._id, updateData);
+    }
+
+    // Update Patient emergency contact
+    if (emergencyContact) {
+      patient.emergencyContact = emergencyContact;
+      await patient.save();
+    }
+
+    // Return updated profile
+    const updatedPatient = await Patient.findOne({ user: req.user._id })
+      .populate('user', 'email profile isActive')
+      .populate('assignedDoctor', 'email profile specialization');
+
+    res.json({ 
+      message: 'Profile updated successfully',
+      patient: updatedPatient 
+    });
+  } catch (error) {
+    console.error('Update own profile error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get patient's own health summary with age calculation
+exports.getMyHealthSummary = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ user: req.user._id })
+      .populate('user', 'email profile')
+      .populate('assignedDoctor', 'email profile specialization');
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Calculate age from dateOfBirth
+    const calculateAge = (dob) => {
+      if (!dob) return null;
+      const birthDate = new Date(dob);
+      const diff = Date.now() - birthDate.getTime();
+      const ageDate = new Date(diff);
+      return Math.abs(ageDate.getUTCFullYear() - 1970);
+    };
+
+    // Get recent health logs
+    const healthLogs = await HealthLog.find({ patient: patient._id })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    const latestVitals = healthLogs[0]?.vitals || null;
+
+    // Get upcoming appointments
+    const Appointment = require('../models/Appointment.model');
+    const upcomingAppointments = await Appointment.find({ 
+      patient: patient._id,
+      dateTime: { $gte: new Date() },
+      status: { $nin: ['cancelled', 'completed'] }
+    })
+    .populate('doctor', 'email profile')
+    .sort({ dateTime: 1 })
+    .limit(5);
+
+    res.json({
+      patient: {
+        id: patient._id,
+        user: {
+          email: patient.user.email,
+          profile: {
+            firstName: patient.user.profile?.firstName,
+            lastName: patient.user.profile?.lastName,
+            dateOfBirth: patient.user.profile?.dateOfBirth,
+            age: calculateAge(patient.user.profile?.dateOfBirth),
+            gender: patient.user.profile?.gender,
+            phone: patient.user.profile?.phone
+          }
+        },
+        bloodType: patient.bloodType,
+        allergies: patient.allergies,
+        conditions: patient.conditions.filter(c => c.isActive !== false),
+        emergencyContact: patient.emergencyContact,
+        assignedDoctor: patient.assignedDoctor
+      },
+      latestVitals,
+      recentHealthLogs: healthLogs,
+      upcomingAppointments,
+      stats: {
+        totalConditions: patient.conditions.filter(c => c.isActive !== false).length,
+        totalAllergies: patient.allergies?.length || 0,
+        recentVisits: healthLogs.length
+      }
+    });
+  } catch (error) {
+    console.error('Get my health summary error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

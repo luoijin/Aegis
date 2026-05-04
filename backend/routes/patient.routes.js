@@ -6,7 +6,7 @@ const { authenticate, authorize } = require('../middleware/auth.middleware');
 // Apply authentication to all routes
 router.use(authenticate);
 
-// ========== TEST ROUTE (verify routes work) ==========
+// ========== TEST ROUTE ==========
 router.get('/test', (req, res) => {
   res.json({ 
     message: 'Patient routes working!', 
@@ -16,25 +16,27 @@ router.get('/test', (req, res) => {
   });
 });
 
-// ========== AVAILABLE PATIENTS FOR DOCTORS (for "Add to My List") ==========
-router.get('/available', authorize('doctor'), patientController.getAvailablePatients);
-
 // ========== PATIENT DASHBOARD ROUTES (for patients themselves) ==========
 router.get('/profile', authorize('patient'), patientController.getOwnProfile);
+router.put('/profile', authorize('patient'), patientController.updateOwnProfile);  // ← NEW
+router.get('/health-summary', authorize('patient'), patientController.getMyHealthSummary);  // ← NEW
 router.get('/my-health-logs', authorize('patient'), patientController.getMyHealthLogs);
 router.get('/my-prescriptions', authorize('patient'), patientController.getMyPrescriptions);
 router.get('/my-appointments', authorize('patient'), patientController.getMyAppointments);
 router.get('/my-referrals', authorize('patient'), patientController.getMyReferrals);
 router.get('/my-doctor', authorize('patient'), patientController.getMyDoctorInfo);
 
-// ========== DOCTOR PATIENT MANAGEMENT (assign/remove) ==========
+// ========== AVAILABLE PATIENTS FOR DOCTORS ==========
+router.get('/available', authorize('doctor'), patientController.getAvailablePatients);
+
+// ========== DOCTOR PATIENT MANAGEMENT ==========
 router.post('/:patientId/assign', authorize('doctor'), patientController.assignDoctorToPatient);
 router.delete('/:patientId/remove', authorize('doctor'), patientController.removePatientFromDoctorList);
 
 // ========== BLOOD TYPE UPDATE ==========
 router.put('/:id/blood-type', authenticate, authorize('doctor', 'admin'), patientController.updatePatientBloodType);
 
-// ========== GENERAL CRUD ROUTES (must be after specific routes) ==========
+// ========== GENERAL CRUD ROUTES ==========
 router.get('/', patientController.getAllPatients);
 router.get('/:id', patientController.getPatientById);
 router.get('/:id/summary', patientController.getPatientHealthSummary);

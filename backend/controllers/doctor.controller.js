@@ -67,7 +67,7 @@ exports.searchPatients = async (req, res) => {
 exports.getPatientById = async (req, res) => {
   try {
     const patient = await Patient.findById(req.params.id)
-      .populate('user', 'email profile isActive')
+      .populate('user', 'email profile isActive')  // This gets firstName, lastName, dateOfBirth, gender, phone
       .populate('assignedDoctor', 'email profile');
     
     if (!patient) {
