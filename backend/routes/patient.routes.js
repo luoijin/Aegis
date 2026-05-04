@@ -6,6 +6,20 @@ const { authenticate, authorize } = require('../middleware/auth.middleware');
 // Apply authentication to all routes
 router.use(authenticate);
 
+// ========== TEST ROUTE (verify routes work) ==========
+router.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Patient routes working!', 
+    userId: req.user?._id, 
+    role: req.user?.role,
+    timestamp: new Date()
+  });
+});
+
+// ========== AVAILABLE PATIENTS FOR DOCTORS (for "Add to My List") ==========
+router.get('/available', authorize('doctor'), patientController.getAvailablePatients);
+
+// ========== PATIENT DASHBOARD ROUTES (for patients themselves) ==========
 // ========== TEST ROUTE ==========
 router.get('/test', (req, res) => {
   res.json({ message: 'Patient routes working', userId: req.user?._id });
@@ -19,12 +33,20 @@ router.get('/my-appointments', authorize('patient'), patientController.getMyAppo
 router.get('/my-referrals', authorize('patient'), patientController.getMyReferrals);
 router.get('/my-doctor', authorize('patient'), patientController.getMyDoctorInfo);
 
+// ========== DOCTOR PATIENT MANAGEMENT (assign/remove) ==========
+router.post('/:patientId/assign', authorize('doctor'), patientController.assignDoctorToPatient);
+router.delete('/:patientId/remove', authorize('doctor'), patientController.removePatientFromDoctorList);
+
+// ========== BLOOD TYPE UPDATE ==========
+router.put('/:id/blood-type', authenticate, authorize('doctor', 'admin'), patientController.updatePatientBloodType);
+
+// ========== GENERAL CRUD ROUTES (must be after specific routes) ==========
+
 // ========== BLOOD TYPE UPDATE - MUST BE BEFORE /:id ==========
 router.put('/:id/blood-type', authenticate, authorize('doctor', 'admin'), patientController.updatePatientBloodType);
 
 // ========== EXISTING ROUTES ==========
 router.get('/', patientController.getAllPatients);
-router.get('/all/for-selection', authorize('doctor'), patientController.getAllPatientsForSelection);
 router.get('/:id', patientController.getPatientById);
 router.get('/:id/summary', patientController.getPatientHealthSummary);
 router.get('/:id/doctors', patientController.getPatientDoctors);
@@ -36,10 +58,10 @@ router.post('/', (req, res, next) => {
   return res.status(403).json({ message: 'Access denied. Only doctors and admins can create patients.' });
 });
 
-router.post('/:patientId/assign-doctor', authorize('doctor'), patientController.assignDoctorToPatient);
 router.put('/:id', authorize('doctor'), patientController.updatePatient);
 router.delete('/:id', authorize('doctor'), patientController.deletePatient);
-router.delete('/:patientId/remove-from-list', authorize('doctor'), patientController.removePatientFromDoctorList);
+
+// ========== DOCTOR CHANGE REQUEST ROUTES ==========
 
 router.post('/:patientId/request-doctor-change', authorize('doctor'), patientController.requestDoctorChange);
 router.post('/:patientId/approve-doctor-change', authenticate, patientController.approveDoctorChange);

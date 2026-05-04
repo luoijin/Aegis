@@ -69,6 +69,9 @@ export const DashboardSidebar = ({
           onClose={() => setShowAddPatient(false)}
           onSuccess={() => {
             setShowAddPatient(false);
+            if (onPatientAdd) onPatientAdd();  // This should refresh the patient list
+          }}
+
             if (onPatientAdd) onPatientAdd();
           }}
         />

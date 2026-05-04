@@ -16,7 +16,8 @@
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.14.2",
     "react-scripts": "5.0.1",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "sweetalert2": "^11.26.24"
   },
   "scripts": {
     "start": "react-scripts start",

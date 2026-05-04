@@ -51,6 +51,31 @@ exports.getAllPatients = async (req, res) => {
   }
 };
 
+exports.getAvailablePatients = async (req, res) => {
+  try {
+    console.log('getAvailablePatients called - User role:', req.user?.role);
+    
+    if (req.user.role !== 'doctor') {
+      return res.status(403).json({ message: 'Access denied. Doctors only.' });
+    }
+    
+    // Get patients that have NO assigned doctor (assignedDoctor is null)
+    const patients = await Patient.find({ 
+      $or: [
+        { assignedDoctor: null },
+        { assignedDoctor: { $exists: false } }
+      ]
+    }).populate('user', 'email profile');
+    
+    console.log(`Found ${patients.length} available patients`);
+    
+    res.json(patients);
+  } catch (error) {
+    console.error('Error in getAvailablePatients:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // READ - Get all patients for doctor selection
 exports.getAllPatientsForSelection = async (req, res) => {
   try {
@@ -58,10 +83,9 @@ exports.getAllPatientsForSelection = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
     
-    // Remove the populate for assignedDoctor temporarily to avoid the error
+    // Get all patients with their user details
     const patients = await Patient.find({})
       .populate('user', 'email profile');
-      // .populate('assignedDoctor', 'email profile'); // Comment this out for now
     
     res.json(patients);
   } catch (error) {
@@ -69,6 +93,7 @@ exports.getAllPatientsForSelection = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // READ - Get single patient by ID
 exports.getPatientById = async (req, res) => {
@@ -126,6 +151,7 @@ exports.assignDoctorToPatient = async (req, res) => {
       patient: updatedPatient 
     });
   } catch (error) {
+    console.error('Assign doctor error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -150,9 +176,11 @@ exports.removePatientFromDoctorList = async (req, res) => {
     
     res.json({ message: 'Patient removed from your list' });
   } catch (error) {
+    console.error('Remove patient error:', error);
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // UPDATE - Update patient information
 exports.updatePatient = async (req, res) => {
@@ -423,10 +451,7 @@ exports.getOwnProfile = async (req, res) => {
   try {
     const patient = await Patient.findOne({ user: req.user._id })
       .populate('user', 'email profile isActive')
-      .populate({
-        path: 'assignedDoctor',
-        populate: { path: 'hospital', select: 'name address phone' }
-      });
+      .populate('assignedDoctor', 'email profile specialization licenseNumber');
     
     if (!patient) {
       return res.status(404).json({ message: 'Patient profile not found' });
@@ -467,7 +492,6 @@ exports.getMyPrescriptions = async (req, res) => {
     }
     
     const Prescription = require('../models/Prescription.model');
-    
     const prescriptions = await Prescription.find({ patient: patient._id })
       .populate('doctor', 'email profile specialization')
       .sort({ issuedDate: -1 });
@@ -487,9 +511,10 @@ exports.getMyAppointments = async (req, res) => {
       return res.status(404).json({ message: 'Patient not found' });
     }
     
+    const Appointment = require('../models/Appointment.model');
     const appointments = await Appointment.find({ patient: patient._id })
       .populate('doctor', 'email profile specialization')
-      .populate('hospital', 'name address phone')  // Ensure this field exists
+      .populate('hospital', 'name address phone')
       .sort({ dateTime: -1 });
     
     res.json(appointments);
@@ -498,6 +523,7 @@ exports.getMyAppointments = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Get patient's own referrals
 exports.getMyReferrals = async (req, res) => {
@@ -508,7 +534,6 @@ exports.getMyReferrals = async (req, res) => {
     }
     
     const Referral = require('../models/Referral.model');
-    
     const referrals = await Referral.find({ patient: patient._id })
       .populate('fromDoctor', 'email profile specialization')
       .populate('toDoctor', 'email profile specialization')
@@ -538,25 +563,6 @@ exports.getMyDoctorInfo = async (req, res) => {
   }
 };
 
-// Update patient's blood type
-// exports.updateBloodType = async (req, res) => {
-//   try {
-//     const { bloodType } = req.body;
-    
-//     const patient = await Patient.findOne({ user: req.user._id });
-//     if (!patient) {
-//       return res.status(404).json({ message: 'Patient not found' });
-//     }
-    
-//     patient.bloodType = bloodType;
-//     await patient.save();
-    
-//     res.json({ message: 'Blood type updated successfully', bloodType: patient.bloodType });
-//   } catch (error) {
-//     console.error('Update blood type error:', error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 // Update patient blood type (Doctor/Admin only)
 exports.updatePatientBloodType = async (req, res) => {
@@ -600,4 +606,5 @@ exports.updatePatientBloodType = async (req, res) => {
     console.error('Update blood type error:', error);
     res.status(500).json({ message: error.message });
   }
+
 };
