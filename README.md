@@ -528,10 +528,10 @@ This project is for educational purposes as part of a school project.
 | Avatar | Name | GitHub | Contributions |
 |--------|------|--------|---------------|
 | <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Anne Loraine Pardillo** | [@luoijin](https://github.com/luoijin) | Developer |
-| <img src="https://github.com/janninobansag.png" width="50" height="50"/> | **Laica Cabatana** | [@janxxy](https://github.com/janninobansag) | |
-| <img src="https://github.com/raymondchavez333.png" width="50" height="50"/> | **Shyna Labay** | [@raymondchavez333](https://github.com/raymondchavez333) | Documentation |
-| <img src="https://github.com/janninobansag.png" width="50" height="50"/> | **Vincent Dumaguet** | [@janxxy](https://github.com/janninobansag) | Tester |
-| <img src="https://github.com/raymondchavez333.png" width="50" height="50"/> | **Kashana Mabanto** | [@raymondchavez333](https://github.com/raymondchavez333) | Documentation |
+| <img src="https://github.com/La4ca.png" width="50" height="50"/> | **Laica Cabatana** | [@La4ca](https://github.com/La4ca) | |
+| <img src="https://github.com/SHYNAsLIBRARY.png" width="50" height="50"/> | **Shyna Labay** | [@SHYNAsLIBRARY](https://github.com/SHYNAsLIBRARY) | Documentation |
+| <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Vincent Dumaguet** | [@](https://github.com/luoijin) | Tester |
+| <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Kashana Mabanto** | [@](https://github.com/luoiijn) | Documentation |
 
 
 ---
