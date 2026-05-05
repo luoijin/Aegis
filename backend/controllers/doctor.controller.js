@@ -787,15 +787,18 @@ exports.getReferralById = async (req, res) => {
 // ========== APPOINTMENT SYSTEM ==========
 exports.getAppointments = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { patientId, status } = req.query;
     let query = { doctor: req.user._id };
     
+    if (patientId) {
+      query.patient = patientId;
+    }
     if (status && status !== 'all') {
       query.status = status;
     }
     
     const appointments = await Appointment.find(query)
-      .populate('patient', 'user')
+      .populate('patient', 'user bloodType')
       .populate('doctor', 'email profile')
       .populate('hospital', 'name address phone')
       .sort({ dateTime: 1 });
@@ -813,6 +816,8 @@ exports.getAppointments = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 exports.createAppointment = async (req, res) => {
   try {
@@ -1274,7 +1279,7 @@ exports.getAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
     const appointment = await Appointment.findById(id)
-      .populate('patient', 'user')
+      .populate('patient', 'user bloodType')
       .populate('doctor', 'email profile')
       .populate('hospital', 'name address phone');
     
@@ -1308,7 +1313,7 @@ exports.createAppointment = async (req, res) => {
       return res.status(404).json({ message: 'Patient not found' });
     }
     
-    // Check if doctor has access
+    // Check if doctor has access to this patient
     if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied. This patient is not assigned to you.' });
     }
@@ -1338,26 +1343,14 @@ exports.createAppointment = async (req, res) => {
     });
     
     await appointment.save();
+    
+    // Populate for response
     await appointment.populate('patient', 'user');
     await appointment.populate('doctor', 'email profile');
     await appointment.populate('hospital', 'name address phone');
     
     if (appointment.patient) {
       await appointment.patient.populate('user', 'email profile');
-    }
-    
-    // Create notification for patient
-    try {
-      const notificationController = require('./notification.controller');
-      await notificationController.createNotification(
-        patient.user,
-        'appointment_created',
-        '📅 New Appointment Scheduled',
-        `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName} scheduled an appointment with you on ${new Date(dateTime).toLocaleString()}.`,
-        { appointmentId: appointment._id, dateTime }
-      );
-    } catch (err) {
-      console.warn('Could not send notification:', err.message);
     }
     
     res.status(201).json(appointment);
@@ -1397,6 +1390,7 @@ exports.updateAppointment = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Delete appointment
 exports.deleteAppointment = async (req, res) => {

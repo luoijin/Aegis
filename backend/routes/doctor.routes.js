@@ -45,12 +45,12 @@ router.put('/prescriptions/:id', authorize('doctor'), doctorController.updatePre
 router.delete('/prescriptions/:id', authorize('doctor'), doctorController.deletePrescription);
 
 // ========== APPOINTMENT ROUTES ==========
-router.get('/appointments', authorizeDoctorOrAdmin, doctorController.getAppointments);
-router.get('/appointments/:id', authorizeDoctorOrAdmin, doctorController.getAppointmentById);
-router.get('/appointments/stats', authorize('doctor'), doctorController.getAppointmentStats);
-router.post('/appointments', authorize('doctor'), doctorController.createAppointment);
-router.put('/appointments/:id', authorize('doctor'), doctorController.updateAppointment);
-router.delete('/appointments/:id', authorize('doctor'), doctorController.deleteAppointment);
+router.get('/appointments', authenticate, authorize('doctor'), doctorController.getAppointments);
+router.get('/appointments/stats', authenticate, authorize('doctor'), doctorController.getAppointmentStats);
+router.get('/appointments/:id', authenticate, authorize('doctor'), doctorController.getAppointmentById);
+router.post('/appointments', authenticate, authorize('doctor'), doctorController.createAppointment);
+router.put('/appointments/:id', authenticate, authorize('doctor'), doctorController.updateAppointment);
+router.delete('/appointments/:id', authenticate, authorize('doctor'), doctorController.deleteAppointment);
 
 // ========== REFERRAL ROUTES ==========
 router.get('/doctors', authenticate, authorize('doctor'), doctorController.getAllDoctors);

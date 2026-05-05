@@ -53,21 +53,25 @@
 
 /* Add Button */
 .add-icon-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: #3B82F6;
-  border: none;
+  gap: 6px;
+  width: 34px;
+  height: 34px;
+  background: white;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
-  color: white;
+  color: #64748B;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .add-icon-btn:hover {
-  background: #2563EB;
+  background: #EFF6FF;
+  border-color: #3B82F6;
+  color: #3B82F6;
+  transform: translateY(-1px);
 }
 
 /* Conditions Container */

@@ -1,3 +1,4 @@
+// frontend/src/components/features/Doctor/AppointmentScheduler/AppointmentScheduler.jsx
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, User, Video, Phone, MapPin, CheckCircle, XCircle, AlertCircle, Plus, ChevronLeft, ChevronRight, Building } from 'lucide-react';
 import { AppointmentForm } from './AppointmentForm';
@@ -22,7 +23,7 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
     try {
       setLoading(true);
       const response = await api.get(`/doctor/appointments?status=${filter}`);
-      console.log('Fetched appointments:', response.data.length);
+      console.log('Fetched appointments:', response.data);
       setAppointments(response.data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -46,7 +47,6 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
       const response = await api.post('/doctor/appointments', appointmentData);
       console.log('Appointment created:', response.data);
       setShowForm(false);
-      // Refetch appointments and stats to show the new appointment
       await fetchAppointments();
       await fetchStats();
     } catch (error) {
@@ -68,11 +68,11 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
 
   const getStatusConfig = (status) => {
     const configs = {
-      scheduled: { icon: <Clock size={14} />, class: 'status-scheduled', label: 'Scheduled' },
-      confirmed: { icon: <CheckCircle size={14} />, class: 'status-confirmed', label: 'Confirmed' },
-      completed: { icon: <CheckCircle size={14} />, class: 'status-completed', label: 'Completed' },
-      cancelled: { icon: <XCircle size={14} />, class: 'status-cancelled', label: 'Cancelled' },
-      'no-show': { icon: <AlertCircle size={14} />, class: 'status-no-show', label: 'No Show' }
+      scheduled: { class: 'status-scheduled', label: 'Scheduled' },
+      confirmed: { class: 'status-confirmed', label: 'Confirmed' },
+      completed: { class: 'status-completed', label: 'Completed' },
+      cancelled: { class: 'status-cancelled', label: 'Cancelled' },
+      'no-show': { class: 'status-no-show', label: 'No Show' }
     };
     return configs[status] || configs.scheduled;
   };
@@ -81,9 +81,18 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
     const configs = {
       video: { icon: <Video size={14} />, label: 'Video Call' },
       phone: { icon: <Phone size={14} />, label: 'Phone Call' },
-      'in-person': { icon: <MapPin size={14} />, label: 'In-Person' }
+      'in-person': { icon: <Building size={14} />, label: 'In-Person' }
     };
     return configs[type] || configs['in-person'];
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
   };
 
   const formatTime = (dateString) => {
@@ -131,12 +140,34 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
   const calendarDays = getDaysInMonth(currentDate);
   const filteredAppointments = getFilteredAppointmentsForCalendar();
 
+  // Group appointments by date for list view
+  const groupedAppointments = filteredAppointments.reduce((groups, appointment) => {
+    const dateKey = new Date(appointment.dateTime).toDateString();
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    groups[dateKey].push(appointment);
+    return groups;
+  }, {});
+
+  // Sort dates
+  const sortedDates = Object.keys(groupedAppointments).sort((a, b) => new Date(a) - new Date(b));
+
   const statsConfig = [
     { label: 'Total', value: stats?.total || 0, icon: <Calendar size={18} /> },
     { label: 'Today', value: stats?.today || 0, icon: <Clock size={18} /> },
     { label: 'Upcoming', value: stats?.upcoming || 0, icon: <AlertCircle size={18} /> },
     { label: 'Completed', value: stats?.completed || 0, icon: <CheckCircle size={18} /> }
   ];
+
+  if (loading) {
+    return (
+      <div className="loading-state">
+        <div className="loading-spinner"></div>
+        <p>Loading appointments...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="appointment-scheduler">
@@ -212,10 +243,11 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
                       <div className="day-number">{day.getDate()}</div>
                       <div className="day-appointments">
                         {dayAppointments.slice(0, 3).map(apt => {
+                          const statusConfig = getStatusConfig(apt.status);
                           const patientName = `${apt.patient?.user?.profile?.firstName || ''} ${apt.patient?.user?.profile?.lastName || ''}`.trim();
                           return (
-                            <div key={apt._id} className={`day-appointment status-${apt.status}`} title={patientName}>
-                              <Clock size={10} />
+                            <div key={apt._id} className={`day-appointment ${statusConfig.class}`} title={`${patientName} - ${formatTime(apt.dateTime)}`}>
+                              {statusConfig.icon}
                               <span>{formatTime(apt.dateTime)}</span>
                             </div>
                           );
@@ -233,95 +265,101 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
 
       {viewMode === 'list' && (
         <div className="appointments-list-wrapper">
-          {loading ? (
-            <div className="empty-state">Loading appointments...</div>
-          ) : filteredAppointments.length === 0 ? (
+          {filteredAppointments.length === 0 ? (
             <div className="empty-state">
               <Calendar size={48} />
               <p>No appointments found</p>
               <span>Click "New Appointment" to create one</span>
             </div>
           ) : (
-            (() => {
-              const grouped = {};
-              filteredAppointments.forEach(apt => {
-                const dateKey = new Date(apt.dateTime).toDateString();
-                if (!grouped[dateKey]) grouped[dateKey] = [];
-                grouped[dateKey].push(apt);
-              });
-
-              return Object.entries(grouped).map(([dateKey, dayAppointments]) => (
-                <div key={dateKey} className="date-group">
-                  <div className="date-header">
-                    <Calendar size={16} />
-                    <span>{new Date(dateKey).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                    <span className="appointment-count">{dayAppointments.length} appointments</span>
-                  </div>
-                  <div className="appointments-grid">
-                    {dayAppointments.map(appointment => {
-                      const statusConfig = getStatusConfig(appointment.status);
-                      const typeConfig = getTypeConfig(appointment.type);
-                      const patientName = `${appointment.patient?.user?.profile?.firstName || ''} ${appointment.patient?.user?.profile?.lastName || ''}`.trim();
-                      const appointmentDate = new Date(appointment.dateTime);
-                      const formattedTime = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                      const hospitalName = appointment.hospital?.name || '';
-                      
-                      return (
-                        <div key={appointment._id} className="appointment-card">
-                          <div className="card-header">
-                            <div className="patient-info">
-                              <User size={16} />
-                              <span className="patient-name">{patientName || 'Unknown Patient'}</span>
-                            </div>
-                            <div className={`status-badge ${statusConfig.class}`}>
-                              {statusConfig.icon}{statusConfig.label}
-                            </div>
+            sortedDates.map(dateKey => (
+              <div key={dateKey} className="date-group">
+                <div className="date-header">
+                  <Calendar size={16} />
+                  <span>{formatDate(dateKey)}</span>
+                  <span className="appointment-count">{groupedAppointments[dateKey].length} appointments</span>
+                </div>
+                <div className="appointments-grid">
+                  {groupedAppointments[dateKey].map(appointment => {
+                    const statusConfig = getStatusConfig(appointment.status);
+                    const typeConfig = getTypeConfig(appointment.type);
+                    const patientName = `${appointment.patient?.user?.profile?.firstName || ''} ${appointment.patient?.user?.profile?.lastName || ''}`.trim() || 'Unknown Patient';
+                    const appointmentDate = new Date(appointment.dateTime);
+                    const hospitalName = appointment.hospital?.name || '';
+                    
+                    return (
+                      <div key={appointment._id} className="appointment-card">
+                        <div className="card-header">
+                          <div className="patient-info">
+                            <User size={16} />
+                            <span className="patient-name">{patientName}</span>
                           </div>
+                          <div className={`status-badge ${statusConfig.class}`}>
+                            {statusConfig.icon}
+                            {statusConfig.label}
+                          </div>
+                        </div>
 
-                          <div className="card-body">
-                            <div className="info-row">
-                              <Calendar size={14} /><span>{appointmentDate.toLocaleDateString()}</span>
-                              <Clock size={14} /><span>{formattedTime}</span>
-                              <span className="duration-badge">{appointment.duration || 30} min</span>
-                            </div>
-                            <div className="info-row">
-                              {typeConfig.icon}<span>{typeConfig.label}</span>
-                            </div>
-                            {appointment.type === 'in-person' && (
-                              <div className="info-row location-row">
-                                <Building size={14} />
-                                <div className="location-details">
-                                  {hospitalName ? (
-                                    <>
-                                      <span className="hospital-name">{hospitalName}</span>
-                                      {appointment.location?.room && <span className="room-info">({appointment.location.room})</span>}
-                                    </>
-                                  ) : <span className="no-location">Location not specified</span>}
-                                </div>
+                        <div className="card-body">
+                          <div className="info-row">
+                            <Calendar size={14} />
+                            <span>{appointmentDate.toLocaleDateString()}</span>
+                            <Clock size={14} />
+                            <span>{formatTime(appointment.dateTime)}</span>
+                            <span className="duration-badge">{appointment.duration || 30} min</span>
+                          </div>
+                          <div className="info-row">
+                            {typeConfig.icon}
+                            <span>{typeConfig.label}</span>
+                          </div>
+                          {appointment.type === 'in-person' && (
+                            <div className="info-row location-row">
+                              <Building size={14} />
+                              <div className="location-details">
+                                {hospitalName ? (
+                                  <>
+                                    <span className="hospital-name">{hospitalName}</span>
+                                    {appointment.location?.room && <span className="room-info">({appointment.location.room})</span>}
+                                  </>
+                                ) : (
+                                  <span className="no-location">Location not specified</span>
+                                )}
                               </div>
-                            )}
-                            {appointment.reason && <div className="reason-row"><strong>Reason:</strong> {appointment.reason}</div>}
-                          </div>
-
-                          {appointment.status === 'scheduled' && (
-                            <div className="card-actions">
-                              <button className="confirm-btn" onClick={() => handleUpdateStatus(appointment._id, 'confirmed')}><CheckCircle size={14} /> Confirm</button>
-                              <button className="cancel-btn" onClick={() => handleUpdateStatus(appointment._id, 'cancelled')}><XCircle size={14} /> Cancel</button>
                             </div>
                           )}
-                          {appointment.status === 'confirmed' && (
-                            <div className="card-actions">
-                              <button className="complete-btn" onClick={() => handleUpdateStatus(appointment._id, 'completed')}><CheckCircle size={14} /> Mark Completed</button>
-                              <button className="noshow-btn" onClick={() => handleUpdateStatus(appointment._id, 'no-show')}><AlertCircle size={14} /> No Show</button>
+                          {appointment.reason && (
+                            <div className="reason-row">
+                              <strong>Reason:</strong> {appointment.reason}
                             </div>
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
+
+                        {appointment.status === 'scheduled' && (
+                          <div className="card-actions">
+                            <button className="confirm-btn" onClick={() => handleUpdateStatus(appointment._id, 'confirmed')}>
+                              <CheckCircle size={14} /> Confirm
+                            </button>
+                            <button className="cancel-btn" onClick={() => handleUpdateStatus(appointment._id, 'cancelled')}>
+                              <XCircle size={14} /> Cancel
+                            </button>
+                          </div>
+                        )}
+                        {appointment.status === 'confirmed' && (
+                          <div className="card-actions">
+                            <button className="complete-btn" onClick={() => handleUpdateStatus(appointment._id, 'completed')}>
+                              <CheckCircle size={14} /> Mark Completed
+                            </button>
+                            <button className="noshow-btn" onClick={() => handleUpdateStatus(appointment._id, 'no-show')}>
+                              <AlertCircle size={14} /> No Show
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ));
-            })()
+              </div>
+            ))
           )}
         </div>
       )}
