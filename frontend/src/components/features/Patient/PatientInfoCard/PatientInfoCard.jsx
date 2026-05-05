@@ -268,7 +268,6 @@ export const PatientInfoCard = ({ patient, doctor, user, onRefresh }) => {
               {/* Personal Information Column */}
               <div className="demographics-column">
                 <div className="demographics-subheader">
-                  <User size={14} />
                   <span>Personal Information</span>
                 </div>
                 <div className="demographic-item">
@@ -292,7 +291,6 @@ export const PatientInfoCard = ({ patient, doctor, user, onRefresh }) => {
               {/* Medical Information Column */}
               <div className="demographics-column">
                 <div className="demographics-subheader">
-                  <Heart size={14} />
                   <span>Medical Information</span>
                 </div>
                 <div className="demographic-item">
@@ -313,7 +311,6 @@ export const PatientInfoCard = ({ patient, doctor, user, onRefresh }) => {
             {/* Emergency Contact Section */}
             <div className="emergency-contact-section">
               <div className="emergency-header">
-                <AlertCircle size={14} />
                 <span>Emergency Contact</span>
               </div>
               <div className="emergency-grid">
@@ -336,7 +333,6 @@ export const PatientInfoCard = ({ patient, doctor, user, onRefresh }) => {
           {/* Primary Care Physician Section */}
           <div className="doctor-section">
             <div className="doctor-info-header">
-              <Stethoscope size={16} />
               <span>Primary Care Physician</span>
             </div>
             {currentDoctor ? (

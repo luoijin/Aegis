@@ -1,137 +1,268 @@
-/* PatientReferrals.css */
-.referrals-card {
+/* frontend/src/components/features/Patient/PatientReferrals/PatientReferrals.css */
+
+.patient-referrals-card {
   background: white;
   border-radius: 16px;
   border: 1px solid #E2E8F0;
   overflow: hidden;
-  margin-bottom: 24px;
 }
 
-.referrals-list {
-  padding: 0;
-}
-
-.referral-item {
-  padding: 16px 20px;
-  border-bottom: 1px solid #E2E8F0;
-}
-
-.referral-item:last-child {
-  border-bottom: none;
-}
-
-.referral-header {
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 12px;
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
 }
 
-.referral-doctors {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.doctor-from,
-.doctor-to {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #475569;
-}
-
-.doctor-arrow {
-  color: #94A3B8;
+.card-header h3 {
   font-size: 14px;
-}
-
-.referral-badges {
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.priority-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 20px;
+.card-header h3 svg {
+  color: #3B82F6;
+}
+
+.referral-count {
   font-size: 11px;
   font-weight: 500;
-}
-
-.priority-badge.urgent {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.priority-badge.emergency {
-  background: #FEE2E2;
-  color: #DC2626;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  color: #64748B;
+  background: #E2E8F0;
+  padding: 2px 8px;
   border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
 }
 
-.status-badge.pending {
-  background: #FEF3C7;
-  color: #D97706;
+/* Table Wrapper */
+.referrals-table-wrapper {
+  overflow-x: auto;
 }
 
-.status-badge.accepted {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-.status-badge.denied {
-  background: #FEE2E2;
-  color: #DC2626;
-}
-
-.referral-body {
-  margin-top: 8px;
-}
-
-.referral-reason,
-.referral-notes {
+.referrals-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 13px;
-  color: #475569;
-  margin-bottom: 8px;
 }
 
-.referral-date {
+.referrals-table th {
+  background: #F8FAFC;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  border-bottom: 1px solid #E2E8F0;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.referrals-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  vertical-align: middle;
+}
+
+.referrals-table tr:last-child td {
+  border-bottom: none;
+}
+
+.referrals-table tr:hover td {
+  background: #F8FAFC;
+}
+
+/* Doctor Cell */
+.doctor-cell {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #94A3B8;
-  margin-top: 8px;
+  gap: 8px;
+  color: #0F172A;
+  font-weight: 500;
 }
 
+.doctor-cell svg {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+/* Reason Cell */
+.reason-cell {
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #475569;
+}
+
+/* Date Cell */
+.date-cell {
+  color: #64748B;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94A3B8;
+}
+
+.empty-state svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+.empty-state p {
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.empty-state span {
+  font-size: 12px;
+}
+
+/* Details Modal */
+.referral-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.referral-modal {
+  background: white;
+  border-radius: 20px;
+  width: 550px;
+  max-width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #E2E8F0;
+  background: white;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #F1F5F9;
+  color: #EF4444;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  background: #F8FAFC;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.detail-label {
+  width: 110px;
+  color: #64748B;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  flex: 1;
+  color: #0F172A;
+}
+
+.reason-text,
+.notes-text {
+  line-height: 1.5;
+  color: #475569;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: flex-end;
+  background: white;
+}
+
+.close-modal-btn {
+  padding: 8px 24px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-modal-btn:hover {
+  background: #2563EB;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .referral-header {
+  .card-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
   }
   
-  .referral-doctors {
+  .referrals-table {
+    min-width: 600px;
+  }
+  
+  .detail-row {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 4px;
   }
   
-  .doctor-arrow {
-    transform: rotate(90deg);
+  .detail-label {
+    width: auto;
   }
 }
