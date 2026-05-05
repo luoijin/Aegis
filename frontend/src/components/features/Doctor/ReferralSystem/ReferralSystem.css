@@ -1,200 +1,449 @@
-/* ReferralSystem.css - Minimal consistent design */
+/* frontend/src/components/features/Doctor/ReferralSystem/ReferralSystem.css */
+
 .referral-system {
   padding: 24px;
-  background: #F8FAFC;
-  min-height: 100%;
+  background: #f8fafc;
+  min-height: calc(100vh - 200px);
 }
 
-/* Header */
 .referral-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .referral-header h2 {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
   font-weight: 700;
-  color: #0A0F1D;
-  margin-bottom: 8px;
+  color: #0f172a;
+  margin: 0 0 6px 0;
 }
 
 .referral-header p {
-  color: #64748B;
   font-size: 14px;
+  color: #64748b;
+  margin: 0;
 }
 
+.referral-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.referral-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.send-card {
+  grid-column: span 1;
+}
+
+.received-card,
+.sent-card {
+  grid-column: span 1;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.card-header svg {
+  color: #3b82f6;
+}
+
+.card-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.badge {
+  margin-left: auto;
+  background: #e2e8f0;
+  color: #64748b;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Form Styles */
+.referral-form {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.form-group label svg {
+  color: #3b82f6;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.warning-text {
+  color: #f59e0b;
+  font-size: 11px;
+  margin-top: 6px;
+  display: block;
+}
+
+/* Send Button */
 .send-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
-  background: #3B82F6;
+  width: 100%;
+  padding: 10px 16px;
+  background: #3b82f6;
   border: none;
   border-radius: 10px;
   color: white;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.send-btn:hover {
-  background: #2563EB;
-}
-
-/* Stats Grid - Minimal cards */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid #E2E8F0;
-  transition: all 0.2s;
-}
-
-.stat-card:hover {
-  border-color: #CBD5E1;
-}
-
-.stat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pending-icon {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.accepted-icon {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-.denied-icon {
-  background: #FEE2E2;
-  color: #DC2626;
-}
-
-.sent-icon {
-  background: #EFF6FF;
-  color: #3B82F6;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #0A0F1D;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #64748B;
-}
-
-/* Filter Tabs - Minimal underline style */
-.filter-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid #E2E8F0;
-}
-
-.filter-tab {
-  padding: 8px 16px;
-  background: none;
-  border: none;
-  cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  color: #64748B;
+  cursor: pointer;
   transition: all 0.2s;
-  position: relative;
+  margin-top: 16px;
 }
 
-.filter-tab:hover {
-  color: #3B82F6;
+.send-btn:hover:not(:disabled) {
+  background: #2563eb;
 }
 
-.filter-tab.active {
-  color: #3B82F6;
-}
-
-.filter-tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #3B82F6;
+.send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Referrals List */
 .referrals-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 16px;
+  max-height: 500px;
+  overflow-y: auto;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  background: white;
+.referral-item {
+  padding: 14px;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  color: #94A3B8;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.referral-item:last-child {
+  margin-bottom: 0;
+}
+
+.referral-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.referral-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.referral-patient {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.referral-patient strong {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.referral-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.referral-doctor-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.referral-reason p,
+.referral-notes p,
+.referral-response p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.referral-date {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 8px;
+  text-align: right;
+}
+
+/* Priority Badges */
+.priority-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.priority-normal {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.priority-high {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.priority-urgent {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Status Icons */
+.status-icon.accepted {
+  color: #10b981;
+}
+
+.status-icon.denied {
+  color: #ef4444;
+}
+
+.status-icon.pending {
+  color: #f59e0b;
+}
+
+/* Action Buttons */
+.referral-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.accept-btn,
+.deny-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.accept-btn {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.accept-btn:hover:not(:disabled) {
+  background: #bbf7d0;
+}
+
+.deny-btn {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.deny-btn:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+.accept-btn:disabled,
+.deny-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Messages */
+.error-message.global {
+  margin-bottom: 20px;
+}
+
+.error-message,
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.success-message {
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #059669;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #94a3b8;
 }
 
 .empty-state svg {
+  color: #cbd5e1;
   margin-bottom: 12px;
-  color: #CBD5E1;
 }
 
 .empty-state p {
-  margin-bottom: 4px;
   font-size: 14px;
+  margin: 0 0 4px 0;
 }
 
 .empty-state span {
   font-size: 12px;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Loading */
+.referral-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #94a3b8;
 }
 
-@media (max-width: 768px) {
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .referral-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .send-card,
+  .received-card,
+  .sent-card {
+    grid-column: span 1;
+  }
+  
   .referral-system {
     padding: 16px;
   }
-  
-  .referral-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
   
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+  .referral-header-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .referral-actions {
+    flex-direction: column;
+  }
+  
+  .accept-btn,
+  .deny-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .referral-doctor-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 }

@@ -1,5 +1,6 @@
+// frontend/src/components/features/Doctor/AccountModal/AccountModal.jsx
 import React, { useState } from 'react';
-import { X, User, Lock, Save } from 'lucide-react';
+import { X, User, Lock, Save, Phone, Mail, Award, Building, Calendar, Users } from 'lucide-react';
 import api from '../../../../services/api';
 import './AccountModal.css';
 
@@ -9,6 +10,11 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
     lastName: user?.profile?.lastName || '',
     phone: user?.profile?.phone || '',
     email: user?.email || '',
+    dateOfBirth: user?.profile?.dateOfBirth ? new Date(user.profile.dateOfBirth).toISOString().split('T')[0] : '',
+    gender: user?.profile?.gender || '',
+    specialization: user?.specialization || '',
+    hospital: user?.hospital?.name || (typeof user?.hospital === 'string' ? user.hospital : ''),
+    licenseNumber: user?.licenseNumber || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
@@ -37,14 +43,19 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
       
       setSuccess('Profile updated successfully!');
       
-      // Update local storage and parent component
-      const updatedUser = { ...user, profile: response.data.profile };
+      const updatedUser = { 
+        ...user, 
+        profile: { 
+          ...user.profile,
+          ...response.data.profile,
+          dateOfBirth: formData.dateOfBirth,
+          gender: formData.gender
+        } 
+      };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       if (onUpdate) onUpdate(updatedUser);
       
-      setTimeout(() => {
-        setSuccess('');
-      }, 3000);
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
@@ -83,15 +94,23 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
         confirmPassword: ''
       });
       
-      setTimeout(() => {
-        setSuccess('');
-      }, 3000);
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to change password');
     } finally {
       setLoading(false);
     }
   };
+
+  const calculateAge = (dob) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    const diff = Date.now() - birthDate.getTime();
+    const ageDate = new Date(diff);
+    return Math.abs(ageDate.getUTCFullYear() - 1970);
+  };
+
+  const age = calculateAge(formData.dateOfBirth);
 
   return (
     <div className="account-modal-overlay" onClick={onClose}>
@@ -117,7 +136,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
             <form onSubmit={handleUpdateProfile}>
               <div className="form-row">
                 <div className="form-group">
-                  <label>First Name</label>
+                  <label><User size={12} /> First Name</label>
                   <input
                     type="text"
                     name="firstName"
@@ -127,7 +146,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Last Name</label>
+                  <label><User size={12} /> Last Name</label>
                   <input
                     type="text"
                     name="lastName"
@@ -138,36 +157,90 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
                 </div>
               </div>
               
-              <div className="form-group">
-                <label>Phone Number</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="Enter phone number"
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label><Phone size={12} /> Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                <div className="form-group">
+                  <label><Mail size={12} /> Email</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    className="disabled-input"
+                  />
+                  <small>Email cannot be changed</small>
+                </div>
               </div>
               
-              <div className="form-group">
-                <label>Email (Cannot be changed)</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  disabled
-                  className="disabled-input"
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label><Calendar size={12} /> Date of Birth</label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label><Users size={12} /> Gender</label>
+                  <select name="gender" value={formData.gender} onChange={handleChange}>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
               
-              <div className="form-group">
-                <label>Specialization</label>
-                <input
-                  type="text"
-                  value={user?.specialization || 'Not specified'}
-                  disabled
-                  className="disabled-input"
-                />
+              {age && (
+                <div className="info-note">
+                  <Calendar size={14} />
+                  <span>Age: {age} years</span>
+                </div>
+              )}
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label><Award size={12} /> Specialization</label>
+                  <input
+                    type="text"
+                    value={formData.specialization || 'Not specified'}
+                    disabled
+                    className="disabled-input"
+                  />
+                  <small>Contact admin to change specialization</small>
+                </div>
+                <div className="form-group">
+                  <label><Building size={12} /> Hospital Affiliation</label>
+                  <input
+                    type="text"
+                    value={formData.hospital || 'Not assigned'}
+                    disabled
+                    className="disabled-input"
+                  />
+                </div>
               </div>
+              
+              {formData.licenseNumber && (
+                <div className="form-group">
+                  <label><Award size={12} /> License Number</label>
+                  <input
+                    type="text"
+                    value={formData.licenseNumber}
+                    disabled
+                    className="disabled-input"
+                  />
+                </div>
+              )}
               
               <button type="submit" className="save-btn" disabled={loading}>
                 <Save size={16} />
@@ -198,28 +271,29 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
                 />
               </div>
               
-              <div className="form-group">
-                <label>New Password</label>
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  required
-                  placeholder="Min. 6 characters"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Confirm New Password</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  placeholder="Confirm new password"
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label>New Password</label>
+                  <input
+                    type="password"
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    required
+                    placeholder="Min. 6 characters"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Confirm New Password</label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    placeholder="Confirm new password"
+                  />
+                </div>
               </div>
               
               <button type="submit" className="password-btn" disabled={loading}>

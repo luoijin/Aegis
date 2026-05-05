@@ -573,12 +573,15 @@ exports.deleteHealthLog = async (req, res) => {
 // ========== REFERRAL SYSTEM ==========
 exports.getAllDoctors = async (req, res) => {
   try {
+    console.log('Fetching all doctors except:', req.user._id);
+    
     const doctors = await User.find({ 
       role: 'doctor', 
       isActive: true,
       _id: { $ne: req.user._id }
-    }).select('email profile specialization');
+    }).select('email profile specialization licenseNumber');
     
+    console.log(`Found ${doctors.length} doctors`);
     res.json(doctors);
   } catch (error) {
     console.error('Get all doctors error:', error);
@@ -590,7 +593,10 @@ exports.createReferral = async (req, res) => {
   try {
     const { patientId, toDoctorId, reason, priority, notes } = req.body;
     
-    const patient = await Patient.findById(patientId).populate('user', 'profile email');
+    console.log('Creating referral:', { patientId, toDoctorId, reason, priority });
+    
+    // Verify patient exists and is assigned to this doctor
+    const patient = await Patient.findById(patientId);
     if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
@@ -599,6 +605,7 @@ exports.createReferral = async (req, res) => {
       return res.status(403).json({ message: 'You can only refer patients assigned to you' });
     }
     
+    // Verify target doctor exists
     const targetDoctor = await User.findById(toDoctorId);
     if (!targetDoctor || targetDoctor.role !== 'doctor') {
       return res.status(404).json({ message: 'Target doctor not found' });
@@ -615,22 +622,14 @@ exports.createReferral = async (req, res) => {
     });
     
     await referral.save();
+    
+    // Populate for response
     await referral.populate('patient', 'user');
     await referral.populate('fromDoctor', 'email profile');
     await referral.populate('toDoctor', 'email profile');
     
-    const patientName = `${patient.user?.profile?.firstName} ${patient.user?.profile?.lastName}`;
-    const fromDoctorName = `Dr. ${req.user.profile?.firstName} ${req.user.profile?.lastName}`;
-    
-    await notificationController.createNotification(
-      toDoctorId,
-      'referral_received',
-      '🩺 New Referral Received',
-      `${fromDoctorName} referred ${patientName} to you (${priority} priority)`,
-      { referralId: referral._id.toString(), patientId, priority }
-    );
-    
-    res.status(201).json({ message: 'Referral sent successfully', referral });
+    console.log('Referral created successfully:', referral._id);
+    res.status(201).json(referral);
   } catch (error) {
     console.error('Create referral error:', error);
     res.status(500).json({ message: error.message });
@@ -640,12 +639,15 @@ exports.createReferral = async (req, res) => {
 exports.getSentReferrals = async (req, res) => {
   try {
     const referrals = await Referral.find({ fromDoctor: req.user._id })
-      .populate('patient', 'user')
-      .populate('toDoctor', 'email profile')
+      .populate('patient', 'user bloodType')
+      .populate('toDoctor', 'email profile specialization')
       .sort({ createdAt: -1 });
     
+    // Populate patient user details
     for (let ref of referrals) {
-      if (ref.patient) await ref.patient.populate('user', 'email profile');
+      if (ref.patient) {
+        await ref.patient.populate('user', 'email profile');
+      }
     }
     
     res.json(referrals);
@@ -657,13 +659,16 @@ exports.getSentReferrals = async (req, res) => {
 
 exports.getReceivedReferrals = async (req, res) => {
   try {
-    const referrals = await Referral.find({ toDoctor: req.user._id })
-      .populate('patient', 'user')
-      .populate('fromDoctor', 'email profile')
+    const referrals = await Referral.find({ toDoctor: req.user._id, status: 'pending' })
+      .populate('patient', 'user bloodType')
+      .populate('fromDoctor', 'email profile specialization')
       .sort({ createdAt: -1 });
     
+    // Populate patient user details
     for (let ref of referrals) {
-      if (ref.patient) await ref.patient.populate('user', 'email profile');
+      if (ref.patient) {
+        await ref.patient.populate('user', 'email profile');
+      }
     }
     
     res.json(referrals);
@@ -672,6 +677,33 @@ exports.getReceivedReferrals = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.getReferrals = async (req, res) => {
+  try {
+    const referrals = await Referral.find({
+      $or: [
+        { fromDoctor: req.user._id },
+        { toDoctor: req.user._id }
+      ]
+    })
+      .populate('patient', 'user bloodType')
+      .populate('fromDoctor', 'email profile')
+      .populate('toDoctor', 'email profile')
+      .sort({ createdAt: -1 });
+    
+    for (let ref of referrals) {
+      if (ref.patient) {
+        await ref.patient.populate('user', 'email profile');
+      }
+    }
+    
+    res.json(referrals);
+  } catch (error) {
+    console.error('Get referrals error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 exports.respondToReferral = async (req, res) => {
   try {
@@ -683,8 +715,11 @@ exports.respondToReferral = async (req, res) => {
     }
     
     const referral = await Referral.findById(id);
-    if (!referral) return res.status(404).json({ message: 'Referral not found' });
+    if (!referral) {
+      return res.status(404).json({ message: 'Referral not found' });
+    }
     
+    // Check if this doctor is the recipient
     if (referral.toDoctor.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'This referral is not for you' });
     }
@@ -698,50 +733,17 @@ exports.respondToReferral = async (req, res) => {
     referral.respondedAt = new Date();
     await referral.save();
     
-    const patient = await Patient.findById(referral.patient).populate('user', 'profile email');
-    const fromDoctor = await User.findById(referral.fromDoctor);
-    const toDoctor = req.user;
-    
-    const patientName = `${patient.user?.profile?.firstName} ${patient.user?.profile?.lastName}`;
-    const toDoctorName = `Dr. ${toDoctor.profile?.firstName} ${toDoctor.profile?.lastName}`;
-    
+    // If accepted, reassign the patient
     if (status === 'accepted') {
-      patient.assignedDoctor = referral.toDoctor;
-      await patient.save();
-      
-      await notificationController.createNotification(
-        referral.fromDoctor,
-        'referral_accepted',
-        '✅ Referral Accepted',
-        `${toDoctorName} accepted your referral for ${patientName}`,
-        { referralId: referral._id.toString(), status: 'accepted' }
-      );
-      
-      await notificationController.createNotification(
-        patient.user._id,
-        'doctor_assigned',
-        '🩺 Your Doctor Has Been Updated',
-        `Dr. ${toDoctorName} is now your primary physician.`,
-        { newDoctorId: referral.toDoctor.toString() }
-      );
-    } else {
-      await notificationController.createNotification(
-        referral.fromDoctor,
-        'referral_denied',
-        '❌ Referral Declined',
-        `${toDoctorName} declined your referral for ${patientName}`,
-        { referralId: referral._id.toString(), status: 'denied' }
-      );
-      
-      await notificationController.createNotification(
-        patient.user._id,
-        'referral_denied',
-        '📋 Referral Update',
-        `Dr. ${toDoctorName} declined your referral. Your current doctor remains Dr. ${fromDoctor.profile?.firstName} ${fromDoctor.profile?.lastName}.`,
-        { referralId: referral._id.toString(), status: 'denied' }
-      );
+      const patient = await Patient.findById(referral.patient);
+      if (patient) {
+        patient.assignedDoctor = referral.toDoctor;
+        await patient.save();
+        console.log(`Patient ${patient._id} reassigned to doctor ${referral.toDoctor}`);
+      }
     }
     
+    // Populate for response
     await referral.populate('patient', 'user');
     await referral.populate('fromDoctor', 'email profile');
     await referral.populate('toDoctor', 'email profile');
@@ -757,18 +759,24 @@ exports.getReferralById = async (req, res) => {
   try {
     const { id } = req.params;
     const referral = await Referral.findById(id)
-      .populate('patient', 'user')
+      .populate('patient', 'user bloodType')
       .populate('fromDoctor', 'email profile')
       .populate('toDoctor', 'email profile');
     
-    if (!referral) return res.status(404).json({ message: 'Referral not found' });
+    if (!referral) {
+      return res.status(404).json({ message: 'Referral not found' });
+    }
     
-    if (referral.fromDoctor._id.toString() !== req.user._id.toString() && 
+    // Check if doctor is involved
+    if (referral.fromDoctor._id.toString() !== req.user._id.toString() &&
         referral.toDoctor._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
     
-    if (referral.patient) await referral.patient.populate('user', 'email profile');
+    if (referral.patient) {
+      await referral.patient.populate('user', 'email profile');
+    }
+    
     res.json(referral);
   } catch (error) {
     console.error('Get referral by ID error:', error);

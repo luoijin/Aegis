@@ -53,12 +53,13 @@ router.put('/appointments/:id', authorize('doctor'), doctorController.updateAppo
 router.delete('/appointments/:id', authorize('doctor'), doctorController.deleteAppointment);
 
 // ========== REFERRAL ROUTES ==========
-router.get('/referrals', authorizeDoctorOrAdmin, doctorController.getReferrals);
-router.get('/referrals/sent', authorize('doctor'), doctorController.getSentReferrals);
-router.get('/referrals/received', authorize('doctor'), doctorController.getReceivedReferrals);
-router.get('/referrals/:id', authorizeDoctorOrAdmin, doctorController.getReferralById);
-router.post('/referrals', authorize('doctor'), doctorController.createReferral);
-router.put('/referrals/:id/respond', authorize('doctor'), doctorController.respondToReferral);
+router.get('/doctors', authenticate, authorize('doctor'), doctorController.getAllDoctors);
+router.post('/referrals', authenticate, authorize('doctor'), doctorController.createReferral);
+router.get('/referrals/sent', authenticate, authorize('doctor'), doctorController.getSentReferrals);
+router.get('/referrals/received', authenticate, authorize('doctor'), doctorController.getReceivedReferrals);
+router.get('/referrals', authenticate, authorize('doctor'), doctorController.getReferrals);
+router.get('/referrals/:id', authenticate, authorize('doctor'), doctorController.getReferralById);
+router.put('/referrals/:id/respond', authenticate, authorize('doctor'), doctorController.respondToReferral);
 
 // ========== CONDITION MANAGEMENT (Doctor only) ==========
 router.get('/analytics/conditions', authorize('doctor'), doctorController.getConditionOptions);

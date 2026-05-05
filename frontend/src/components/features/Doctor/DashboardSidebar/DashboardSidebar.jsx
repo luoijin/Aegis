@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, UserPlus, Trash2 } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { AddPatientModal } from '../PatientManagement/AddPatientModal';
+import AddPatientModal from '../PatientManagement/AddPatientModal'; // ← Change this line (remove curly braces)
 import api from '../../../../services/api';
 import './DashboardSidebar.css';
 
@@ -116,4 +116,3 @@ export const DashboardSidebar = ({
     </>
   );
 };
-

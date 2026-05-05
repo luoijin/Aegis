@@ -1,79 +1,103 @@
 // frontend/src/components/features/Doctor/PatientManagement/AddPatientModal.jsx
 import React, { useState, useEffect } from 'react';
-import { X, Search, UserPlus, User } from 'lucide-react';
+import { X, Search, UserPlus, Mail, Phone, AlertCircle, Droplet } from 'lucide-react';
 import api from '../../../../services/api';
-import '../../../../styles/doctor-modal.css';
+import './AddPatientModal.css';
 
-export const AddPatientModal = ({ onClose, onSuccess }) => {
+const AddPatientModal = ({ onClose, onSuccess }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [availablePatients, setAvailablePatients] = useState([]);
-  const [filteredPatients, setFilteredPatients] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchAvailablePatients();
   }, []);
 
-  useEffect(() => {
-    const filtered = availablePatients.filter(patient =>
-      patient.user?.profile?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.user?.profile?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredPatients(filtered);
-  }, [searchTerm, availablePatients]);
-
   const fetchAvailablePatients = async () => {
-    setLoading(true);
-    setError('');
     try {
-      // ✅ Updated to use /available endpoint
-      const response = await api.get('/patients/available');
+      setLoading(true);
+      const response = await api.get('/patient/available');
       setAvailablePatients(response.data);
-      setFilteredPatients(response.data);
     } catch (error) {
       console.error('Error fetching available patients:', error);
-      setError(error.response?.data?.message || 'Failed to load patients');
+      setError('Failed to load available patients');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddPatient = async (patientId) => {
+  const handleAddPatient = async (patientId, patientName) => {
     setAdding(true);
     setError('');
+    setSuccessMessage('');
+    
     try {
       await api.post(`/patients/${patientId}/assign`);
+      setSuccessMessage(`${patientName} has been added to your list!`);
+      
+      setAvailablePatients(prev => prev.filter(p => p._id !== patientId));
+      
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      
       if (onSuccess) onSuccess();
-      onClose();
     } catch (error) {
       console.error('Error adding patient:', error);
       setError(error.response?.data?.message || 'Failed to add patient');
+      setTimeout(() => setError(''), 3000);
+    } finally {
       setAdding(false);
     }
   };
 
+  const filteredPatients = availablePatients.filter(patient => {
+    const firstName = patient.user?.profile?.firstName || '';
+    const lastName = patient.user?.profile?.lastName || '';
+    const fullName = `${firstName} ${lastName}`.toLowerCase();
+    const email = (patient.user?.email || '').toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return fullName.includes(search) || email.includes(search);
+  });
+
   return (
-    <div className="doctor-modal-overlay" onClick={onClose}>
-      <div className="doctor-modal-container doctor-modal-md" onClick={(e) => e.stopPropagation()}>
-        <div className="doctor-modal-header">
-          <h3>Add Patient to My List</h3>
-          <button className="doctor-close-btn" onClick={onClose}>
-            <X size={20} />
+    <div className="add-patient-modal-overlay" onClick={onClose}>
+      <div className="add-patient-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>
+            <UserPlus size={18} />
+            Add Patient to My List
+          </h3>
+          <button className="close-btn" onClick={onClose}>
+            <X size={18} />
           </button>
         </div>
 
-        <div className="doctor-modal-form">
-          {error && <div className="doctor-error-message">{error}</div>}
+        <div className="modal-body">
+          {error && (
+            <div className="error-message">
+              <AlertCircle size={14} />
+              <span>{error}</span>
+            </div>
+          )}
+          
+          {successMessage && (
+            <div className="success-message">
+              <UserPlus size={14} />
+              <span>{successMessage}</span>
+            </div>
+          )}
 
-          <div className="doctor-form-group">
+          {/* Search Bar */}
+          <div className="search-container">
             <div className="search-input-wrapper">
-              <Search size={16} />
+              <Search size={16} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search patients by name or email..."
+                placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -81,39 +105,62 @@ export const AddPatientModal = ({ onClose, onSuccess }) => {
             </div>
           </div>
 
-          <div className="patients-list-modal">
+          {/* Patient List */}
+          <div className="patients-list">
             {loading ? (
-              <div className="loading-state">Loading patients...</div>
+              <div className="loading-state">
+                <div className="loading-spinner"></div>
+                <p>Loading available patients...</p>
+              </div>
             ) : filteredPatients.length === 0 ? (
               <div className="empty-state">
-                <User size={48} />
+                <UserPlus size={48} strokeWidth={1.5} />
                 <p>No available patients found</p>
-                <span>All patients may already be assigned to a doctor</span>
+                {searchTerm && <span>Try a different search term</span>}
+                {!searchTerm && <span>All patients are already in your list</span>}
               </div>
             ) : (
-              filteredPatients.map(patient => {
-                const name = `${patient.user?.profile?.firstName || ''} ${patient.user?.profile?.lastName || ''}`.trim();
-                return (
-                  <div key={patient._id} className="patient-item">
-                    <div className="patient-info">
-                      <div className="patient-avatar-small">
-                        {patient.user?.profile?.firstName?.[0]}{patient.user?.profile?.lastName?.[0]}
+              <div className="patients-grid">
+                {filteredPatients.map(patient => {
+                  const firstName = patient.user?.profile?.firstName || '';
+                  const lastName = patient.user?.profile?.lastName || '';
+                  const fullName = `${firstName} ${lastName}`.trim() || 'Unknown Patient';
+                  const email = patient.user?.email || 'No email';
+                  const phone = patient.user?.profile?.phone || 'No phone';
+                  const bloodType = patient.bloodType || 'Not specified';
+                  
+                  return (
+                    <div key={patient._id} className="patient-card">
+                      <div className="patient-card-content">
+                        <div className="patient-card-header">
+                          <div className="patient-name">{fullName}</div>
+                          
+                        </div>
+                        
+                        <div className="patient-contact-info">
+                          <div className="contact-item">
+                            <Mail size={14} />
+                            <span className="contact-email">{email}</span>
+                          </div>
+                          <div className="contact-item">
+                            <Phone size={14} />
+                            <span>{phone}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="patient-details">
-                        <div className="patient-name">{name || 'Unknown Patient'}</div>
-                        <div className="patient-email">{patient.user?.email}</div>
-                      </div>
+                      
+                      <button
+                        className="add-patient-btn"
+                        onClick={() => handleAddPatient(patient._id, fullName)}
+                        disabled={adding}
+                      >
+                        <UserPlus size={14} />
+                        Add Patient
+                      </button>
                     </div>
-                    <button 
-                      className="add-patient-btn"
-                      onClick={() => handleAddPatient(patient._id)}
-                      disabled={adding}
-                    >
-                      <UserPlus size={16} /> Add
-                    </button>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
@@ -121,3 +168,5 @@ export const AddPatientModal = ({ onClose, onSuccess }) => {
     </div>
   );
 };
+
+export default AddPatientModal;
