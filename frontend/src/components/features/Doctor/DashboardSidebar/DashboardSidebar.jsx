@@ -1,8 +1,9 @@
 // frontend/src/components/features/Doctor/DashboardSidebar/DashboardSidebar.jsx
 import React, { useState } from 'react';
 import { ChevronRight, UserPlus, Trash2 } from 'lucide-react';
-import Swal from 'sweetalert2';
-import AddPatientModal from '../PatientManagement/AddPatientModal'; // ← Change this line (remove curly braces)
+import AddPatientModal from '../PatientManagement/AddPatientModal';
+import ConfirmModal from '../../../common/ConfirmModal/ConfirmModal';
+import { confirmDialog } from '../../../../utils/confirmDialog'; // ← ADD THIS IMPORT
 import api from '../../../../services/api';
 import './DashboardSidebar.css';
 
@@ -18,32 +19,41 @@ export const DashboardSidebar = ({
   const [showAddPatient, setShowAddPatient] = useState(false);
   const [removing, setRemoving] = useState(null);
 
-  const handleRemovePatient = async (patientId, patientName, e) => {
-    e.stopPropagation();
-    const result = await Swal.fire({
-      title: 'Remove Patient?',
-      text: `Are you sure you want to remove ${patientName} from your list?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#EF4444',
-      cancelButtonColor: '#64748B',
-      confirmButtonText: 'Yes, remove',
-      cancelButtonText: 'Cancel'
-    });
-    if (result.isConfirmed) {
+  // REMOVE the old showConfirm and confirmModal state - use confirmDialog instead
+  // DELETE these lines:
+  // const [confirmModal, setConfirmModal] = useState({...});
+  // const showConfirm = (patientId, patientName) => {...};
+
+  const handleRemovePatient = async (patientId, patientName) => {
+    const confirmed = await confirmDialog(
+      'Remove Patient',
+      `Are you sure you want to remove ${patientName} from your list?`,
+      'danger',
+      'Yes, Remove',
+      'Cancel'
+    );
+    
+    if (confirmed) {
       setRemoving(patientId);
       try {
         await api.delete(`/patients/${patientId}/remove`);
-        Swal.fire('Removed!', `${patientName} has been removed from your list.`, 'success');
         if (onPatientAdd) onPatientAdd();
       } catch (error) {
         console.error('Error removing patient:', error);
-        Swal.fire('Error', error.response?.data?.message || 'Failed to remove patient', 'error');
       } finally {
         setRemoving(null);
       }
     }
   };
+
+  const filteredPatients = patients.filter(patient => {
+    const firstName = patient.user?.profile?.firstName || '';
+    const lastName = patient.user?.profile?.lastName || '';
+    const fullName = `${firstName} ${lastName}`.toLowerCase();
+    const email = (patient.user?.email || '').toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return fullName.includes(search) || email.includes(search);
+  });
 
   return (
     <>
@@ -70,10 +80,10 @@ export const DashboardSidebar = ({
         <div className="sidebar-patients-list">
           {loading ? (
             <div className="loading">Loading...</div>
-          ) : patients.length === 0 ? (
+          ) : filteredPatients.length === 0 ? (
             <div className="empty">No patients found</div>
           ) : (
-            patients.map(patient => {
+            filteredPatients.map(patient => {
               const firstName = patient.user?.profile?.firstName || '';
               const lastName = patient.user?.profile?.lastName || '';
               const fullName = `${firstName} ${lastName}`.trim() || 'Unknown Patient';
@@ -89,7 +99,10 @@ export const DashboardSidebar = ({
                   <div className="patient-actions">
                     <button 
                       className="remove-patient-btn"
-                      onClick={(e) => handleRemovePatient(patient._id, fullName, e)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemovePatient(patient._id, fullName); // ← Call directly
+                      }}
                       disabled={isRemoving}
                       title="Remove from my list"
                     >
@@ -113,6 +126,7 @@ export const DashboardSidebar = ({
           }}
         />
       )}
+
     </>
   );
 };

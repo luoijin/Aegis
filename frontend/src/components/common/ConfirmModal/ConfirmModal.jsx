@@ -60,13 +60,15 @@ const ConfirmModal = ({
         </div>
         
         <div className="confirm-modal-actions">
-          <button 
-            className="confirm-btn cancel" 
-            onClick={onClose}
-            disabled={loading}
-          >
-            {cancelText}
-          </button>
+          {cancelText && (
+            <button 
+              className="confirm-btn cancel" 
+              onClick={onClose}
+              disabled={loading}
+            >
+              {cancelText}
+            </button>
+          )}
           <button 
             className={getButtonClass()} 
             onClick={onConfirm}

@@ -1,12 +1,14 @@
 // frontend/src/components/features/Doctor/VitalsModal/VitalsModal.jsx
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, CheckCircle, AlertCircle } from 'lucide-react';
 import api from '../../../../services/api';
 import '../../../../styles/doctor-modal.css';
+import './VitalsModal.css';
 
 export const VitalsModal = ({ patient, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [vitals, setVitals] = useState({
     heartRate: '',
     systolicBP: '',
@@ -20,6 +22,7 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
     
     try {
       await api.post(`/doctor/patients/${patient._id}/health-logs`, {
@@ -35,8 +38,11 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
         notes: vitals.notes
       });
       
-      onSuccess();
-      onClose();
+      setSuccess('Vitals recorded successfully!');
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to record vitals');
     } finally {
@@ -57,7 +63,19 @@ export const VitalsModal = ({ patient, onClose, onSuccess }) => {
         </div>
 
         <form className="doctor-modal-form" onSubmit={handleSubmit}>
-          {error && <div className="doctor-error-message">{error}</div>}
+          {error && (
+            <div className="vitals-error-message">
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+          
+          {success && (
+            <div className="vitals-success-message">
+              <CheckCircle size={16} />
+              <span>{success}</span>
+            </div>
+          )}
 
           <div className="doctor-form-row">
             <div className="doctor-form-group">

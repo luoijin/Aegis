@@ -1,13 +1,13 @@
 // frontend/src/components/features/Doctor/HealthHistory/HealthHistory.jsx
 import React, { useState } from 'react';
-import { History, Eye, X, Clock, Activity, Thermometer, Droplet, AlertCircle, CheckCircle, FileText, User } from 'lucide-react';
+import { History, Eye, X, Clock, Activity, Thermometer, Droplet, AlertCircle, CheckCircle, FileText, User, Stethoscope } from 'lucide-react';
 import './HealthHistory.css';
 
 export const HealthHistory = ({ healthLogs }) => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [filter, setFilter] = useState('all');
 
-  if (healthLogs.length === 0) {
+  if (!healthLogs || healthLogs.length === 0) {
     return (
       <div className="health-history-card">
         <div className="card-header">
@@ -27,9 +27,15 @@ export const HealthHistory = ({ healthLogs }) => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Get doctor name - same styling as vitals
   const getDoctorName = (recordedBy) => {
     if (!recordedBy) return 'Unknown';
-    return `Dr. ${recordedBy.profile?.firstName || ''} ${recordedBy.profile?.lastName || ''}`.trim() || 'Unknown';
+    const firstName = recordedBy.profile?.firstName || '';
+    const lastName = recordedBy.profile?.lastName || '';
+    if (firstName || lastName) {
+      return `Dr. ${firstName} ${lastName}`.trim();
+    }
+    return recordedBy.email?.split('@')[0] || 'Unknown';
   };
 
   const getStatusBadge = (status) => {
@@ -104,9 +110,7 @@ export const HealthHistory = ({ healthLogs }) => {
                   <td>{log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'}</td>
                   <td>{log.vitals?.temperature || '--'} °C</td>
                   <td>{log.vitals?.oxygenSaturation || '--'}%</td>
-                  <td className="doctor-cell">
-                    <span className="doctor-name">{getDoctorName(log.recordedBy)}</span>
-                  </td>
+                  <td className="recorded-by-cell">{getDoctorName(log.recordedBy)}</td>
                   <td>{getStatusBadge(log.status)}</td>
                   <td>
                     <button className="view-details-btn" onClick={() => setSelectedRecord(log)}>
@@ -123,9 +127,9 @@ export const HealthHistory = ({ healthLogs }) => {
       {/* Record Details Modal */}
       {selectedRecord && (
         <div className="modal-overlay" onClick={() => setSelectedRecord(null)}>
-          <div className="record-modal modal-container modal-md" onClick={(e) => e.stopPropagation()}>
+          <div className="record-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Health Record Details</h3>
+              <h3><FileText size={18} /> Health Record Details</h3>
               <button className="close-btn" onClick={() => setSelectedRecord(null)}>
                 <X size={20} />
               </button>
@@ -135,6 +139,11 @@ export const HealthHistory = ({ healthLogs }) => {
                 <Clock size={16} />
                 <strong>Date & Time:</strong>
                 <span>{formatDate(selectedRecord.createdAt)}</span>
+              </div>
+              <div className="detail-row">
+                <Stethoscope size={16} />
+                <strong>Recorded By:</strong>
+                <span>{getDoctorName(selectedRecord.recordedBy)}</span>
               </div>
               <div className="detail-row">
                 <Activity size={16} />
@@ -156,11 +165,6 @@ export const HealthHistory = ({ healthLogs }) => {
                 <strong>O₂ Saturation:</strong>
                 <span>{selectedRecord.vitals?.oxygenSaturation || '--'}%</span>
               </div>
-              <div className="detail-row">
-                <User size={16} />
-                <strong>Recorded By:</strong>
-                <span>{getDoctorName(selectedRecord.recordedBy)}</span>
-              </div>
               {selectedRecord.notes && (
                 <div className="notes-section">
                   <strong>Notes:</strong>
@@ -174,3 +178,5 @@ export const HealthHistory = ({ healthLogs }) => {
     </>
   );
 };
+
+export default HealthHistory;

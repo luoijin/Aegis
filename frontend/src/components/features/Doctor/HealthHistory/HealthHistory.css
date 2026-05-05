@@ -1,4 +1,5 @@
-/* HealthHistory.css - Doctor side, matching patient design */
+/* frontend/src/components/features/Doctor/HealthHistory/HealthHistory.css */
+
 .health-history-card {
   background: white;
   border-radius: 16px;
@@ -36,6 +37,7 @@
 .filter-buttons {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .filter-btn {
@@ -83,6 +85,7 @@
 .records-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 13px;
 }
 
 .records-table th,
@@ -97,10 +100,11 @@
   font-weight: 600;
   color: #64748B;
   background: #F8FAFC;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .records-table td {
-  font-size: 13px;
   color: #475569;
 }
 
@@ -108,10 +112,43 @@
   background: #F8FAFC;
 }
 
-/* Doctor Cell */
-.doctor-cell .doctor-name {
+/* Status Row Background */
+.records-table tr.status-row.critical {
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.records-table tr.status-row.warning {
+  background: rgba(245, 158, 11, 0.03);
+}
+
+.recorded-by-cell {
+  color: #475569; /* Same as other cells */
+}
+
+/* Vital Values */
+.vital-value {
   font-weight: 500;
-  color: #3B82F6;
+  color: #0F172A;
+}
+
+.vital-value .unit {
+  font-size: 10px;
+  font-weight: 400;
+  color: #94A3B8;
+}
+
+/* Doctor Cell */
+.doctor-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.doctor-cell svg {
+  color: #94A3B8;
+  flex-shrink: 0;
 }
 
 /* Status Badges */
@@ -123,6 +160,7 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .badge.critical {
@@ -178,13 +216,82 @@
   font-size: 12px;
 }
 
-/* Modal Styles (using existing modal.css) */
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.record-modal {
+  background: white;
+  border-radius: 20px;
+  width: 550px;
+  max-width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #E2E8F0;
+  background: white;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #F1F5F9;
+  color: #EF4444;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  background: #F8FAFC;
+}
+
 .detail-row {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid #E2E8F0;
   font-size: 14px;
   color: #475569;
 }
@@ -194,21 +301,118 @@
 }
 
 .detail-row strong {
-  min-width: 110px;
-  color: #0A0F1D;
+  min-width: 100px;
+  color: #0F172A;
 }
 
-.notes-section {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid #E2E8F0;
+.detail-row .badge {
+  margin-left: 0;
 }
 
-.notes-section p {
-  margin-top: 8px;
-  font-size: 13px;
+.doctor-name {
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.divider {
+  height: 1px;
+  background: #E2E8F0;
+  margin: 16px 0;
+}
+
+.vitals-section label,
+.symptoms-section label,
+.notes-section label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
   color: #64748B;
-  line-height: 1.5;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+}
+
+.vital-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.vital-name {
+  color: #64748B;
+}
+
+.vital-value {
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.vital-value .unit {
+  font-weight: 400;
+  color: #94A3B8;
+}
+
+.symptoms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symptom-tag {
+  background: #EFF6FF;
+  color: #3B82F6;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.notes-text {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1E293B;
+  border: 1px solid #E2E8F0;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: flex-end;
+  background: white;
+}
+
+.close-modal-btn {
+  padding: 8px 24px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-modal-btn:hover {
+  background: #2563EB;
 }
 
 /* Responsive */
@@ -221,11 +425,19 @@
   .records-table th,
   .records-table td {
     padding: 8px 12px;
+    font-size: 12px;
   }
   
-  .records-table th:nth-child(6),
-  .records-table td:nth-child(6) {
+  .doctor-cell span {
     display: none;
+  }
+  
+  .doctor-cell svg {
+    margin: 0;
+  }
+  
+  .vitals-grid {
+    grid-template-columns: 1fr;
   }
   
   .detail-row {

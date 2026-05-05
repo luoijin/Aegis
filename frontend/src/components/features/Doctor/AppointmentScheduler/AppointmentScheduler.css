@@ -446,7 +446,7 @@
   color: #DC2626;
 }
 
-/* No Show - Red (same as cancelled) - FIXED: icon now red too */
+/* No Show - Red (same as cancelled) */
 .status-badge.no-show,
 .status-no-show {
   background: #FEE2E2;
@@ -455,7 +455,7 @@
 
 .status-badge.no-show svg,
 .status-no-show svg {
-  color: #DC2626;  /* ← This was missing, now icon will be red */
+  color: #DC2626;
 }
 
 /* Status Dot (for consistency with other tabs) */
@@ -698,5 +698,52 @@
   
   .info-row {
     gap: 8px;
+  }
+}
+
+/* Add to AppointmentScheduler.css */
+
+.success-message {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  color: #166534;
+  font-size: 13px;
+  z-index: 1000;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.error-message {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #dc2626;
+  font-size: 13px;
+  z-index: 1000;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }

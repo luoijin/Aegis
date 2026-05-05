@@ -1,6 +1,7 @@
 // frontend/src/components/features/Doctor/ConditionManager/ConditionManager.jsx
 import React, { useState, useEffect } from 'react';
 import { Plus, Activity, CheckCircle, History, Eye, X } from 'lucide-react';
+import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
 import '../../../../styles/doctor-modal.css';
 import './ConditionManager.css';
@@ -19,6 +20,7 @@ export const ConditionManager = ({ patient, onUpdate }) => {
   const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const refreshPatientData = async () => {
     if (!patient?._id) return;
@@ -57,6 +59,11 @@ export const ConditionManager = ({ patient, onUpdate }) => {
     }
   };
 
+  const showSuccess = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
   const handleAddCondition = async () => {
     if (!formName) {
       setError('Please select a condition');
@@ -77,6 +84,7 @@ export const ConditionManager = ({ patient, onUpdate }) => {
       setFormSeverity('moderate');
       setFormDate(new Date().toISOString().split('T')[0]);
       setShowForm(false);
+      showSuccess('Condition added successfully!');
       await refreshPatientData();
     } catch (error) {
       console.error('Error adding condition:', error);
@@ -86,40 +94,62 @@ export const ConditionManager = ({ patient, onUpdate }) => {
     }
   };
 
-  const handleUpdateSeverity = async (conditionId, newSeverity) => {
+  const handleUpdateSeverity = async (conditionId, newSeverity, conditionName) => {
     setUpdating(conditionId);
     try {
       await api.put(`/doctor/patients/${patient._id}/conditions/${conditionId}`, { severity: newSeverity });
       setActiveConditions(prev => prev.map(c => c._id === conditionId ? { ...c, severity: newSeverity } : c));
       setResolvedConditions(prev => prev.map(c => c._id === conditionId ? { ...c, severity: newSeverity } : c));
+      showSuccess(`Severity updated to ${newSeverity} for ${conditionName}`);
     } catch (error) {
       console.error('Error updating condition:', error);
-      alert(error.response?.data?.message || 'Failed to update condition');
+      setError(error.response?.data?.message || 'Failed to update condition');
+      setTimeout(() => setError(null), 3000);
     } finally {
       setUpdating(null);
     }
   };
 
-  const handleResolveCondition = async (conditionId) => {
-    if (window.confirm('Mark this condition as resolved?')) {
+  const handleResolveCondition = async (conditionId, conditionName) => {
+    const confirmed = await confirmDialog(
+      'Mark as Resolved',
+      `Are you sure you want to mark "${conditionName}" as resolved? This will move it to history.`,
+      'warning',
+      'Yes, Resolve',
+      'Cancel'
+    );
+    
+    if (confirmed) {
       try {
         await api.put(`/doctor/patients/${patient._id}/conditions/${conditionId}`, { isActive: false });
+        showSuccess(`"${conditionName}" has been marked as resolved.`);
         await refreshPatientData();
       } catch (error) {
         console.error('Error resolving condition:', error);
-        alert(error.response?.data?.message || 'Failed to resolve condition');
+        setError(error.response?.data?.message || 'Failed to resolve condition');
+        setTimeout(() => setError(null), 3000);
       }
     }
   };
 
-  const handleReactivateCondition = async (conditionId) => {
-    if (window.confirm('Reactivate this condition?')) {
+  const handleReactivateCondition = async (conditionId, conditionName) => {
+    const confirmed = await confirmDialog(
+      'Reactivate Condition',
+      `Are you sure you want to reactivate "${conditionName}"? It will be moved back to active conditions.`,
+      'warning',
+      'Yes, Reactivate',
+      'Cancel'
+    );
+    
+    if (confirmed) {
       try {
         await api.put(`/doctor/patients/${patient._id}/conditions/${conditionId}`, { isActive: true });
+        showSuccess(`"${conditionName}" has been reactivated.`);
         await refreshPatientData();
       } catch (error) {
         console.error('Error reactivating condition:', error);
-        alert(error.response?.data?.message || 'Failed to reactivate condition');
+        setError(error.response?.data?.message || 'Failed to reactivate condition');
+        setTimeout(() => setError(null), 3000);
       }
     }
   };
@@ -146,6 +176,9 @@ export const ConditionManager = ({ patient, onUpdate }) => {
           <Plus size={18} />
         </button>
       </div>
+
+      {successMessage && <div className="success-message">{successMessage}</div>}
+      {error && <div className="error-message">{error}</div>}
 
       <div className="conditions-container">
         {/* Active Conditions */}
@@ -181,14 +214,18 @@ export const ConditionManager = ({ patient, onUpdate }) => {
                       <select
                         className="severity-select"
                         value={condition.severity}
-                        onChange={(e) => handleUpdateSeverity(condition._id, e.target.value)}
+                        onChange={(e) => handleUpdateSeverity(condition._id, e.target.value, condition.name)}
                         disabled={isUpdating}
                       >
                         <option value="mild">Mild</option>
                         <option value="moderate">Moderate</option>
                         <option value="severe">Severe</option>
                       </select>
-                      <button className="resolve-btn" onClick={() => handleResolveCondition(condition._id)}>
+                      <button 
+                        className="resolve-btn" 
+                        onClick={() => handleResolveCondition(condition._id, condition.name)}
+                        title="Mark as resolved"
+                      >
                         <CheckCircle size={16} />
                       </button>
                     </div>
@@ -223,7 +260,11 @@ export const ConditionManager = ({ patient, onUpdate }) => {
                         </div>
                       </div>
                       <div className="condition-actions">
-                        <button className="reactivate-btn" onClick={() => handleReactivateCondition(condition._id)}>
+                        <button 
+                          className="reactivate-btn" 
+                          onClick={() => handleReactivateCondition(condition._id, condition.name)}
+                          title="Reactivate condition"
+                        >
                           <Eye size={16} />
                         </button>
                       </div>
@@ -236,7 +277,7 @@ export const ConditionManager = ({ patient, onUpdate }) => {
         )}
       </div>
 
-      {/* Add Condition Modal - Using doctor-modal CSS */}
+      {/* Add Condition Modal */}
       {showForm && (
         <div className="doctor-modal-overlay" onClick={() => setShowForm(false)}>
           <div className="doctor-modal-container doctor-modal-md" onClick={(e) => e.stopPropagation()}>

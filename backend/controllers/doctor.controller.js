@@ -435,21 +435,11 @@ exports.getHealthLogs = async (req, res) => {
       return res.status(404).json({ message: 'Patient not found' });
     }
     
-    // ✅ Allow admin to view any patient's health logs
-    if (req.user.role === 'admin') {
-      let query = { patient: patientId };
-      if (startDate && endDate) {
-        query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    // Check if doctor has access
+    if (req.user.role !== 'admin') {
+      if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Access denied' });
       }
-      const healthLogs = await HealthLog.find(query)
-        .sort({ createdAt: -1 })
-        .limit(parseInt(limit));
-      return res.json(healthLogs);
-    }
-    
-    // For doctors, check access
-    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Access denied' });
     }
     
     let query = { patient: patientId };
@@ -458,6 +448,7 @@ exports.getHealthLogs = async (req, res) => {
     }
     
     const healthLogs = await HealthLog.find(query)
+      .populate('recordedBy', 'email profile') // ← IMPORTANT: Populate recordedBy
       .sort({ createdAt: -1 })
       .limit(parseInt(limit));
     

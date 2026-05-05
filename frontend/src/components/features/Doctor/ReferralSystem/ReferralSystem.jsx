@@ -1,6 +1,7 @@
 // frontend/src/components/features/Doctor/ReferralSystem/ReferralSystem.jsx
 import React, { useState, useEffect } from 'react';
 import { Send, Share2, Users, AlertCircle, CheckCircle, XCircle, Clock, User, Stethoscope, Mail } from 'lucide-react';
+import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
 import './ReferralSystem.css';
 
@@ -121,18 +122,30 @@ const ReferralSystem = ({ doctorId, patients }) => {
     }
   };
 
-  const handleRespond = async (referralId, status, responseNotes = '') => {
-    setResponding(referralId);
-    try {
-      await api.put(`/doctor/referrals/${referralId}/respond`, { status, responseNotes });
-      await fetchReferrals();
-      await fetchAvailableDoctors();
-    } catch (error) {
-      console.error('Error responding to referral:', error);
-      setError(error.response?.data?.message || 'Failed to respond to referral');
-      setTimeout(() => setError(''), 3000);
-    } finally {
-      setResponding(null);
+  const handleRespond = async (referralId, status, actionName, responseNotes = '') => {
+    const confirmed = await confirmDialog(
+      `${actionName} Referral`,
+      `Are you sure you want to ${actionName.toLowerCase()} this referral?`,
+      status === 'denied' ? 'danger' : 'warning',
+      `Yes, ${actionName}`,
+      'Cancel'
+    );
+    
+    if (confirmed) {
+      setResponding(referralId);
+      try {
+        await api.put(`/doctor/referrals/${referralId}/respond`, { status, responseNotes });
+        setSuccess(`Referral ${actionName.toLowerCase()} successfully!`);
+        setTimeout(() => setSuccess(''), 3000);
+        await fetchReferrals();
+        await fetchAvailableDoctors();
+      } catch (error) {
+        console.error('Error responding to referral:', error);
+        setError(error.response?.data?.message || 'Failed to respond to referral');
+        setTimeout(() => setError(''), 3000);
+      } finally {
+        setResponding(null);
+      }
     }
   };
 
@@ -175,6 +188,13 @@ const ReferralSystem = ({ doctorId, patients }) => {
         </div>
       )}
 
+      {success && (
+        <div className="success-message global">
+          <CheckCircle size={16} />
+          <span>{success}</span>
+        </div>
+      )}
+
       <div className="referral-grid">
         {/* Send Referral Form */}
         <div className="referral-card send-card">
@@ -184,13 +204,6 @@ const ReferralSystem = ({ doctorId, patients }) => {
           </div>
           
           <form onSubmit={handleSubmit} className="referral-form">
-            {success && (
-              <div className="success-message">
-                <CheckCircle size={14} />
-                <span>{success}</span>
-              </div>
-            )}
-            
             <div className="form-group">
               <label><Users size={14} /> Select Patient</label>
               <select
@@ -327,7 +340,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
                   <div className="referral-actions">
                     <button 
                       className="accept-btn" 
-                      onClick={() => handleRespond(ref._id, 'accepted')}
+                      onClick={() => handleRespond(ref._id, 'accepted', 'Accept')}
                       disabled={responding === ref._id}
                     >
                       <CheckCircle size={14} />
@@ -335,7 +348,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
                     </button>
                     <button 
                       className="deny-btn" 
-                      onClick={() => handleRespond(ref._id, 'denied')}
+                      onClick={() => handleRespond(ref._id, 'denied', 'Deny')}
                       disabled={responding === ref._id}
                     >
                       <XCircle size={14} />

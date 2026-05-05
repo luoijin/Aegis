@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ConfirmProvider } from './components/common/ConfirmModal/ConfirmProvider';
 import Landing from './components/features/Landing/Landing';
 import DoctorDashboard from './components/features/Doctor/DoctorDashboard/DoctorDashboard';
 import PatientDashboard from './components/features/Patient/PatientDashboard/PatientDashboard';
@@ -33,36 +34,38 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route 
-          path="/doctor/dashboard" 
-          element={
-            <PrivateRoute allowedRole="doctor">
-              <DoctorDashboard />
-            </PrivateRoute>
-          } 
-        />
-        <Route 
-          path="/patient/dashboard" 
-          element={
-            <PrivateRoute allowedRole="patient">
-              <PatientDashboard />
-            </PrivateRoute>
-          } 
-        />
-        <Route 
-          path="/admin/dashboard" 
-          element={
-            <PrivateRoute allowedRole="admin">
-              <AdminDashboard />
-            </PrivateRoute>
-          } 
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+    <ConfirmProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route 
+            path="/doctor/dashboard" 
+            element={
+              <PrivateRoute allowedRole="doctor">
+                <DoctorDashboard />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/patient/dashboard" 
+            element={
+              <PrivateRoute allowedRole="patient">
+                <PatientDashboard />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <PrivateRoute allowedRole="admin">
+                <AdminDashboard />
+              </PrivateRoute>
+            } 
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ConfirmProvider>
   );
 }
 

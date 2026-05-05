@@ -300,115 +300,131 @@ const PatientChartModal = ({ patient, onClose }) => {
           </section>
 
           {/* Section 4: Vitals History */}
-          <section className="chart-section">
-            <h4><Activity size={18} /> Vitals History</h4>
-            {chartData.length > 0 ? (
-              <>
-                <div className="vitals-chart-container">
-                  <div className="chart-header">
-                    <Heart size={14} />
-                    <span>Heart Rate Trend (Last 30 days)</span>
-                  </div>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <AreaChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} />
-                      <YAxis stroke="#94a3b8" fontSize={11} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                      <Area type="monotone" dataKey="heartRate" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} name="Heart Rate (bpm)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+<section className="chart-section">
+  <h4><Activity size={18} /> Vitals History & Trend</h4>
+  {chartData.length > 0 ? (
+    <>
+      <div className="vitals-chart-container">
+        <div className="chart-header">
+          <Heart size={14} />
+          <span>Heart Rate Trend (Last 30 days)</span>
+        </div>
+        <ResponsiveContainer width="100%" height={250}>
+          <AreaChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} />
+            <YAxis stroke="#94a3b8" fontSize={11} />
+            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+            <Area type="monotone" dataKey="heartRate" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} name="Heart Rate (bpm)" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      
+      <div className="latest-vitals-card">
+        <div className="latest-vitals-header">
+          <Activity size={14} />
+          <span>Latest Vitals</span>
+        </div>
+        <div className="latest-vitals-grid">
+          {healthLogs[0] ? (
+            <>
+              <div className="vital-item">
+                <Droplets size={16} />
+                <div>
+                  <span className="vital-label">Blood Pressure</span>
+                  <span className="vital-value">{healthLogs[0].vitals?.bloodPressure?.systolic || '--'}/{healthLogs[0].vitals?.bloodPressure?.diastolic || '--'}</span>
                 </div>
-                
-                <div className="latest-vitals-card">
-                  <div className="latest-vitals-header">
-                    <Activity size={14} />
-                    <span>Latest Vitals</span>
-                  </div>
-                  <div className="latest-vitals-grid">
-                    {healthLogs[0] ? (
-                      <>
-                        <div className="vital-item">
-                          <Droplets size={16} />
-                          <div>
-                            <span className="vital-label">Blood Pressure</span>
-                            <span className="vital-value">{healthLogs[0].vitals?.bloodPressure?.systolic || '--'}/{healthLogs[0].vitals?.bloodPressure?.diastolic || '--'}</span>
-                          </div>
-                        </div>
-                        <div className="vital-item">
-                          <Heart size={16} />
-                          <div>
-                            <span className="vital-label">Heart Rate</span>
-                            <span className="vital-value">{healthLogs[0].vitals?.heartRate || '--'} bpm</span>
-                          </div>
-                        </div>
-                        <div className="vital-item">
-                          <Thermometer size={16} />
-                          <div>
-                            <span className="vital-label">Temperature</span>
-                            <span className="vital-value">{healthLogs[0].vitals?.temperature || '--'} °C</span>
-                          </div>
-                        </div>
-                        <div className="vital-item">
-                          <Droplets size={16} />
-                          <div>
-                            <span className="vital-label">O₂ Saturation</span>
-                            <span className="vital-value">{healthLogs[0].vitals?.oxygenSaturation || '--'}%</span>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="empty-message">No vitals recorded</div>
-                    )}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="empty-state">
-                <Activity size={32} strokeWidth={1.5} />
-                <p>No vitals recorded yet</p>
               </div>
-            )}
+              <div className="vital-item">
+                <Heart size={16} />
+                <div>
+                  <span className="vital-label">Heart Rate</span>
+                  <span className="vital-value">{healthLogs[0].vitals?.heartRate || '--'} bpm</span>
+                </div>
+              </div>
+              <div className="vital-item">
+                <Thermometer size={16} />
+                <div>
+                  <span className="vital-label">Temperature</span>
+                  <span className="vital-value">{healthLogs[0].vitals?.temperature || '--'} °C</span>
+                </div>
+              </div>
+              <div className="vital-item">
+                <Droplets size={16} />
+                <div>
+                  <span className="vital-label">O₂ Saturation</span>
+                  <span className="vital-value">{healthLogs[0].vitals?.oxygenSaturation || '--'}%</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="empty-message">No vitals recorded</div>
+          )}
+        </div>
+      </div>
+    </>
+  ) : (
+    <div className="empty-state">
+      <Activity size={32} strokeWidth={1.5} />
+      <p>No vitals recorded yet</p>
+    </div>
+  )}
 
-            <div className="health-logs-section">
-              <div className="section-subheader">
-                <Clock size={14} />
-                <span>Recent Health Logs</span>
-              </div>
-              <div className="health-logs-table">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Heart Rate</th>
-                      <th>Blood Pressure</th>
-                      <th>Temperature</th>
-                      <th>O₂ Sat</th>
-                      <th>Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {healthLogs.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" className="empty-table-message">No health records available</td>
-                      </tr>
-                    ) : (
-                      healthLogs.slice(0, 10).map(log => (
-                        <tr key={log._id}>
-                          <td className="log-date">{formatDate(log.createdAt)}</td>
-                          <td>{log.vitals?.heartRate || '--'} <span className="unit">bpm</span></td>
-                          <td>{log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'}</td>
-                          <td>{log.vitals?.temperature || '--'} <span className="unit">°C</span></td>
-                          <td>{log.vitals?.oxygenSaturation || '--'} <span className="unit">%</span></td>
-                          <td className="log-notes">{log.notes || '-'}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
+  {/* Recent Health Logs Table - WITH RECORDED BY COLUMN */}
+  <div className="health-logs-section">
+    <div className="section-subheader">
+      <Clock size={14} />
+      <span>Recent Health Logs</span>
+    </div>
+    <div className="health-logs-table">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Heart Rate</th>
+            <th>Blood Pressure</th>
+            <th>Temperature</th>
+            <th>O₂ Sat</th>
+            <th>Recorded By</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {healthLogs.length === 0 ? (
+            <tr>
+              <td colSpan="7" className="empty-table-message">No health records available</td>
+            </tr>
+          ) : (
+            healthLogs.slice(0, 10).map(log => {
+              // Get recorded by doctor name
+              const recordedBy = log.recordedBy;
+              let doctorName = 'Unknown';
+              if (recordedBy) {
+                if (recordedBy.profile?.firstName && recordedBy.profile?.lastName) {
+                  doctorName = `Dr. ${recordedBy.profile.firstName} ${recordedBy.profile.lastName}`;
+                } else if (recordedBy.email) {
+                  doctorName = recordedBy.email.split('@')[0];
+                }
+              }
+              
+              return (
+                <tr key={log._id}>
+                  <td className="log-date">{formatDate(log.createdAt)}</td>
+                  <td>{log.vitals?.heartRate || '--'} <span className="unit">bpm</span></td>
+                  <td>{log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'}</td>
+                  <td>{log.vitals?.temperature || '--'} <span className="unit">°C</span></td>
+                  <td>{log.vitals?.oxygenSaturation || '--'} <span className="unit">%</span></td>
+                  <td className="recorded-by-cell">{doctorName}</td>
+                  <td className="log-notes">{log.notes || '-'}</td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
           {/* Section 5: Appointments */}
           <section className="chart-section">
