@@ -1,16 +1,16 @@
 // frontend/src/components/features/Patient/PatientInfoCard/PatientInfoCard.jsx
 import React, { useState, useEffect } from 'react';
-import { User, Stethoscope, Droplet, Phone, Mail, Building, BriefcaseMedical, Calendar, Heart, AlertCircle, Edit2, Save, X, UserCircle } from 'lucide-react';
+import { User, Stethoscope, Droplet, Phone, Mail, Building, BriefcaseMedical, Calendar, Heart, AlertCircle, Edit2, Save, X, UserCircle, CheckCircle } from 'lucide-react';
+import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
 import './PatientInfoCard.css';
 
-export const PatientInfoCard = ({ onRefresh }) => {
-  const [patientData, setPatientData] = useState(null);
-  const [doctor, setDoctor] = useState(null);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+export const PatientInfoCard = ({ patient, doctor, user, onRefresh }) => {
+  const [patientData, setPatientData] = useState(patient);
+  const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -24,42 +24,28 @@ export const PatientInfoCard = ({ onRefresh }) => {
     }
   });
 
-  // Fetch patient data from API
-  const fetchPatientData = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/patient/profile');
-      const data = response.data;
-      
-      setPatientData(data);
-      setDoctor(data.assignedDoctor);
-      setUser(data.user);
-      
-      // Initialize form data
-      setFormData({
-        firstName: data.user?.profile?.firstName || '',
-        lastName: data.user?.profile?.lastName || '',
-        phone: data.user?.profile?.phone || '',
-        dateOfBirth: data.user?.profile?.dateOfBirth ? new Date(data.user.profile.dateOfBirth).toISOString().split('T')[0] : '',
-        gender: data.user?.profile?.gender || '',
-        emergencyContact: {
-          name: data.emergencyContact?.name || '',
-          relationship: data.emergencyContact?.relationship || '',
-          phone: data.emergencyContact?.phone || ''
-        }
-      });
-      
-      if (onRefresh) onRefresh(data);
-    } catch (error) {
-      console.error('Error fetching patient data:', error);
-    } finally {
-      setLoading(false);
-    }
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: '' }), 3000);
   };
 
   useEffect(() => {
-    fetchPatientData();
-  }, []);
+    if (patient) {
+      setPatientData(patient);
+      setFormData({
+        firstName: patient?.user?.profile?.firstName || user?.profile?.firstName || '',
+        lastName: patient?.user?.profile?.lastName || user?.profile?.lastName || '',
+        phone: patient?.user?.profile?.phone || user?.profile?.phone || '',
+        dateOfBirth: patient?.user?.profile?.dateOfBirth ? new Date(patient.user.profile.dateOfBirth).toISOString().split('T')[0] : '',
+        gender: patient?.user?.profile?.gender || user?.profile?.gender || '',
+        emergencyContact: {
+          name: patient?.emergencyContact?.name || '',
+          relationship: patient?.emergencyContact?.relationship || '',
+          phone: patient?.emergencyContact?.phone || ''
+        }
+      });
+    }
+  }, [patient, user]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -79,6 +65,17 @@ export const PatientInfoCard = ({ onRefresh }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const confirmed = await confirmDialog(
+      'Save Changes',
+      'Are you sure you want to update your profile information?',
+      'info',
+      'Yes, Save',
+      'Cancel'
+    );
+    
+    if (!confirmed) return;
+    
     setIsSaving(true);
     try {
       await api.put('/patient/profile', {
@@ -90,12 +87,12 @@ export const PatientInfoCard = ({ onRefresh }) => {
         emergencyContact: formData.emergencyContact
       });
       
-      await fetchPatientData(); // Refresh data
       setIsEditing(false);
-      alert('Profile updated successfully!');
+      showNotification('Profile updated successfully!', 'success');
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert(error.response?.data?.message || 'Failed to update profile');
+      showNotification(error.response?.data?.message || 'Failed to update profile', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -114,7 +111,10 @@ export const PatientInfoCard = ({ onRefresh }) => {
     return new Date(date).toLocaleDateString();
   };
 
-  const age = calculateAge(user?.profile?.dateOfBirth);
+  const age = calculateAge(patientData?.user?.profile?.dateOfBirth || user?.profile?.dateOfBirth);
+  const currentUser = patientData?.user || user;
+  const currentDoctor = patientData?.assignedDoctor || doctor;
+  const currentPatient = patientData || patient;
 
   if (loading) {
     return (
@@ -122,17 +122,23 @@ export const PatientInfoCard = ({ onRefresh }) => {
         <div className="card-header">
           <h3>Your Information</h3>
         </div>
-        <div className="info-grid" style={{ padding: '40px', textAlign: 'center' }}>
-          Loading your information...
-        </div>
+        <div className="loading-state">Loading your information...</div>
       </div>
     );
   }
 
   return (
     <div className="patient-info-card">
+      {/* Notification Toast */}
+      {notification.show && (
+        <div className={`patient-toast ${notification.type}`}>
+          {notification.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       <div className="card-header">
-        <h3>Your Information</h3>
+        <h3><UserCircle size={16} /> Your Information</h3>
         {!isEditing && (
           <button className="edit-btn" onClick={() => setIsEditing(true)}>
             <Edit2 size={14} /> Edit Profile
@@ -255,150 +261,105 @@ export const PatientInfoCard = ({ onRefresh }) => {
           </div>
         </form>
       ) : (
-        <div className="info-grid">
-          <div className="info-column">
-            <div className="info-section-title">
-              <span>Personal Details</span>
-            </div>
+        <div className="info-grid-container">
+          {/* Demographics Section - EHR Style */}
+          <div className="demographics-section">
+            <div className="demographics-wrapper">
+              {/* Personal Information Column */}
+              <div className="demographics-column">
+                <div className="demographics-subheader">
+                  <User size={14} />
+                  <span>Personal Information</span>
+                </div>
+                <div className="demographic-item">
+                  <span className="demographic-label">Full Name</span>
+                  <span className="demographic-value">{currentUser?.profile?.firstName} {currentUser?.profile?.lastName}</span>
+                </div>
+                <div className="demographic-item">
+                  <span className="demographic-label">Date of Birth</span>
+                  <span className="demographic-value">{formatDate(currentUser?.profile?.dateOfBirth)}</span>
+                </div>
+                <div className="demographic-item">
+                  <span className="demographic-label">Age</span>
+                  <span className="demographic-value">{age ? `${age} years` : 'Not set'}</span>
+                </div>
+                <div className="demographic-item">
+                  <span className="demographic-label">Gender</span>
+                  <span className="demographic-value">{currentUser?.profile?.gender || 'Not specified'}</span>
+                </div>
+              </div>
 
-            <div className="info-item">
-              <div className="info-icon">
-                <User size={16} />
-              </div>
-              <div className="info-content">
-                <span className="info-label">Full Name</span>
-                <span className="info-value">{user?.profile?.firstName} {user?.profile?.lastName}</span>
-              </div>
-            </div>
-
-            <div className="info-item">
-              <div className="info-icon">
-                <Mail size={16} />
-              </div>
-              <div className="info-content">
-                <span className="info-label">Email Address</span>
-                <span className="info-value">{user?.email}</span>
-              </div>
-            </div>
-
-            <div className="info-item">
-              <div className="info-icon">
-                <Phone size={16} />
-              </div>
-              <div className="info-content">
-                <span className="info-label">Phone Number</span>
-                <span className="info-value">{user?.profile?.phone || 'Not provided'}</span>
-              </div>
-            </div>
-
-            <div className="info-item">
-              <div className="info-icon">
-                <Calendar size={16} />
-              </div>
-              <div className="info-content">
-                <span className="info-label">Date of Birth</span>
-                <span className="info-value">{formatDate(user?.profile?.dateOfBirth)}</span>
-              </div>
-            </div>
-
-            <div className="info-item">
-              <div className="info-icon">
-                <Heart size={16} />
-              </div>
-              <div className="info-content">
-                <span className="info-label">Age / Gender</span>
-                <span className="info-value">
-                  {age ? `${age} years old` : 'Age not set'} • {user?.profile?.gender || 'Not specified'}
-                </span>
+              {/* Medical Information Column */}
+              <div className="demographics-column">
+                <div className="demographics-subheader">
+                  <Heart size={14} />
+                  <span>Medical Information</span>
+                </div>
+                <div className="demographic-item">
+                  <span className="demographic-label">Blood Type</span>
+                  <span className="demographic-value">{currentPatient?.bloodType && currentPatient.bloodType !== '' ? currentPatient.bloodType : 'Not specified'}</span>
+                </div>
+                <div className="demographic-item">
+                  <span className="demographic-label">Phone Number</span>
+                  <span className="demographic-value">{currentUser?.profile?.phone || 'Not provided'}</span>
+                </div>
+                <div className="demographic-item">
+                  <span className="demographic-label">Email Address</span>
+                  <span className="demographic-value">{currentUser?.email}</span>
+                </div>
               </div>
             </div>
 
-            <div className="info-item">
-              <div className="info-icon">
-                <Droplet size={16} />
+            {/* Emergency Contact Section */}
+            <div className="emergency-contact-section">
+              <div className="emergency-header">
+                <AlertCircle size={14} />
+                <span>Emergency Contact</span>
               </div>
-              <div className="info-content">
-                <span className="info-label">Blood Type</span>
-                <span className="info-value">{patientData?.bloodType && patientData.bloodType !== '' ? patientData.bloodType : 'Not specified'}</span>
+              <div className="emergency-grid">
+                <div className="emergency-item">
+                  <span className="emergency-label">Name</span>
+                  <span className="emergency-value">{currentPatient?.emergencyContact?.name || 'Not provided'}</span>
+                </div>
+                <div className="emergency-item">
+                  <span className="emergency-label">Relationship</span>
+                  <span className="emergency-value">{currentPatient?.emergencyContact?.relationship || 'Not specified'}</span>
+                </div>
+                <div className="emergency-item">
+                  <span className="emergency-label">Phone Number</span>
+                  <span className="emergency-value">{currentPatient?.emergencyContact?.phone || 'Not provided'}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="info-column">
-            <div className="info-section-title">
+          {/* Primary Care Physician Section */}
+          <div className="doctor-section">
+            <div className="doctor-info-header">
+              <Stethoscope size={16} />
               <span>Primary Care Physician</span>
             </div>
-
-            {doctor ? (
-              <>
-                <div className="info-item">
-                  <div className="info-icon">
-                    <Stethoscope size={16} />
-                  </div>
-                  <div className="info-content">
-                    <span className="info-label">Doctor Name</span>
-                    <span className="info-value">Dr. {doctor?.profile?.firstName} {doctor?.profile?.lastName}</span>
-                  </div>
+            {currentDoctor ? (
+              <div className="doctor-info-grid">
+                <div className="doctor-info-item">
+                  <span className="doctor-info-label">Name</span>
+                  <span className="doctor-info-value">Dr. {currentDoctor?.profile?.firstName} {currentDoctor?.profile?.lastName}</span>
                 </div>
-
-                <div className="info-item">
-                  <div className="info-icon">
-                    <BriefcaseMedical size={16} />
-                  </div>
-                  <div className="info-content">
-                    <span className="info-label">Specialization</span>
-                    <span className="info-value">{doctor?.specialization || 'General Medicine'}</span>
-                  </div>
+                <div className="doctor-info-item">
+                  <span className="doctor-info-label">Specialization</span>
+                  <span className="doctor-info-value">{currentDoctor?.specialization || 'General Medicine'}</span>
                 </div>
-
-                <div className="info-item">
-                  <div className="info-icon">
-                    <Mail size={16} />
-                  </div>
-                  <div className="info-content">
-                    <span className="info-label">Email</span>
-                    <span className="info-value">{doctor?.email}</span>
-                  </div>
+                <div className="doctor-info-item">
+                  <span className="doctor-info-label">Email</span>
+                  <span className="doctor-info-value"><Mail size={12} /> {currentDoctor?.email}</span>
                 </div>
-
-                {/* Emergency Contact Section in View Mode */}
-                <div className="info-section-title" style={{ marginTop: 20 }}>
-                  <span>Emergency Contact</span>
-                </div>
-
-                <div className="info-item">
-                  <div className="info-icon">
-                    <AlertCircle size={16} />
+                {currentDoctor?.hospital && (
+                  <div className="doctor-info-item">
+                    <span className="doctor-info-label">Hospital</span>
+                    <span className="doctor-info-value"><Building size={12} /> {currentDoctor.hospital.name}</span>
                   </div>
-                  <div className="info-content">
-                    <span className="info-label">Contact Name</span>
-                    <span className="info-value">{patientData?.emergencyContact?.name || 'Not provided'}</span>
-                  </div>
-                </div>
-
-                {patientData?.emergencyContact?.name && (
-                  <>
-                    <div className="info-item">
-                      <div className="info-icon">
-                        <User size={16} />
-                      </div>
-                      <div className="info-content">
-                        <span className="info-label">Relationship</span>
-                        <span className="info-value">{patientData?.emergencyContact?.relationship || 'Not specified'}</span>
-                      </div>
-                    </div>
-                    <div className="info-item">
-                      <div className="info-icon">
-                        <Phone size={16} />
-                      </div>
-                      <div className="info-content">
-                        <span className="info-label">Emergency Phone</span>
-                        <span className="info-value">{patientData?.emergencyContact?.phone || 'Not provided'}</span>
-                      </div>
-                    </div>
-                  </>
                 )}
-              </>
+              </div>
             ) : (
               <div className="no-doctor">
                 <Stethoscope size={32} />

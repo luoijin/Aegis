@@ -1,16 +1,23 @@
-/* PatientConditions.css */
+/* frontend/src/components/features/Patient/PatientConditions/PatientConditions.css */
+
 .patient-conditions-card {
   background: white;
   border-radius: 16px;
   border: 1px solid #E2E8F0;
   overflow: hidden;
-  margin-bottom: 24px;
 }
 
 .card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 16px 20px;
   background: #F8FAFC;
   border-bottom: 1px solid #E2E8F0;
+}
+
+.card-header svg {
+  color: #3B82F6;
 }
 
 .card-header h3 {
@@ -18,77 +25,199 @@
   font-weight: 600;
   color: #64748B;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-.card-header h3 svg {
-  color: #3B82F6;
+.condition-count {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 500;
+  color: #059669;
+  background: #D1FAE5;
+  padding: 2px 8px;
+  border-radius: 20px;
 }
 
+/* Conditions List */
 .conditions-list {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 8px 0;
 }
 
 .condition-item {
+  padding: 14px 20px;
+  border-bottom: 1px;
+}
+
+.condition-item:last-child {
+  border-bottom: none;
+}
+
+.condition-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
-  background: #F8FAFC;
-  border-radius: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .condition-name {
   font-weight: 600;
-  font-size: 14px;
-  color: #0A0F1D;
+  font-size: 15px;
+  color: #0F172A;
 }
 
-.condition-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.severity-badge {
+.condition-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
 }
 
-.diagnosed-date {
+.condition-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 0;
+}
+
+.detail-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #64748B;
+  min-width: 70px;
+}
+
+.detail-value {
+  color: #475569;
+}
+
+.notes-text {
+  color: #64748B;
+  font-style: italic;
+}
+
+/* Resolved Section */
+.resolved-section {
+  border-top: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+.resolved-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748B;
+  transition: all 0.2s;
+}
+
+.resolved-toggle:hover {
+  background: #F1F5F9;
+}
+
+.resolved-toggle svg:first-child {
+  color: #78716C;
+}
+
+.resolved-toggle span {
+  flex: 1;
+  text-align: left;
+}
+
+.resolved-list {
+  padding: 4px 0;
+  border-top: 1px solid #E2E8F0;
+}
+
+.resolved-item {
+  padding: 12px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  opacity: 0.8;
+}
+
+.resolved-item:last-child {
+  border-bottom: none;
+}
+
+.resolved-name {
+  text-decoration: line-through;
+  color: #78716C;
+}
+
+.resolved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #F1F5F9;
+  border-radius: 20px;
   font-size: 11px;
+  font-weight: 500;
   color: #64748B;
 }
 
-.no-conditions {
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
   text-align: center;
-  padding: 40px 20px;
   color: #94A3B8;
 }
 
-.no-conditions svg {
-  margin-bottom: 12px;
+.empty-state svg {
   color: #CBD5E1;
+  margin-bottom: 12px;
 }
 
-.no-conditions p {
+.empty-state p {
   font-size: 14px;
+  margin: 0 0 4px 0;
 }
 
+.empty-state span {
+  font-size: 12px;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .condition-item {
+  .condition-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .detail-label {
+    min-width: auto;
+  }
+  
+  .condition-item {
+    padding: 12px 16px;
+  }
+  
+  .resolved-item {
+    padding: 10px 16px;
   }
 }

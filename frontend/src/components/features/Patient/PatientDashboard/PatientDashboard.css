@@ -168,3 +168,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* frontend/src/components/features/Patient/PatientDashboard/PatientDashboard.css */
+
+.dashboard-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.view-ehr-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: white;
+  border: 1px solid #3b82f6;
+  border-radius: 10px;
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-ehr-btn:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .view-ehr-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

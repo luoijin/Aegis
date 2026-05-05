@@ -1,5 +1,6 @@
 // frontend/src/components/features/Patient/PatientDashboard/PatientDashboard.jsx
 import React, { useState, useEffect } from 'react';
+import { FileText } from 'lucide-react';
 import { PatientHeader } from '../PatientHeader/PatientHeader';
 import { PatientWelcome } from '../PatientWelcome/PatientWelcome';
 import { PatientInfoCard } from '../PatientInfoCard/PatientInfoCard';
@@ -10,6 +11,7 @@ import { PatientHealthHistory } from '../PatientHealthHistory/PatientHealthHisto
 import { PatientPrescriptions } from '../PatientPrescriptions/PatientPrescriptions';
 import { PatientAppointments } from '../PatientAppointments/PatientAppointments';
 import { PatientReferrals } from '../PatientReferrals/PatientReferrals';
+import PatientEHRModal from '../PatientEHR/PatientEHRModal';
 import api from '../../../../services/api';
 import './PatientDashboard.css';
 
@@ -24,6 +26,7 @@ const PatientDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEHR, setShowEHR] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -164,23 +167,35 @@ const PatientDashboard = () => {
   }
 
   return (
-    <div className="patient-dashboard">
-      <PatientHeader 
-        user={user}
-        patientData={patientData}
-        onLogout={handleLogout}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onUserUpdate={handleUserUpdate}
-      />
-      
-      <div className="patient-dashboard-container">
-        <div className="patient-dashboard-content">
-          <PatientWelcome user={user} />
-          {renderContent()}
+    <>
+      <div className="patient-dashboard">
+        <PatientHeader 
+          user={user}
+          patientData={patientData}
+          onLogout={handleLogout}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onUserUpdate={handleUserUpdate}
+        />
+        
+        <div className="patient-dashboard-container">
+          <div className="patient-dashboard-content">
+            <div className="dashboard-header-actions">
+              <PatientWelcome user={user} />
+              <button className="view-ehr-btn" onClick={() => setShowEHR(true)}>
+                <FileText size={16} /> View My Health Record
+              </button>
+            </div>
+            {renderContent()}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Patient EHR Modal */}
+      {showEHR && (
+        <PatientEHRModal onClose={() => setShowEHR(false)} />
+      )}
+    </>
   );
 };
 

@@ -1,4 +1,5 @@
-/* PatientInfoCard.css */
+/* frontend/src/components/features/Patient/PatientInfoCard/PatientInfoCard.css */
+
 .patient-info-card {
   background: white;
   border-radius: 16px;
@@ -8,6 +9,9 @@
 }
 
 .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 16px 20px;
   background: #F8FAFC;
   border-bottom: 1px solid #E2E8F0;
@@ -27,146 +31,7 @@
   color: #3B82F6;
 }
 
-/* Info Grid Layout */
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-}
-
-/* Info Column */
-.info-column {
-  padding: 20px;
-  border-right: 1px solid #E2E8F0;
-}
-
-.info-column:last-child {
-  border-right: none;
-}
-
-/* Section Title */
-.info-section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #E2E8F0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0A0F1D;
-}
-
-.info-section-title svg {
-  color: #3B82F6;
-}
-
-/* Info Item */
-.info-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.info-item:last-child {
-  margin-bottom: 0;
-}
-
-/* Info Icon */
-.info-icon {
-  width: 32px;
-  height: 32px;
-  background: #EFF6FF;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.info-icon svg {
-  color: #3B82F6;
-}
-
-/* Info Content */
-.info-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.info-label {
-  font-size: 11px;
-  font-weight: 500;
-  color: #64748B;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.info-value {
-  font-size: 14px;
-  font-weight: 500;
-  color: #0A0F1D;
-}
-
-/* No Doctor State */
-.no-doctor {
-  text-align: center;
-  padding: 20px;
-  color: #94A3B8;
-}
-
-.no-doctor svg {
-  margin-bottom: 12px;
-  color: #CBD5E1;
-}
-
-.no-doctor p {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.no-doctor span {
-  font-size: 12px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .info-column {
-    border-right: none;
-    border-bottom: 1px solid #E2E8F0;
-    padding: 16px;
-  }
-  
-  .info-column:last-child {
-    border-bottom: none;
-  }
-  
-  .info-icon {
-    width: 28px;
-    height: 28px;
-  }
-  
-  .info-value {
-    font-size: 13px;
-  }
-}
-
-/* Add to PatientInfoCard.css */
-
 /* Edit Button */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .edit-btn {
   display: flex;
   align-items: center;
@@ -186,7 +51,243 @@
   background: #DBEAFE;
 }
 
-/* Edit Form */
+/* Info Grid Container */
+.info-grid-container {
+  padding: 20px;
+}
+
+/* Demographics Section */
+.demographics-section {
+  margin-bottom: 24px;
+}
+
+.demographics-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.demographics-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.demographics-subheader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.demographic-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.demographic-item:last-child {
+  border-bottom: none;
+}
+
+.demographic-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+}
+
+.demographic-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0F172A;
+}
+
+/* Emergency Contact Section */
+.emergency-contact-section {
+  border-top: 1px solid #E2E8F0;
+  padding: 16px 0 0 0;
+  margin-top: 8px;
+  background: #FEFCE8;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.emergency-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #854D0E;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.emergency-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.emergency-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.emergency-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #78716C;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.emergency-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0F172A;
+}
+
+/* Doctor Section */
+.doctor-section {
+  border-top: 1px solid #E2E8F0;
+  padding-top: 20px;
+  margin-top: 8px;
+}
+
+.doctor-info-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.doctor-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.doctor-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doctor-info-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.doctor-info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* No Doctor State */
+.no-doctor {
+  text-align: center;
+  padding: 32px;
+  color: #94A3B8;
+  background: #F8FAFC;
+  border-radius: 12px;
+}
+
+.no-doctor svg {
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+.no-doctor p {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.no-doctor span {
+  font-size: 12px;
+}
+
+/* Toast Notification */
+.patient-toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  animation: slideInRight 0.3s ease-out;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.patient-toast.success {
+  border-left: 4px solid #10b981;
+  color: #166534;
+}
+
+.patient-toast.error {
+  border-left: 4px solid #ef4444;
+  color: #dc2626;
+}
+
+.patient-toast svg {
+  flex-shrink: 0;
+}
+
+.patient-toast.success svg {
+  color: #10b981;
+}
+
+.patient-toast.error svg {
+  color: #ef4444;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Loading State */
+.loading-state {
+  padding: 40px;
+  text-align: center;
+  color: #94A3B8;
+}
+
+/* Edit Form Styles */
 .edit-form {
   padding: 20px;
 }
@@ -201,6 +302,7 @@
   background: #F8FAFC;
   padding: 16px;
   border-radius: 12px;
+  border: 1px solid #E2E8F0;
 }
 
 .form-section h4 {
@@ -255,7 +357,6 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Form Actions */
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -305,12 +406,13 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .edit-form-grid {
+  .demographics-wrapper,
+  .edit-form-grid,
+  .emergency-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
   }
   
-  .form-row {
+  .doctor-info-grid {
     grid-template-columns: 1fr;
   }
   
@@ -320,7 +422,13 @@
     gap: 12px;
   }
   
-  .edit-btn {
-    align-self: flex-start;
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .patient-toast {
+    left: 20px;
+    right: 20px;
+    top: 70px;
   }
 }

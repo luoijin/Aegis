@@ -97,7 +97,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 14px;
-  background: #F8FAFC;
+  /* background: #F8FAFC; */
   border-radius: 10px;
   margin-bottom: 8px;
   transition: all 0.2s;
