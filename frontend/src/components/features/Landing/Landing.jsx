@@ -105,7 +105,6 @@ const Landing = () => {
           <div className="section-container">
             <div className="section-header">
               <h2>Enterprise-Grade Features</h2>
-              <p>Comprehensive tools for modern healthcare delivery</p>
             </div>
             
             <div className="features-grid">

@@ -1,19 +1,5 @@
 // frontend/src/components/features/Admin/AdminDashboard.jsx
 import React, { useState, useCallback } from 'react';
-import { TrendingUp } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
-} from 'recharts';
 import { useAdminData } from './hooks/useAdminData';
 import AdminSidebar from './components/AdminSidebar/AdminSidebar';
 import AdminHeader from './components/AdminHeader/AdminHeader';
@@ -31,13 +17,9 @@ import EditDoctorModal from './components/modals/EditDoctorModal';
 import PatientModal from './components/modals/PatientModal';
 import SpecializationModal from './components/modals/SpecializationModal';
 import ConfirmModal from '../../common/ConfirmModal/ConfirmModal';
+import DoctorDistributionChart from './components/DoctorDistributionChart/DoctorDistributionChart';
 import api from '../../../utils/api';
 import './AdminDashboard.css';
-
-const COLORS = [
-  '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', 
-  '#06B6D4', '#84CC16', '#F97316', '#6366F1', '#14B8A6', '#D946EF'
-];
 
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState('overview');
@@ -54,15 +36,15 @@ const AdminDashboard = () => {
     return stored ? JSON.parse(stored) : {};
   });
 
-  // Confirm Modal State
+  // Global Confirm Modal State (SINGLE INSTANCE)
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
     message: '',
     type: 'warning',
     confirmText: 'Confirm',
-    onConfirmAction: null,
-    actionData: null
+    cancelText: 'Cancel',
+    onConfirm: null,
   });
 
   const {
@@ -70,9 +52,7 @@ const AdminDashboard = () => {
     loading, error, success, setError, setSuccess, fetchAllData
   } = useAdminData();
 
-  // Refresh data function - can be called after any create/edit/delete
   const refreshData = useCallback(async () => {
-    console.log('Refreshing admin data...');
     await fetchAllData();
   }, [fetchAllData]);
 
@@ -109,16 +89,24 @@ const AdminDashboard = () => {
     refreshData();
   };
 
-  const showConfirm = (title, message, type, onConfirm, actionData) => {
+  // Global confirm function
+  const showConfirm = (title, message, type, onConfirm, confirmText = 'Confirm', cancelText = 'Cancel') => {
     setConfirmModal({
       isOpen: true,
       title,
       message,
       type,
-      confirmText: type === 'danger' ? 'Delete' : type === 'warning' ? 'Confirm' : 'OK',
-      onConfirmAction: () => onConfirm(actionData),
-      actionData
+      confirmText,
+      cancelText,
+      onConfirm: () => {
+        onConfirm();
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      },
     });
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }));
   };
 
   const handleLogout = () => {
@@ -165,8 +153,9 @@ const AdminDashboard = () => {
       'Delete Hospital',
       `Are you sure you want to permanently delete ${name}? This action cannot be undone.`,
       'danger',
-      (data) => handleDeleteHospital(data.id),
-      { id }
+      () => handleDeleteHospital(id),
+      'Delete',
+      'Cancel'
     );
   };
 
@@ -188,8 +177,9 @@ const AdminDashboard = () => {
       'Delete Doctor',
       `Are you sure you want to permanently delete Dr. ${doctorName}? This action cannot be undone.`,
       'danger',
-      (data) => handleDeleteDoctor(data.id, data.name),
-      { id: doctorId, name: doctorName }
+      () => handleDeleteDoctor(doctorId, doctorName),
+      'Delete',
+      'Cancel'
     );
   };
 
@@ -209,8 +199,9 @@ const AdminDashboard = () => {
       `${currentStatus ? 'Deactivate' : 'Activate'} Doctor`,
       `Are you sure you want to ${action} Dr. ${doctorName}?`,
       'warning',
-      (data) => handleToggleDoctorStatus(data.id, data.currentStatus, data.name),
-      { id: doctorId, currentStatus, name: doctorName }
+      () => handleToggleDoctorStatus(doctorId, currentStatus, doctorName),
+      'Confirm',
+      'Cancel'
     );
   };
 
@@ -232,8 +223,9 @@ const AdminDashboard = () => {
       'Delete Patient',
       `Are you sure you want to permanently delete ${patientName}? This will also delete all their health records.`,
       'danger',
-      (data) => handleDeletePatient(data.id, data.name),
-      { id: patientId, name: patientName }
+      () => handleDeletePatient(patientId, patientName),
+      'Delete',
+      'Cancel'
     );
   };
 
@@ -253,8 +245,9 @@ const AdminDashboard = () => {
       `${currentStatus ? 'Deactivate' : 'Activate'} Patient`,
       `Are you sure you want to ${action} ${patientName}?`,
       'warning',
-      (data) => handleTogglePatientStatus(data.id, data.currentStatus, data.name),
-      { id: patientId, currentStatus, name: patientName }
+      () => handleTogglePatientStatus(patientId, currentStatus, patientName),
+      'Confirm',
+      'Cancel'
     );
   };
 
@@ -276,17 +269,13 @@ const AdminDashboard = () => {
       'Delete Specialization',
       `Are you sure you want to permanently delete "${name}"? This may affect doctors with this specialization.`,
       'danger',
-      (data) => handleDeleteSpecialization(data.id, data.name),
-      { id, name }
+      () => handleDeleteSpecialization(id, name),
+      'Delete',
+      'Cancel'
     );
   };
 
   const userData = user;
-
-  const doctorDistribution = specializations.slice(0, 6).map(spec => ({
-    name: spec.name,
-    value: doctors.filter(d => d.specialization === spec.name).length || 0
-  }));
 
   const pageTitles = {
     overview: 'Dashboard Overview',
@@ -302,82 +291,21 @@ const AdminDashboard = () => {
       case 'overview':
         return (
           <>
-            <AdminStats stats={stats} />
-            <div className="charts-row">
-              <div className="chart-card">
-                <div className="chart-header">
-                  <div className="chart-title">
-                    <TrendingUp size={18} />
-                    <h3>Doctor Distribution by Specialization</h3>
-                  </div>
-                  <div className="chart-stats">
-                    <span className="stat-badge">Total Specializations: {doctorDistribution.length}</span>
-                    <span className="stat-badge">Total Doctors: {doctors.length}</span>
-                  </div>
-                </div>
-                {doctorDistribution.length === 0 ? (
-                  <div className="no-data">No doctor data available</div>
-                ) : (
-                  <div className="donut-chart-container">
-                    <ResponsiveContainer width="100%" height={380}>
-                      <PieChart>
-                        <Pie
-                          data={doctorDistribution}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={80}
-                          outerRadius={130}
-                          paddingAngle={3}
-                          dataKey="value"
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                          labelLine={{ stroke: '#94A3B8', strokeWidth: 1 }}
-                        >
-                          {doctorDistribution.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={COLORS[index % COLORS.length]} 
-                              stroke="white"
-                              strokeWidth={2}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'white', 
-                            border: '1px solid #E2E8F0', 
-                            borderRadius: '8px',
-                            padding: '8px 12px',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                          }}
-                          formatter={(value, name) => [`${value} doctors`, name]}
-                        />
-                        <Legend 
-                          verticalAlign="bottom" 
-                          align="center" 
-                          layout="horizontal"
-                          wrapperStyle={{ paddingTop: '20px' }}
-                          formatter={(value) => <span style={{ fontSize: '12px', color: '#475569' }}>{value}</span>}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    
-                    <div className="donut-center-text">
-                      <div className="center-value">{doctors.length}</div>
-                      <div className="center-label">Total Doctors</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <OverviewTab recentPatients={recentPatients} recentDoctors={recentDoctors} />
-          </>
+          <OverviewTab 
+          stats={stats}
+          recentPatients={recentPatients} 
+          recentDoctors={recentDoctors}
+          specializations={specializations}
+          doctors={doctors}
+        />
+      </>
         );
       case 'hospitals':
         return <HospitalsTab 
           hospitals={hospitals} 
           onAdd={() => openHospitalModal()} 
           onEdit={(h) => openHospitalModal(h)} 
-          onDelete={confirmDeleteHospital} 
+          onDelete={confirmDeleteHospital}
         />;
       case 'doctors':
         return <DoctorsTab 
@@ -385,8 +313,8 @@ const AdminDashboard = () => {
           patients={allPatients}
           onAdd={() => openDoctorModal()} 
           onEdit={(d) => openDoctorModal(d)} 
-          onDelete={confirmDeleteDoctor} 
-          onToggleStatus={confirmToggleDoctorStatus} 
+          onDelete={confirmDeleteDoctor}
+          onToggleStatus={confirmToggleDoctorStatus}
         />;
       case 'patients':
         return <PatientsTab 
@@ -394,8 +322,8 @@ const AdminDashboard = () => {
           doctors={doctors} 
           onAdd={() => openPatientModal()} 
           onEdit={(p) => openPatientModal(p)} 
-          onDelete={confirmDeletePatient} 
-          onToggleStatus={confirmTogglePatientStatus} 
+          onDelete={confirmDeletePatient}
+          onToggleStatus={confirmTogglePatientStatus}
         />;
       case 'specializations':
         return <SpecializationsTab 
@@ -403,7 +331,7 @@ const AdminDashboard = () => {
           doctors={doctors}
           onAdd={() => openSpecializationModal()} 
           onEdit={(s) => openSpecializationModal(s)} 
-          onDelete={confirmDeleteSpecialization} 
+          onDelete={confirmDeleteSpecialization}
         />;
       case 'analytics':
         return <AdminAnalytics />;
@@ -482,19 +410,16 @@ const AdminDashboard = () => {
         onSuccess={refreshData} 
       />
 
-      {/* Global Confirm Modal */}
+      {/* GLOBAL Confirm Modal - SINGLE INSTANCE */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-        onConfirm={() => {
-          if (confirmModal.onConfirmAction) confirmModal.onConfirmAction();
-          setConfirmModal(prev => ({ ...prev, isOpen: false }));
-        }}
+        onClose={closeConfirmModal}
+        onConfirm={confirmModal.onConfirm || closeConfirmModal}
         title={confirmModal.title}
         message={confirmModal.message}
         type={confirmModal.type}
         confirmText={confirmModal.confirmText}
-        cancelText="Cancel"
+        cancelText={confirmModal.cancelText}
       />
     </div>
   );

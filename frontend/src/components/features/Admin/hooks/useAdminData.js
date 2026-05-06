@@ -31,15 +31,25 @@ export const useAdminData = () => {
       const statsRes = await api.get('/admin/dashboard/stats');
       console.log('Dashboard stats response:', statsRes.data);
       
-      // CORRECT STATS EXTRACTION
+      // Fetch specializations FIRST
+      const specsRes = await api.get('/admin/specializations');
+      const specializationsData = specsRes.data || [];
+      setSpecializations(specializationsData);
+      
+      // CORRECT STATS EXTRACTION with totalSpecializations
       if (statsRes.data && statsRes.data.stats) {
         setStats({
           totalPatients: statsRes.data.stats.totalPatients || 0,
           totalDoctors: statsRes.data.stats.totalDoctors || 0,
           totalHospitals: statsRes.data.stats.totalHospitals || 0,
-          totalHealthLogs: statsRes.data.stats.totalHealthLogs || 0
+          totalHealthLogs: statsRes.data.stats.totalHealthLogs || 0,
+          totalAppointments: statsRes.data.stats.totalAppointments || 0,
+          totalSpecializations: specializationsData.length || 0  // ← ADD THIS
         });
-        console.log('Stats set to:', statsRes.data.stats);
+        console.log('Stats set to:', {
+          ...statsRes.data.stats,
+          totalSpecializations: specializationsData.length
+        });
       } else if (statsRes.data) {
         // Alternative structure
         setStats({
@@ -47,11 +57,12 @@ export const useAdminData = () => {
           totalDoctors: statsRes.data.totalDoctors || 0,
           totalHospitals: statsRes.data.totalHospitals || 0,
           totalHealthLogs: statsRes.data.totalHealthLogs || 0,
-          totalAppointments: statsRes.data.totalAppointments || 0
+          totalAppointments: statsRes.data.totalAppointments || 0,
+          totalSpecializations: specializationsData.length || 0  // ← ADD THIS
         });
       }
       
-      // Set recent items
+      // Set recent items from dashboard stats
       if (statsRes.data.recentPatients) {
         setRecentPatients(statsRes.data.recentPatients);
       }
@@ -71,11 +82,7 @@ export const useAdminData = () => {
       const patientsRes = await api.get('/admin/patients');
       setAllPatients(patientsRes.data || []);
       
-      // Fetch specializations
-      const specsRes = await api.get('/admin/specializations');
-      setSpecializations(specsRes.data || []);
-      
-      console.log('Data fetched successfully');
+      console.log('Data fetched successfully. Specializations count:', specializationsData.length);
       
     } catch (err) {
       console.error('Error fetching admin data:', err);

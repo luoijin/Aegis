@@ -1,3 +1,4 @@
+/* frontend/src/styles/global.css */
 @import './variables.css';
 
 * {
@@ -32,4 +33,90 @@ h1, h2, h3 {
 
 .text-danger { 
   color: var(--danger); 
+}
+
+/* ============================================ */
+/* CUSTOM SCROLLBAR - ONLY ON SPECIFIC ELEMENTS */
+/* ============================================ */
+
+/* Main content areas that should have custom scrollbar */
+.admin-main-content,
+.doctor-dashboard .main-content-area,
+.patient-dashboard-content,
+.modal-body,
+.list-wrapper,
+.referrals-list,
+.appointments-list,
+.health-logs-table,
+.records-table-wrapper,
+.patients-list,
+.doctors-list,
+.sidebar-patients-list {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* WebKit Browsers (Chrome, Safari, Edge) */
+.admin-main-content::-webkit-scrollbar,
+.doctor-dashboard .main-content-area::-webkit-scrollbar,
+.patient-dashboard-content::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar,
+.list-wrapper::-webkit-scrollbar,
+.referrals-list::-webkit-scrollbar,
+.appointments-list::-webkit-scrollbar,
+.health-logs-table::-webkit-scrollbar,
+.records-table-wrapper::-webkit-scrollbar,
+.patients-list::-webkit-scrollbar,
+.doctors-list::-webkit-scrollbar,
+.sidebar-patients-list::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.admin-main-content::-webkit-scrollbar-track,
+.doctor-dashboard .main-content-area::-webkit-scrollbar-track,
+.patient-dashboard-content::-webkit-scrollbar-track,
+.modal-body::-webkit-scrollbar-track,
+.list-wrapper::-webkit-scrollbar-track,
+.referrals-list::-webkit-scrollbar-track,
+.appointments-list::-webkit-scrollbar-track,
+.health-logs-table::-webkit-scrollbar-track,
+.records-table-wrapper::-webkit-scrollbar-track,
+.patients-list::-webkit-scrollbar-track,
+.doctors-list::-webkit-scrollbar-track,
+.sidebar-patients-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.admin-main-content::-webkit-scrollbar-thumb,
+.doctor-dashboard .main-content-area::-webkit-scrollbar-thumb,
+.patient-dashboard-content::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb,
+.list-wrapper::-webkit-scrollbar-thumb,
+.referrals-list::-webkit-scrollbar-thumb,
+.appointments-list::-webkit-scrollbar-thumb,
+.health-logs-table::-webkit-scrollbar-thumb,
+.records-table-wrapper::-webkit-scrollbar-thumb,
+.patients-list::-webkit-scrollbar-thumb,
+.doctors-list::-webkit-scrollbar-thumb,
+.sidebar-patients-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.admin-main-content::-webkit-scrollbar-thumb:hover,
+.doctor-dashboard .main-content-area::-webkit-scrollbar-thumb:hover,
+.patient-dashboard-content::-webkit-scrollbar-thumb:hover,
+.modal-body::-webkit-scrollbar-thumb:hover,
+.list-wrapper::-webkit-scrollbar-thumb:hover,
+.referrals-list::-webkit-scrollbar-thumb:hover,
+.appointments-list::-webkit-scrollbar-thumb:hover,
+.health-logs-table::-webkit-scrollbar-thumb:hover,
+.records-table-wrapper::-webkit-scrollbar-thumb:hover,
+.patients-list::-webkit-scrollbar-thumb:hover,
+.doctors-list::-webkit-scrollbar-thumb:hover,
+.sidebar-patients-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

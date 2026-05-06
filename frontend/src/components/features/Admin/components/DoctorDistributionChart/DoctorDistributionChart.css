@@ -1,0 +1,162 @@
+/* frontend/src/components/features/Admin/components/DoctorDistributionChart/DoctorDistributionChart.css */
+
+.doctor-distribution-chart {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .doctor-distribution-chart {
+    margin-bottom: 20px;
+  }
+}
+
+.chart-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 16px;
+  }
+}
+
+.chart-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-title svg {
+  color: #3B82F6;
+}
+
+.chart-title h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .chart-title h3 {
+    font-size: 14px;
+  }
+}
+
+.chart-stats {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .chart-stats {
+    gap: 8px;
+  }
+}
+
+.stat-badge {
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  background: #F1F5F9;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+@media (max-width: 640px) {
+  .stat-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+}
+
+.chart-container {
+  position: relative;
+  padding: 20px;
+  min-height: 380px;
+}
+
+@media (max-width: 640px) {
+  .chart-container {
+    padding: 16px;
+    min-height: 340px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container {
+    min-height: 300px;
+  }
+}
+
+.donut-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.center-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1;
+}
+
+.center-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748B;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 640px) {
+  .donut-center-text {
+    padding: 8px 12px;
+  }
+  
+  .center-value {
+    font-size: 24px;
+  }
+  
+  .center-label {
+    font-size: 9px;
+  }
+}
+
+.no-data {
+  text-align: center;
+  padding: 60px;
+  color: #94A3B8;
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .no-data {
+    padding: 40px;
+  }
+}

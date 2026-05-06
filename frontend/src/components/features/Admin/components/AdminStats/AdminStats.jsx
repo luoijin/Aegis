@@ -1,11 +1,9 @@
 // frontend/src/components/features/Admin/components/AdminStats/AdminStats.jsx
 import React from 'react';
-import { Users, Stethoscope, Building } from 'lucide-react';
+import { Users, Stethoscope, Building, Award } from 'lucide-react';
 import './AdminStats.css';
 
 const AdminStats = ({ stats }) => {
-  console.log('AdminStats component received:', stats);
-
   const statsCards = [
     { 
       title: 'Total Patients', 
@@ -17,13 +15,19 @@ const AdminStats = ({ stats }) => {
       title: 'Total Doctors', 
       key: 'totalDoctors', 
       icon: <Stethoscope size={24} />, 
-      color: '#10B981' 
+      color: '#3B82F6' 
     },
     { 
       title: 'Total Hospitals', 
       key: 'totalHospitals', 
       icon: <Building size={24} />, 
-      color: '#8B5CF6' 
+      color: '#3B82F6' 
+    },
+    { 
+      title: 'Total Specializations', 
+      key: 'totalSpecializations', 
+      icon: <Award size={24} />, 
+      color: '#3B82F6' 
     }
   ];
 

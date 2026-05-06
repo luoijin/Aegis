@@ -1,6 +1,6 @@
 // frontend/src/components/features/Admin/components/HospitalsTab/HospitalsTab.jsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Building, Phone, Mail, MapPin, Users, Stethoscope, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Building, Phone, Mail, MapPin, Users, Stethoscope, Eye, Hospital, Activity } from 'lucide-react';
 import Button from '../../../../common/Button/Button';
 import { SearchInput } from '../../../../common/SearchInput/SearchInput';
 import HospitalDetailsModal from './HospitalDetailsModal';
@@ -14,7 +14,6 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fetch hospitals with doctor counts
   const fetchHospitalsWithStats = async () => {
     try {
       setLoading(true);
@@ -45,7 +44,6 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
       setShowDetailsModal(true);
     } catch (error) {
       console.error('Error fetching hospital details:', error);
-      // Fallback to basic data
       setSelectedHospital({ ...hospital, doctors: [], doctorCount: 0 });
       setShowDetailsModal(true);
     }
@@ -57,15 +55,30 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
     }
     const street = hospital.address?.street || '';
     const city = hospital.address?.city || '';
-    const state = hospital.address?.state || '';
-    const parts = [street, city, state].filter(p => p);
+    const province = hospital.address?.province || '';
+    const parts = [street, city, province].filter(p => p);
     return parts.join(', ') || 'Address not specified';
   };
 
   const totalHospitals = hospitalsWithStats.length;
   const totalDoctorsAcrossHospitals = hospitalsWithStats.reduce((sum, h) => sum + (h.doctorCount || 0), 0);
-  const hospitalsWithDoctors = hospitalsWithStats.filter(h => (h.doctorCount || 0) > 0).length;
-  const hospitalsWithoutDoctors = hospitalsWithStats.filter(h => (h.doctorCount || 0) === 0).length;
+
+  const statsCards = [
+    {
+      label: 'Total Hospitals',
+      value: totalHospitals,
+      icon: <Building size={20} />,
+      color: '#3B82F6',
+      bgColor: 'white'
+    },
+    {
+      label: 'Total Doctors',
+      value: totalDoctorsAcrossHospitals,
+      icon: <Stethoscope size={20} />,
+      color: '#3B82F6',
+      bgColor: 'white'
+    }
+  ];
 
   return (
     <>
@@ -81,23 +94,19 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
           </Button>
         </div>
 
+        {/* Stats Row with Icons */}
         <div className="stats-row">
-          <div className="stat-mini">
-            <div className="stat-value">{totalHospitals}</div>
-            <div className="stat-label">Total Hospitals</div>
-          </div>
-          <div className="stat-mini info">
-            <div className="stat-value">{totalDoctorsAcrossHospitals}</div>
-            <div className="stat-label">Total Doctors</div>
-          </div>
-          <div className="stat-mini success">
-            <div className="stat-value">{hospitalsWithDoctors}</div>
-            <div className="stat-label">With Doctors</div>
-          </div>
-          <div className="stat-mini warning">
-            <div className="stat-value">{hospitalsWithoutDoctors}</div>
-            <div className="stat-label">No Doctors</div>
-          </div>
+          {statsCards.map((card, index) => (
+            <div key={index} className="stat-mini">
+              <div className="stat-icon" style={{ background: card.bgColor, color: card.color }}>
+                {card.icon}
+              </div>
+              <div className="stat-info">
+                <div className="stat-value">{card.value}</div>
+                <div className="stat-label">{card.label}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="search-bar">
@@ -138,7 +147,7 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
                       <button className="action-icon edit" onClick={() => onEdit(hospital)} title="Edit">
                         <Edit size={16} />
                       </button>
-                      <button className="action-icon delete" onClick={() => onDelete(hospital._id)} title="Delete">
+                      <button className="action-icon delete" onClick={() => onDelete(hospital._id, hospital.name)} title="Delete">
                         <Trash2 size={16} />
                       </button>
                     </div>

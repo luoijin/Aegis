@@ -83,127 +83,139 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
           <button className="close-btn" onClick={onClose}><X size={18} /></button>
         </div>
         
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="error-message">
-              <AlertCircle size={14} />
-              <span>{error}</span>
-            </div>
-          )}
-          
-          <div className="form-group">
-            <label><Building size={14} /> Hospital Name *</label>
-            <input
-              type="text"
-              name="name"
-              placeholder="Enter hospital name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="form-section">
-            <div className="form-section-header">
-              <MapPin size={14} />
-              <span>Address Information</span>
-            </div>
-            
-            <div className="form-group">
-              <label>Street Address</label>
-              <input
-                type="text"
-                name="address.street"
-                placeholder="Street address"
-                value={formData.address.street}
-                onChange={handleChange}
-              />
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>City / Municipality</label>
-                <input
-                  type="text"
-                  name="address.city"
-                  placeholder="City or Municipality"
-                  value={formData.address.city}
-                  onChange={handleChange}
-                />
+        <div className="modal-body">
+          <form onSubmit={handleSubmit}>
+            {error && (
+              <div className="error-message">
+                <AlertCircle size={14} />
+                <span>{error}</span>
               </div>
+            )}
+            
+            {/* Hospital Information Section */}
+            <div className="form-section">
+              <div className="form-section-header">
+                <Building size={14} />
+                <span>Hospital Information</span>
+              </div>
+              
               <div className="form-group">
-                <label>Province</label>
+                <label><Building size={12} /> Hospital Name *</label>
                 <input
                   type="text"
-                  name="address.province"
-                  placeholder="Province"
-                  value={formData.address.province}
+                  name="name"
+                  placeholder="Enter hospital name"
+                  value={formData.name}
                   onChange={handleChange}
+                  required
                 />
               </div>
             </div>
             
-            <div className="form-row">
+            {/* Address Information Section */}
+            <div className="form-section">
+              <div className="form-section-header">
+                <MapPin size={14} />
+                <span>Address Information</span>
+              </div>
+              
               <div className="form-group">
-                <label>Zip Code</label>
+                <label>Street Address</label>
                 <input
                   type="text"
-                  name="address.zipCode"
-                  placeholder="Zip code"
-                  value={formData.address.zipCode}
+                  name="address.street"
+                  placeholder="Street address"
+                  value={formData.address.street}
                   onChange={handleChange}
                 />
               </div>
-              <div className="form-group">
-                <label>Country</label>
-                <input
-                  type="text"
-                  name="address.country"
-                  value="Philippines"
-                  disabled
-                  className="disabled-input"
-                />
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>City / Municipality</label>
+                  <input
+                    type="text"
+                    name="address.city"
+                    placeholder="City or Municipality"
+                    value={formData.address.city}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Province</label>
+                  <input
+                    type="text"
+                    name="address.province"
+                    placeholder="Province"
+                    value={formData.address.province}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-            </div>
-          </div>
-          
-          <div className="form-section">
-            <div className="form-section-header">
-              <Phone size={14} />
-              <span>Contact Information</span>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Zip Code</label>
+                  <input
+                    type="text"
+                    name="address.zipCode"
+                    placeholder="Zip code"
+                    value={formData.address.zipCode}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Country</label>
+                  <input
+                    type="text"
+                    name="address.country"
+                    value="Philippines"
+                    disabled
+                    className="disabled-input"
+                  />
+                </div>
+              </div>
             </div>
             
-            <div className="form-row">
-              <div className="form-group">
-                <label><Phone size={12} /> Phone Number</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Contact number"
-                  value={formData.phone}
-                  onChange={handleChange}
-                />
+            {/* Contact Information Section */}
+            <div className="form-section">
+              <div className="form-section-header">
+                <Phone size={14} />
+                <span>Contact Information</span>
               </div>
-              <div className="form-group">
-                <label><Mail size={12} /> Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="hospital@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label><Phone size={12} /> Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="Contact number"
+                    value={formData.phone}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label><Mail size={12} /> Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="hospital@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
-            <button type="submit" className="submit-btn" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Hospital'}
-            </button>
-          </div>
-        </form>
+            
+            <div className="modal-actions">
+              <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
+              <button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? 'Creating...' : 'Create Hospital'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -149,7 +149,7 @@ const PatientModal = ({ isOpen, onClose, editingPatient, doctors, onSuccess }) =
           
           <div className="form-row">
             <div className="form-group">
-              <label><User size={12} /> First Name *</label>
+              <label>First Name *</label>
               <input
                 type="text"
                 name="firstName"
@@ -160,7 +160,7 @@ const PatientModal = ({ isOpen, onClose, editingPatient, doctors, onSuccess }) =
               />
             </div>
             <div className="form-group">
-              <label><User size={12} /> Last Name *</label>
+              <label>Last Name *</label>
               <input
                 type="text"
                 name="lastName"
@@ -175,7 +175,7 @@ const PatientModal = ({ isOpen, onClose, editingPatient, doctors, onSuccess }) =
           {!isEditing ? (
             <>
               <div className="form-group">
-                <label><Mail size={12} /> Email Address *</label>
+                <label>Email Address *</label>
                 <input
                   type="email"
                   name="email"
@@ -214,7 +214,7 @@ const PatientModal = ({ isOpen, onClose, editingPatient, doctors, onSuccess }) =
           
           <div className="form-row">
             <div className="form-group">
-              <label><Phone size={12} /> Phone Number</label>
+              <label>Phone Number</label>
               <input
                 type="tel"
                 name="phone"
@@ -224,7 +224,7 @@ const PatientModal = ({ isOpen, onClose, editingPatient, doctors, onSuccess }) =
               />
             </div>
             <div className="form-group">
-              <label><Calendar size={12} /> Date of Birth</label>
+              <label>Date of Birth</label>
               <input
                 type="date"
                 name="dateOfBirth"
@@ -244,8 +244,8 @@ const PatientModal = ({ isOpen, onClose, editingPatient, doctors, onSuccess }) =
                 <option value="Other">Other</option>
               </select>
             </div>
-            <div className="form-group">
-              <label><Droplet size={12} /> Blood Type</label>
+            {/* <div className="form-group">
+              <label>Blood Type</label>
               <select name="bloodType" value={formData.bloodType} onChange={handleChange}>
                 <option value="">Not specified</option>
                 <option value="A+">A+</option>
@@ -257,7 +257,7 @@ const PatientModal = ({ isOpen, onClose, editingPatient, doctors, onSuccess }) =
                 <option value="O+">O+</option>
                 <option value="O-">O-</option>
               </select>
-            </div>
+            </div> */}
           </div>
           
           <div className="form-group">

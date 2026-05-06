@@ -2,16 +2,72 @@
 
 .admin-main-content {
   flex: 1;
-  margin-left: 260px;
-  margin-top: 64px;
-  padding: 24px;
-  min-height: calc(100vh - 64px);
+  margin-left: 80px; /* Collapsed sidebar by default on mobile */
+  margin-top: 60px;
+  padding: 16px;
+  min-height: calc(100vh - 60px);
   background: #f8fafc;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
 }
+
 
 .admin-main-content.sidebar-collapsed {
   margin-left: 80px;
+}
+
+/* Custom Scrollbar for admin-main-content ONLY - Doesn't affect header */
+.admin-main-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-main-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.admin-main-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.admin-main-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Firefox Scrollbar for admin content only */
+.admin-main-content {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* DO NOT style body scrollbar - leave it default or only style if needed */
+/* Only style if you want the page scrollbar to match */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+html::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Stats Grid */
@@ -201,7 +257,20 @@
   }
   
   .stat-value {
-    font-size: 24px;
+    font-size: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-main-content {
+    margin-left: 260px;
+    margin-top: 64px;
+    padding: 24px;
+    min-height: calc(100vh - 64px);
+  }
+  
+  .admin-main-content.sidebar-collapsed {
+    margin-left: 80px;
   }
 }
 

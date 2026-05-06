@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Award, CheckCircle, AlertCircle, Users, Trash2, Eye } from 'lucide-react';
 import Button from '../../../../common/Button/Button';
 import { SearchInput } from '../../../../common/SearchInput/SearchInput';
-import ConfirmModal from '../../../../common/ConfirmModal/ConfirmModal';
-import SpecializationDetailsModal from './SpecializationDetailsModal'; // ← ADD THIS IMPORT
+import SpecializationDetailsModal from './SpecializationDetailsModal';
 import './SpecializationsTab.css';
 
 const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete }) => {
@@ -13,17 +12,6 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
   const [specializationStats, setSpecializationStats] = useState({});
   const [selectedSpecialization, setSelectedSpecialization] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  
-  // Confirm Modal State
-  const [confirmModal, setConfirmModal] = useState({
-    isOpen: false,
-    title: '',
-    message: '',
-    type: 'warning',
-    confirmText: 'Confirm',
-    onConfirmAction: null,
-    actionData: null
-  });
 
   // Calculate doctor count for each specialization
   useEffect(() => {
@@ -38,45 +26,18 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
     setSpecializationStats(stats);
   }, [specializations, doctors]);
 
-  const showConfirm = (title, message, type, onConfirm, actionData) => {
-    setConfirmModal({
-      isOpen: true,
-      title,
-      message,
-      type,
-      confirmText: type === 'danger' ? 'Delete' : 'Confirm',
-      onConfirmAction: () => onConfirm(actionData),
-      actionData
-    });
-  };
-
-  const handleDeleteWithConfirm = (specId, specName) => {
-    const stats = specializationStats[specId];
-    if (stats && stats.count > 0) {
-      // Show error - cannot delete active specialization
-      setConfirmModal({
-        isOpen: true,
-        title: 'Cannot Delete',
-        message: `"${specName}" has ${stats.count} doctor${stats.count !== 1 ? 's' : ''} assigned. Please reassign or remove all doctors from this specialization before deleting.`,
-        type: 'warning',
-        confirmText: 'OK',
-        onConfirmAction: () => setConfirmModal(prev => ({ ...prev, isOpen: false })),
-        actionData: null
-      });
-    } else {
-      showConfirm(
-        'Delete Specialization',
-        `Are you sure you want to permanently delete "${specName}"? This action cannot be undone.`,
-        'danger',
-        (data) => onDelete(data.id, data.name),
-        { id: specId, name: specName }
-      );
-    }
-  };
-
   const handleViewDetails = (spec) => {
     setSelectedSpecialization(spec);
     setShowDetailsModal(true);
+  };
+
+  const handleDeleteClick = (specId, specName) => {
+    const stats = specializationStats[specId];
+    if (stats && stats.count > 0) {
+      alert(`Cannot delete "${specName}" because it has ${stats.count} doctor(s) assigned.`);
+      return;
+    }
+    onDelete(specId, specName);
   };
 
   const filteredSpecs = specializations.filter(spec => {
@@ -93,7 +54,6 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
   const totalSpecializations = specializations.length;
   const activeSpecializations = specializations.filter(spec => (specializationStats[spec._id]?.count || 0) > 0).length;
   const inactiveSpecializations = specializations.filter(spec => (specializationStats[spec._id]?.count || 0) === 0).length;
-  const totalDoctorsAcrossSpecs = specializations.reduce((sum, spec) => sum + (specializationStats[spec._id]?.count || 0), 0);
 
   return (
     <>
@@ -123,11 +83,6 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
             <div className="stat-value">{inactiveSpecializations}</div>
             <div className="stat-label">Inactive</div>
             <div className="stat-sub">No Doctors</div>
-          </div>
-          <div className="stat-mini info">
-            <div className="stat-value">{totalDoctorsAcrossSpecs}</div>
-            <div className="stat-label">Total Doctors</div>
-            <div className="stat-sub">Across all specs</div>
           </div>
         </div>
 
@@ -220,7 +175,7 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
                       </button>
                       <button 
                         className={`delete-btn ${doctorCount > 0 ? 'disabled' : ''}`} 
-                        onClick={() => handleDeleteWithConfirm(spec._id, spec.name)}
+                        onClick={() => handleDeleteClick(spec._id, spec.name)}
                         disabled={doctorCount > 0}
                         title={doctorCount > 0 ? `Cannot delete - has ${doctorCount} doctor${doctorCount !== 1 ? 's' : ''} assigned` : 'Delete Specialization'}
                       >
@@ -247,21 +202,6 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
           }}
         />
       )}
-
-      {/* Confirm Modal */}
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-        onConfirm={() => {
-          if (confirmModal.onConfirmAction) confirmModal.onConfirmAction();
-          setConfirmModal(prev => ({ ...prev, isOpen: false }));
-        }}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        type={confirmModal.type}
-        confirmText={confirmModal.confirmText}
-        cancelText={confirmModal.type === 'warning' && confirmModal.confirmText === 'OK' ? 'Close' : 'Cancel'}
-      />
     </>
   );
 };
