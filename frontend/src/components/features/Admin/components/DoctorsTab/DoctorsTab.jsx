@@ -1,6 +1,6 @@
 // frontend/src/components/features/Admin/components/DoctorsTab/DoctorsTab.jsx
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Stethoscope, UserPlus, CheckCircle, AlertCircle, Eye, Users, Building, Mail, Phone, Award, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Stethoscope, UserPlus, CheckCircle, AlertCircle, Eye, Users, Building, Mail, Phone, Award, Activity } from 'lucide-react';
 import Button from '../../../../common/Button/Button';
 import { SearchInput } from '../../../../common/SearchInput/SearchInput';
 import DoctorDetailsModal from './DoctorDetailsModal';
@@ -12,7 +12,6 @@ const DoctorsTab = ({ doctors, patients, onAdd, onEdit, onDelete, onToggleStatus
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // Filter doctors based on search and status
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSearch = 
       doctor.profile?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,6 +42,30 @@ const DoctorsTab = ({ doctors, patients, onAdd, onEdit, onDelete, onToggleStatus
   const activeDoctors = doctors.filter(d => d.isActive === true).length;
   const inactiveDoctors = doctors.filter(d => d.isActive === false).length;
 
+  const statsCards = [
+    {
+      label: 'Total Doctors',
+      value: totalDoctors,
+      icon: <Stethoscope size={20} />,
+      color: '#3B82F6',
+      bgColor: 'white'
+    },
+    {
+      label: 'Active',
+      value: activeDoctors,
+      icon: <CheckCircle size={20} />,
+      color: '#3B82F6',
+      bgColor: 'white'
+    },
+    {
+      label: 'Inactive',
+      value: inactiveDoctors,
+      icon: <AlertCircle size={20} />,
+      color: '#3B82F6',
+      bgColor: 'white'
+    }
+  ];
+
   return (
     <>
       <div className="doctors-tab">
@@ -58,18 +81,17 @@ const DoctorsTab = ({ doctors, patients, onAdd, onEdit, onDelete, onToggleStatus
         </div>
 
         <div className="stats-row">
-          <div className="stat-mini">
-            <div className="stat-value">{totalDoctors}</div>
-            <div className="stat-label">Total Doctors</div>
-          </div>
-          <div className="stat-mini success">
-            <div className="stat-value">{activeDoctors}</div>
-            <div className="stat-label">Active</div>
-          </div>
-          <div className="stat-mini warning">
-            <div className="stat-value">{inactiveDoctors}</div>
-            <div className="stat-label">Inactive</div>
-          </div>
+          {statsCards.map((card, index) => (
+            <div key={index} className="stat-mini">
+              <div className="stat-icon" style={{ background: card.bgColor, color: card.color }}>
+                {card.icon}
+              </div>
+              <div className="stat-info">
+                <div className="stat-value">{card.value}</div>
+                <div className="stat-label">{card.label}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="search-filter-row">
@@ -102,7 +124,6 @@ const DoctorsTab = ({ doctors, patients, onAdd, onEdit, onDelete, onToggleStatus
                   <th>Specialization</th>
                   <th>License</th>
                   <th>Hospital</th>
-                  <th>Patients</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -134,11 +155,6 @@ const DoctorsTab = ({ doctors, patients, onAdd, onEdit, onDelete, onToggleStatus
                         ) : (
                           <span className="unassigned-badge">Not assigned</span>
                         )}
-                      </td>
-                      <td className="patients-cell" data-label="Patients">
-                        <div className="doctor-patient-count">
-                          <Users size={10} /> {assignedPatients.length} patients
-                        </div>
                       </td>
                       <td className="status-cell" data-label="Status">
                         <div className={`status-badge ${doc.isActive ? 'active' : 'inactive'}`}>
@@ -175,7 +191,6 @@ const DoctorsTab = ({ doctors, patients, onAdd, onEdit, onDelete, onToggleStatus
         </div>
       </div>
 
-      {/* Doctor Details Modal */}
       {showDetailsModal && selectedDoctor && (
         <DoctorDetailsModal
           doctor={selectedDoctor}
