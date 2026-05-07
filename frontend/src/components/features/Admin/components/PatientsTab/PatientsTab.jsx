@@ -1,4 +1,3 @@
-// frontend/src/components/features/Admin/components/PatientsTab/PatientsTab.jsx
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Users, Mail, Phone, Stethoscope, CheckCircle, AlertCircle, Eye } from 'lucide-react';
 import Button from '../../../../common/Button/Button';
@@ -37,6 +36,7 @@ const PatientsTab = ({ patients, doctors, onAdd, onEdit, onDelete, onToggleStatu
   return (
     <>
       <div className="patients-tab">
+        {/* Header */}
         <div className="tab-header">
           <div className="header-title">
             <Users size={18} />
@@ -48,6 +48,7 @@ const PatientsTab = ({ patients, doctors, onAdd, onEdit, onDelete, onToggleStatu
           </Button>
         </div>
 
+        {/* Stats */}
         <div className="stats-row">
           <div className="stat-mini"><div className="stat-value">{totalPatients}</div><div className="stat-label">Total</div></div>
           <div className="stat-mini success"><div className="stat-value">{activePatients}</div><div className="stat-label">Active</div></div>
@@ -56,6 +57,7 @@ const PatientsTab = ({ patients, doctors, onAdd, onEdit, onDelete, onToggleStatu
           <div className="stat-mini secondary"><div className="stat-value">{unassignedCount}</div><div className="stat-label">No Doctor</div></div>
         </div>
 
+        {/* Search & Filter */}
         <div className="search-filter-row">
           <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Search by name or email..." />
           <div className="filter-buttons">
@@ -65,6 +67,7 @@ const PatientsTab = ({ patients, doctors, onAdd, onEdit, onDelete, onToggleStatu
           </div>
         </div>
 
+        {/* Table Wrapper */}
         <div className="table-wrapper">
           {filteredPatients.length === 0 ? (
             <div className="empty-state"><Users size={48} /><p>No patients found</p></div>

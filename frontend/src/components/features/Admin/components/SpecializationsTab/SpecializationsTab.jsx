@@ -1,4 +1,3 @@
-// frontend/src/components/features/Admin/components/SpecializationsTab/SpecializationsTab.jsx
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Award, CheckCircle, AlertCircle, Users, Trash2, Eye } from 'lucide-react';
 import Button from '../../../../common/Button/Button';
@@ -58,6 +57,7 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
   return (
     <>
       <div className="specializations-tab">
+        {/* Header */}
         <div className="tab-header">
           <div className="header-title">
             <Award size={18} />
@@ -69,23 +69,14 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
           </Button>
         </div>
 
+        {/* Stats - Cleaned up */}
         <div className="stats-row">
-          <div className="stat-mini">
-            <div className="stat-value">{totalSpecializations}</div>
-            <div className="stat-label">Total</div>
-          </div>
-          <div className="stat-mini success">
-            <div className="stat-value">{activeSpecializations}</div>
-            <div className="stat-label">Active</div>
-            <div className="stat-sub">Has Doctors</div>
-          </div>
-          <div className="stat-mini warning">
-            <div className="stat-value">{inactiveSpecializations}</div>
-            <div className="stat-label">Inactive</div>
-            <div className="stat-sub">No Doctors</div>
-          </div>
+          <div className="stat-mini"><div className="stat-value">{totalSpecializations}</div><div className="stat-label">Total</div></div>
+          <div className="stat-mini success"><div className="stat-value">{activeSpecializations}</div><div className="stat-label">Active</div></div>
+          <div className="stat-mini warning"><div className="stat-value">{inactiveSpecializations}</div><div className="stat-label">Inactive</div></div>
         </div>
 
+        {/* Search & Filter */}
         <div className="search-filter-row">
           <SearchInput 
             value={searchTerm} 
@@ -93,27 +84,13 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
             placeholder="Search by name or description..." 
           />
           <div className="filter-buttons">
-            <button 
-              className={`filter-chip ${filterStatus === 'all' ? 'active' : ''}`} 
-              onClick={() => setFilterStatus('all')}
-            >
-              All
-            </button>
-            <button 
-              className={`filter-chip ${filterStatus === 'active' ? 'active' : ''}`} 
-              onClick={() => setFilterStatus('active')}
-            >
-              <CheckCircle size={12} /> Active (Has Doctors)
-            </button>
-            <button 
-              className={`filter-chip ${filterStatus === 'inactive' ? 'active' : ''}`} 
-              onClick={() => setFilterStatus('inactive')}
-            >
-              <AlertCircle size={12} /> Inactive (No Doctors)
-            </button>
+            <button className={`filter-chip ${filterStatus === 'all' ? 'active' : ''}`} onClick={() => setFilterStatus('all')}>All</button>
+            <button className={`filter-chip ${filterStatus === 'active' ? 'active' : ''}`} onClick={() => setFilterStatus('active')}><CheckCircle size={12} /> Active</button>
+            <button className={`filter-chip ${filterStatus === 'inactive' ? 'active' : ''}`} onClick={() => setFilterStatus('inactive')}><AlertCircle size={12} /> Inactive</button>
           </div>
         </div>
 
+        {/* Grid */}
         <div className="items-grid">
           {filteredSpecs.length === 0 ? (
             <div className="empty-state">
@@ -126,60 +103,53 @@ const SpecializationsTab = ({ specializations, doctors, onAdd, onEdit, onDelete 
               const isActive = doctorCount > 0;
               
               return (
-                <div key={spec._id} className={`spec-card ${!isActive ? 'inactive' : 'active'}`}>
-                  <div className="spec-card-content">
-                    <div className="spec-card-header">
-                      <div className="spec-icon">
-                        <Award size={20} />
-                      </div>
-                      <div className="spec-info">
-                        <div className="spec-title-row">
-                          <h4>{spec.name}</h4>
-                          <div className={`status-badge ${isActive ? 'active' : 'inactive'}`}>
-                            <span className="status-dot"></span>
-                            {isActive ? 'Active' : 'Inactive'}
-                          </div>
-                        </div>
-                        {spec.description && (
-                          <p className="spec-description">{spec.description}</p>
-                        )}
-                      </div>
+                <div key={spec._id} className={`item-card ${!isActive ? 'inactive-card' : ''}`}>
+                  <div className="card-header">
+                    <div className="item-icon">
+                      <Award size={20} />
+                    </div>
+                    <div className="item-name">
+                      <h4>{spec.name}</h4>
+                      {spec.description && (
+                        <p className="spec-description">{spec.description}</p>
+                      )}
+                    </div>
+                    <div className={`status-badge ${isActive ? 'active' : 'inactive'}`}>
+                      <span className="status-dot"></span>
+                      {isActive ? 'Active' : 'Inactive'}
+                    </div>
+                  </div>
+                  
+                  <div className="card-body">
+                    <div className="detail-row">
+                      <Users size={14} />
+                      <span>
+                        <strong>{doctorCount}</strong> {doctorCount === 1 ? 'Doctor' : 'Doctors'} assigned
+                      </span>
                     </div>
                     
-                    <div className="spec-card-stats">
-                      <div className="doctor-count">
-                        <Users size={14} />
-                        <span>
-                          <strong>{doctorCount}</strong> {doctorCount === 1 ? 'Doctor' : 'Doctors'}
-                        </span>
-                        {doctorCount > 0 && (
-                          <span className="doctor-list-hint">assigned to this specialization</span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="spec-card-footer">
+                    <div className="card-actions">
                       <button 
-                        className="view-btn" 
+                        className="action-btn view" 
                         onClick={() => handleViewDetails(spec)}
                         title="View Details"
                       >
-                        <Eye size={14} /> View
+                        <Eye size={14} />
                       </button>
                       <button 
-                        className="edit-btn" 
+                        className="action-btn edit" 
                         onClick={() => onEdit(spec)}
                         title="Edit Specialization"
                       >
-                        <Edit size={14} /> Edit
+                        <Edit size={14} />
                       </button>
                       <button 
-                        className={`delete-btn ${doctorCount > 0 ? 'disabled' : ''}`} 
+                        className={`action-btn delete ${doctorCount > 0 ? 'disabled' : ''}`} 
                         onClick={() => handleDeleteClick(spec._id, spec.name)}
                         disabled={doctorCount > 0}
                         title={doctorCount > 0 ? `Cannot delete - has ${doctorCount} doctor${doctorCount !== 1 ? 's' : ''} assigned` : 'Delete Specialization'}
                       >
-                        <Trash2 size={14} /> Delete
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>

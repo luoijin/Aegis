@@ -1,6 +1,5 @@
-// frontend/src/components/features/Admin/components/HospitalsTab/HospitalsTab.jsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Building, Phone, Mail, MapPin, Users, Stethoscope, Eye, Hospital, Activity } from 'lucide-react';
+import { Plus, Edit, Trash2, Building, Phone, Mail, MapPin, Users, Eye } from 'lucide-react';
 import Button from '../../../../common/Button/Button';
 import { SearchInput } from '../../../../common/SearchInput/SearchInput';
 import HospitalDetailsModal from './HospitalDetailsModal';
@@ -63,26 +62,10 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
   const totalHospitals = hospitalsWithStats.length;
   const totalDoctorsAcrossHospitals = hospitalsWithStats.reduce((sum, h) => sum + (h.doctorCount || 0), 0);
 
-  const statsCards = [
-    {
-      label: 'Total Hospitals',
-      value: totalHospitals,
-      icon: <Building size={20} />,
-      color: '#3B82F6',
-      bgColor: 'white'
-    },
-    {
-      label: 'Total Doctors',
-      value: totalDoctorsAcrossHospitals,
-      icon: <Stethoscope size={20} />,
-      color: '#3B82F6',
-      bgColor: 'white'
-    }
-  ];
-
   return (
     <>
       <div className="hospitals-tab">
+        {/* Header */}
         <div className="tab-header">
           <div className="header-title">
             <Building size={18} />
@@ -94,21 +77,13 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
           </Button>
         </div>
 
-        {/* Stats Row with Icons */}
+        {/* Stats */}
         <div className="stats-row">
-          {statsCards.map((card, index) => (
-            <div key={index} className="stat-mini">
-              <div className="stat-icon" style={{ background: card.bgColor, color: card.color }}>
-                {card.icon}
-              </div>
-              <div className="stat-info">
-                <div className="stat-value">{card.value}</div>
-                <div className="stat-label">{card.label}</div>
-              </div>
-            </div>
-          ))}
+          <div className="stat-mini"><div className="stat-value">{totalHospitals}</div><div className="stat-label">Total Hospitals</div></div>
+          <div className="stat-mini info"><div className="stat-value">{totalDoctorsAcrossHospitals}</div><div className="stat-label">Total Doctors</div></div>
         </div>
 
+        {/* Search */}
         <div className="search-bar">
           <SearchInput 
             value={searchTerm}
@@ -117,6 +92,7 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
           />
         </div>
 
+        {/* Grid */}
         {loading ? (
           <div className="loading-state">Loading hospital data...</div>
         ) : (
@@ -132,9 +108,6 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
               filteredHospitals.map(hospital => (
                 <div key={hospital._id} className="item-card">
                   <div className="card-header">
-                    <div className="item-icon">
-                      <Building size={20} />
-                    </div>
                     <div className="item-name">{hospital.name}</div>
                     <div className="card-actions">
                       <button 
@@ -172,16 +145,9 @@ const HospitalsTab = ({ hospitals, onAdd, onEdit, onDelete }) => {
                     <div className="detail-row doctors-info">
                       <Users size={14} />
                       <span>
-                        <strong>{hospital.doctorCount || 0}</strong> {hospital.doctorCount === 1 ? 'Doctor' : 'Doctors'} assigned
+                        <strong>{hospital.doctorCount || 0}</strong> {hospital.doctorCount === 1 ? 'Doctor' : 'Doctors'}
                       </span>
-                      {hospital.doctorCount > 0 && (
-                        <button 
-                          className="view-doctors-btn"
-                          onClick={() => handleViewDetails(hospital)}
-                        >
-                          View Doctors
-                        </button>
-                      )}
+                      
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Stethoscope, LogOut, Users, Calendar, FileText, Share2, TrendingUp, User, Settings, Lock, ChevronDown } from 'lucide-react';
+import { Stethoscope, LogOut, Users, Calendar, FileText, Share2, TrendingUp, User, Settings, Menu, X } from 'lucide-react';
 import { NotificationBell } from '../../../common/NotificationBell/NotificationBell';
 import { AccountModal } from '../AccountModal/AccountModal';
 import './DashboardHeader.css';
@@ -7,7 +7,9 @@ import './DashboardHeader.css';
 export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUserUpdate }) => {
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const menuRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   const logo = '/images/logo-dark.png';
 
@@ -19,15 +21,17 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp size={18} /> },
   ];
 
-  // Get doctor's specialization from user data
-  const doctorSpecialization = user?.specialization || 'Not specified';
   const doctorName = `Dr. ${user?.profile?.firstName || ''} ${user?.profile?.lastName || ''}`.trim();
+  const doctorSpecialization = user?.specialization || 'Not specified';
 
-  // Close menu when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setShowAccountMenu(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setShowMobileMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -36,7 +40,13 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
 
   const handleAccountClick = () => {
     setShowAccountMenu(false);
+    setShowMobileMenu(false); // Close mobile menu if open
     setShowAccountModal(true);
+  };
+
+  const handleLogout = () => {
+    setShowMobileMenu(false);
+    onLogout();
   };
 
   return (
@@ -46,12 +56,11 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
           {/* Logo */}
           <div className="logo">
             <img src={logo} alt="AEGIS Logo" className="logo-image" />
-
-            <span>AEGIS</span>
+            <span className="logo-text">AEGIS</span>
           </div>
 
-          {/* Navigation */}
-          <nav className="nav-menu">
+          {/* Desktop Navigation */}
+          <nav className="nav-menu desktop-only">
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -64,18 +73,17 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
             ))}
           </nav>
 
-          {/* Right Section */}
+          {/* Right Actions */}
           <div className="header-actions">
             <NotificationBell />
-
-            {/* Account Dropdown - Removed the specialization badge */}
+            
+            {/* Account Dropdown */}
             <div className="account-dropdown" ref={menuRef}>
               <button 
                 className="account-btn"
                 onClick={() => setShowAccountMenu(!showAccountMenu)}
               >
                 <User size={18} />
-                <ChevronDown size={14} />
               </button>
 
               {showAccountMenu && (
@@ -90,16 +98,45 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
                     <Settings size={16} />
                     Account Settings
                   </button>
-                  <button className="dropdown-item" onClick={onLogout}>
+                  <button className="dropdown-item" onClick={handleLogout}>
                     <LogOut size={16} />
                     Logout
                   </button>
                 </div>
               )}
             </div>
+
+            {/* Mobile Menu Toggle */}
+            <button 
+              className="mobile-menu-btn"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+            >
+              {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
       </header>
+
+      {/* Mobile Navigation Overlay */}
+      {showMobileMenu && (
+        <div className="mobile-nav-overlay" ref={mobileMenuRef}>
+          <nav className="mobile-nav-menu">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                className={`mobile-nav-link ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => {
+                  onTabChange(tab.id);
+                  setShowMobileMenu(false);
+                }}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      )}
 
       {/* Account Modal */}
       {showAccountModal && (

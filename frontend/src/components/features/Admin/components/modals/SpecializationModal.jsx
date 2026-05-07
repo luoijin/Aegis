@@ -87,7 +87,7 @@ const SpecializationModal = ({ isOpen, onClose, editingSpecialization, onSuccess
           )}
           
           <div className="form-group">
-            <label><Award size={12} /> Specialization Name *</label>
+            <label>Specialization Name *</label>
             <input
               type="text"
               name="name"

@@ -1,6 +1,5 @@
-// frontend/src/components/features/Admin/components/OverviewTab/OverviewTab.jsx
 import React from 'react';
-import { Users, Stethoscope, Mail, Phone, Award, Calendar, Building, TrendingUp } from 'lucide-react';
+import { Users, Stethoscope, Mail, Phone, Calendar, Award, TrendingUp } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './OverviewTab.css';
 
@@ -15,28 +14,24 @@ const OverviewTab = ({ stats, recentPatients, recentDoctors, specializations, do
     { 
       title: 'Total Patients', 
       value: stats?.totalPatients || 0,
-      icon: <Users size={20} />,
       color: '#3B82F6',
       bgColor: 'white'
     },
     { 
       title: 'Total Doctors', 
       value: stats?.totalDoctors || 0,
-      icon: <Stethoscope size={20} />,
       color: '#3B82F6',
       bgColor: 'white'
     },
     { 
       title: 'Total Hospitals', 
       value: stats?.totalHospitals || 0,
-      icon: <Building size={20} />,
       color: '#3B82F6',
       bgColor: 'white'
     },
     { 
       title: 'Specializations', 
       value: specializations?.length || 0,
-      icon: <Award size={20} />,
       color: '#3B82F6',
       bgColor: 'white'
     }
@@ -65,9 +60,6 @@ const OverviewTab = ({ stats, recentPatients, recentDoctors, specializations, do
       <div className="stats-row">
         {statsCards.map((card, index) => (
           <div key={index} className="stat-mini">
-            <div className="stat-icon" style={{ background: card.bgColor, color: card.color }}>
-              {card.icon}
-            </div>
             <div className="stat-info">
               <div className="stat-value">{card.value}</div>
               <div className="stat-label">{card.title}</div>
@@ -83,16 +75,12 @@ const OverviewTab = ({ stats, recentPatients, recentDoctors, specializations, do
             <div className="chart-header">
               <div className="chart-title">
                 <TrendingUp size={18} />
-                <h3>Doctor Distribution by Specialization</h3>
-              </div>
-              <div className="chart-stats">
-                <span className="stat-badge">Specializations: {doctorDistribution.length}</span>
-                <span className="stat-badge">Total Doctors: {doctors?.length || 0}</span>
+                <h3>Doctor Distribution</h3>
               </div>
             </div>
             
             <div className="chart-wrapper">
-              <ResponsiveContainer width="100%" height={340}>
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
                     data={chartData}
@@ -102,8 +90,8 @@ const OverviewTab = ({ stats, recentPatients, recentDoctors, specializations, do
                     outerRadius="45%"
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     labelLine={{ stroke: '#94A3B8', strokeWidth: 1 }}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
                     {chartData.map((entry, index) => (
                       <Cell 
@@ -128,8 +116,7 @@ const OverviewTab = ({ stats, recentPatients, recentDoctors, specializations, do
                     verticalAlign="bottom" 
                     align="center" 
                     layout="horizontal"
-                    wrapperStyle={{ paddingTop: '20px' }}
-                    formatter={(value) => <span style={{ fontSize: '12px', color: '#475569' }}>{value}</span>}
+                    wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -156,7 +143,6 @@ const OverviewTab = ({ stats, recentPatients, recentDoctors, specializations, do
             recentPatients.slice(0, 6).map(patient => (
               <div key={patient._id} className="item-card">
                 <div className="card-header">
-                  
                   <div className="item-name">
                     {patient.user?.profile?.firstName} {patient.user?.profile?.lastName}
                   </div>
@@ -207,7 +193,6 @@ const OverviewTab = ({ stats, recentPatients, recentDoctors, specializations, do
             recentDoctors.slice(0, 6).map(doctor => (
               <div key={doctor._id} className="item-card">
                 <div className="card-header">
-                  
                   <div className="item-name">
                     Dr. {doctor.profile?.firstName} {doctor.profile?.lastName}
                   </div>

@@ -95,12 +95,11 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Hospital Information Section */}
             <div className="form-section">
               <div className="form-section-header">
-                <Building size={14} />
                 <span>Hospital Information</span>
               </div>
               
               <div className="form-group">
-                <label><Building size={12} /> Hospital Name *</label>
+                <label>Hospital Name *</label>
                 <input
                   type="text"
                   name="name"
@@ -115,7 +114,6 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Address Information Section */}
             <div className="form-section">
               <div className="form-section-header">
-                <MapPin size={14} />
                 <span>Address Information</span>
               </div>
               
@@ -180,13 +178,12 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Contact Information Section */}
             <div className="form-section">
               <div className="form-section-header">
-                <Phone size={14} />
                 <span>Contact Information</span>
               </div>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label><Phone size={12} /> Phone Number</label>
+                  <label>Phone Number</label>
                   <input
                     type="tel"
                     name="phone"
@@ -196,7 +193,7 @@ const HospitalModal = ({ isOpen, onClose, onSuccess }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label><Mail size={12} /> Email Address</label>
+                  <label>Email Address</label>
                   <input
                     type="email"
                     name="email"
