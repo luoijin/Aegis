@@ -13,6 +13,10 @@ import { ConditionManager } from '../ConditionManager/ConditionManager';
 import HealthHistory from '../HealthHistory/HealthHistory';
 import ReferralSystem from '../ReferralSystem/ReferralSystem';
 import PatientChartModal from '../PatientChart/PatientChartModal';
+import AddPatientModal from '../PatientManagement/AddPatientModal';
+import ConfirmModal from '../../../common/ConfirmModal/ConfirmModal';
+import { Users, ChevronDown, Trash2, UserPlus } from 'lucide-react';
+import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
 import './DoctorDashboard.css';
 
@@ -24,6 +28,9 @@ const DoctorDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showVitalsForm, setShowVitalsForm] = useState(false);
   const [showPatientChart, setShowPatientChart] = useState(false);
+  const [showAddPatient, setShowAddPatient] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('patients');
 
@@ -74,6 +81,51 @@ const DoctorDashboard = () => {
     await fetchHealthLogs(patient._id);
   };
 
+  const handlePatientSelectChange = (e) => {
+    const patientId = e.target.value;
+    if (!patientId) {
+      setSelectedPatient(null);
+      return;
+    }
+    const patient = patients.find(p => p._id === patientId);
+    if (patient) {
+      handleSelectPatient(patient);
+    }
+  };
+
+  const handleRemovePatient = async (patientId, patientName) => {
+    const confirmed = await confirmDialog(
+      'Remove Patient',
+      `Are you sure you want to remove ${patientName} from your list?`,
+      'danger',
+      'Yes, Remove',
+      'Cancel'
+    );
+    if (confirmed) {
+      try {
+        await api.delete(`/patients/${patientId}/remove`);
+        await fetchPatients();
+        if (selectedPatient?._id === patientId) {
+          setSelectedPatient(null);
+          setHealthLogs([]);
+        }
+        // Show success message
+        setSuccessMessage(`${patientName} has been removed from your list.`);
+        setShowSuccessModal(true);
+      } catch (error) {
+        console.error('Error removing patient:', error);
+      }
+    }
+  };
+
+  const handleAddPatientSuccess = () => {
+    setShowAddPatient(false);
+    fetchPatients();
+    // Show success message
+    setSuccessMessage('Patient has been successfully added to your list!');
+    setShowSuccessModal(true);
+  };
+
   const handleVitalsRecorded = async () => {
     if (selectedPatient) {
       await fetchHealthLogs(selectedPatient._id);
@@ -104,23 +156,18 @@ const DoctorDashboard = () => {
     }
   };
 
-  // ONLY refresh when modal closes - NOT continuously
   const handleModalClose = async () => {
     setShowPatientChart(false);
-    // Refresh patient data once when modal closes
     if (selectedPatient) {
       try {
         const response = await api.get(`/doctor/patients/${selectedPatient._id}`);
         const updatedPatient = response.data;
         setSelectedPatient(updatedPatient);
-        
-        // Also update in patients list
-        setPatients(prevPatients => 
-          prevPatients.map(p => 
+        setPatients(prevPatients =>
+          prevPatients.map(p =>
             p._id === updatedPatient._id ? updatedPatient : p
           )
         );
-        
         await fetchHealthLogs(selectedPatient._id);
       } catch (error) {
         console.error('Error refreshing patient data:', error);
@@ -151,45 +198,82 @@ const DoctorDashboard = () => {
   const latestVitals = healthLogs[0]?.vitals;
 
   const renderContent = () => {
-    switch(activeTab) {
+    switch (activeTab) {
       case 'patients':
         return (
           <>
-            {selectedPatient ? (
+            {/* Mobile Patient Selector */}
+            <div className="mobile-patient-selector">
+              <div className="mobile-selector-header">
+                <Users size={18} />
+                <h3>Select Patient</h3>
+                <button
+                  className="mobile-add-patient-btn"
+                  onClick={() => setShowAddPatient(true)}
+                  title="Add Patient"
+                >
+                  <UserPlus size={18} />
+                </button>
+              </div>
+              <div className="mobile-selector-dropdown">
+                <select
+                  value={selectedPatient?._id || ''}
+                  onChange={handlePatientSelectChange}
+                  className="mobile-patient-dropdown-full"
+                >
+                  <option value="">-- Choose a patient --</option>
+                  {patients.map(patient => {
+                    const fullName = `${patient.user?.profile?.firstName || ''} ${patient.user?.profile?.lastName || ''}`.trim();
+                    return (
+                      <option key={patient._id} value={patient._id}>
+                        {fullName}
+                      </option>
+                    );
+                  })}
+                </select>
+                <ChevronDown size={18} className="dropdown-icon" />
+              </div>
+            </div>
+
+            {/* Selected Patient View */}
+            {selectedPatient && (
               <>
-                <PatientInfoHeader 
+                <div className="mobile-patient-bar">
+                  <div className="mobile-patient-actions">
+                    <button
+                      className="mobile-delete-patient-btn"
+                      onClick={() => handleRemovePatient(selectedPatient._id, `${selectedPatient.user?.profile?.firstName} ${selectedPatient.user?.profile?.lastName}`.trim())}
+                    >
+                      <Trash2 size={16} /> Remove
+                    </button>
+                  </div>
+                </div>
+
+                <PatientInfoHeader
                   patient={selectedPatient}
                   onRecordVitals={() => setShowVitalsForm(true)}
                   onViewChart={() => setShowPatientChart(true)}
                   onPatientUpdate={handlePatientUpdate}
                 />
-                
+
                 <div className="patient-dashboard-grid">
                   <div className="vitals-column">
                     <VitalsGrid latestVitals={latestVitals} />
                     <HealthChart chartData={chartData} />
                   </div>
                   <div className="conditions-column">
-                    <ConditionManager 
-                      patient={selectedPatient} 
+                    <ConditionManager
+                      patient={selectedPatient}
                       onUpdate={handlePatientUpdate}
                     />
                   </div>
                 </div>
-                
+
                 <HealthHistory healthLogs={healthLogs} />
               </>
-            ) : (
-              <div className="no-selection">
-                <div className="no-selection-content">
-                  <h2>Select a Patient</h2>
-                  <p>Choose a patient from the list to view their health records</p>
-                </div>
-              </div>
             )}
           </>
         );
-      
       case 'appointments':
         return <AppointmentScheduler doctorId={user?._id} patients={patients} />;
       case 'referrals':
@@ -205,8 +289,8 @@ const DoctorDashboard = () => {
 
   return (
     <div className="doctor-dashboard">
-      <DashboardHeader 
-        user={user} 
+      <DashboardHeader
+        user={user}
         onLogout={handleLogout}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -247,9 +331,27 @@ const DoctorDashboard = () => {
         <PatientChartModal
           patient={selectedPatient}
           onClose={handleModalClose}
-          // Remove onDataUpdate to prevent continuous refreshes
         />
       )}
+
+      {showAddPatient && (
+        <AddPatientModal
+          onClose={() => setShowAddPatient(false)}
+          onSuccess={handleAddPatientSuccess}
+        />
+      )}
+
+      {/* Success Modal */}
+      <ConfirmModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        onConfirm={() => setShowSuccessModal(false)}
+        title="Success"
+        message={successMessage}
+        type="success"
+        confirmText="OK"
+        cancelText=""
+      />
     </div>
   );
 };

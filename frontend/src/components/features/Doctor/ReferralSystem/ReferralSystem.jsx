@@ -1,6 +1,6 @@
 // frontend/src/components/features/Doctor/ReferralSystem/ReferralSystem.jsx
 import React, { useState, useEffect } from 'react';
-import { Send, Share2, Users, AlertCircle, CheckCircle, XCircle, Clock, User, Stethoscope, Mail } from 'lucide-react';
+import { Send, Share2, Users, AlertCircle, CheckCircle, XCircle, Clock, User, Stethoscope, Mail, Calendar } from 'lucide-react';
 import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
 import './ReferralSystem.css';
@@ -14,7 +14,9 @@ const ReferralSystem = ({ doctorId, patients }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [responding, setResponding] = useState(null);
-  
+  const [selectedReferral, setSelectedReferral] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
   const [formData, setFormData] = useState({
     patientId: '',
     toDoctorId: '',
@@ -26,6 +28,16 @@ const ReferralSystem = ({ doctorId, patients }) => {
   useEffect(() => {
     fetchAllData();
   }, []);
+
+  const showSuccess = (message) => {
+    setSuccess(message);
+    setTimeout(() => setSuccess(''), 3000);
+  };
+
+  const showError = (message) => {
+    setError(message);
+    setTimeout(() => setError(''), 3000);
+  };
 
   const fetchAllData = async () => {
     try {
@@ -73,7 +85,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
     setSubmitting(true);
     setError('');
     setSuccess('');
-    
+
     if (!formData.patientId) {
       setError('Please select a patient');
       setSubmitting(false);
@@ -85,13 +97,13 @@ const ReferralSystem = ({ doctorId, patients }) => {
       setSubmitting(false);
       return;
     }
-    
+
     if (!formData.reason.trim()) {
       setError('Please provide a reason for referral');
       setSubmitting(false);
       return;
     }
-    
+
     try {
       await api.post('/doctor/referrals', {
         patientId: formData.patientId,
@@ -101,7 +113,6 @@ const ReferralSystem = ({ doctorId, patients }) => {
         notes: formData.notes
       });
       
-      setSuccess('Referral sent successfully!');
       setFormData({
         patientId: '',
         toDoctorId: '',
@@ -110,19 +121,17 @@ const ReferralSystem = ({ doctorId, patients }) => {
         notes: ''
       });
       
-      fetchReferrals();
-      
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Referral sent successfully!');
+      await fetchReferrals();
     } catch (error) {
       console.error('Error sending referral:', error);
       setError(error.response?.data?.message || 'Failed to send referral');
-      setTimeout(() => setError(''), 3000);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleRespond = async (referralId, status, actionName, responseNotes = '') => {
+  const handleRespond = async (referralId, status, actionName) => {
     const confirmed = await confirmDialog(
       `${actionName} Referral`,
       `Are you sure you want to ${actionName.toLowerCase()} this referral?`,
@@ -134,19 +143,21 @@ const ReferralSystem = ({ doctorId, patients }) => {
     if (confirmed) {
       setResponding(referralId);
       try {
-        await api.put(`/doctor/referrals/${referralId}/respond`, { status, responseNotes });
-        setSuccess(`Referral ${actionName.toLowerCase()} successfully!`);
-        setTimeout(() => setSuccess(''), 3000);
+        await api.put(`/doctor/referrals/${referralId}/respond`, { status });
+        showSuccess(`Referral ${actionName.toLowerCase()} successfully!`);
         await fetchReferrals();
-        await fetchAvailableDoctors();
       } catch (error) {
         console.error('Error responding to referral:', error);
-        setError(error.response?.data?.message || 'Failed to respond to referral');
-        setTimeout(() => setError(''), 3000);
+        setError(error.response?.data?.message || `Failed to ${actionName.toLowerCase()} referral`);
       } finally {
         setResponding(null);
       }
     }
+  };
+
+  const handleViewDetails = (referral) => {
+    setSelectedReferral(referral);
+    setShowDetailsModal(true);
   };
 
   const getPriorityClass = (priority) => {
@@ -157,12 +168,28 @@ const ReferralSystem = ({ doctorId, patients }) => {
     }
   };
 
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'accepted': return 'status-accepted';
+      case 'denied': return 'status-denied';
+      default: return 'status-pending';
+    }
+  };
+
   const getStatusIcon = (status) => {
     switch(status) {
-      case 'accepted': return <CheckCircle size={16} className="status-icon accepted" />;
-      case 'denied': return <XCircle size={16} className="status-icon denied" />;
-      default: return <Clock size={16} className="status-icon pending" />;
+      case 'accepted': return <CheckCircle size={14} />;
+      case 'denied': return <XCircle size={14} />;
+      default: return <Clock size={14} />;
     }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   if (loading) {
@@ -175,256 +202,364 @@ const ReferralSystem = ({ doctorId, patients }) => {
   }
 
   return (
-    <div className="referral-system">
-      <div className="referral-header">
-        <h2><Share2 size={20} /> Referral System</h2>
-        <p>Refer patients to other doctors and manage incoming referrals</p>
-      </div>
-
-      {error && (
-        <div className="error-message global">
-          <AlertCircle size={16} />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {success && (
-        <div className="success-message global">
-          <CheckCircle size={16} />
-          <span>{success}</span>
-        </div>
-      )}
-
-      <div className="referral-grid">
-        {/* Send Referral Form */}
-        <div className="referral-card send-card">
-          <div className="card-header">
-            <Send size={18} />
-            <h3>Send Referral</h3>
+    <>
+      <div className="referral-system">
+        {error && (
+          <div className="error-message global">
+            <AlertCircle size={16} />
+            <span>{error}</span>
           </div>
-          
-          <form onSubmit={handleSubmit} className="referral-form">
-            <div className="form-group">
-              <label><Users size={14} /> Select Patient</label>
-              <select
-                name="patientId"
-                value={formData.patientId}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select a patient</option>
-                {patients?.filter(p => p.assignedDoctor?._id === doctorId || p.assignedDoctor === doctorId).map(patient => {
-                  const firstName = patient.user?.profile?.firstName || '';
-                  const lastName = patient.user?.profile?.lastName || '';
-                  const fullName = `${firstName} ${lastName}`.trim() || 'Unknown Patient';
-                  return (
-                    <option key={patient._id} value={patient._id}>
-                      {fullName} - {patient.bloodType || 'No blood type'}
-                    </option>
-                  );
-                })}
-              </select>
+        )}
+        {success && (
+          <div className="success-message global">
+            <CheckCircle size={16} />
+            <span>{success}</span>
+          </div>
+        )}
+
+        <div className="referral-header">
+          <h2><Share2 size={20} /> Referral System</h2>
+          <p>Refer patients to other doctors and manage incoming referrals</p>
+        </div>
+
+        <div className="referral-layout">
+          {/* Send Referral Form */}
+          <div className="referral-form-card">
+            <div className="card-header">
+              <Send size={18} />
+              <h3>Send Referral</h3>
             </div>
             
-            <div className="form-group">
-              <label><Stethoscope size={14} /> Referring To</label>
-              <select
-                name="toDoctorId"
-                value={formData.toDoctorId}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select a doctor</option>
-                {availableDoctors.length === 0 ? (
-                  <option disabled>No other doctors available</option>
-                ) : (
-                  availableDoctors.map(doctor => (
-                    <option key={doctor._id} value={doctor._id}>
-                      Dr. {doctor.profile?.firstName} {doctor.profile?.lastName} - {doctor.specialization || 'General'}
-                    </option>
-                  ))
-                )}
-              </select>
-              {availableDoctors.length === 0 && (
-                <small className="warning-text">No other active doctors found in the system.</small>
-              )}
-            </div>
-            
-            <div className="form-group">
-              <label>Reason for Referral *</label>
-              <textarea
-                name="reason"
-                value={formData.reason}
-                onChange={handleChange}
-                placeholder="Explain why you are referring this patient..."
-                rows="3"
-                required
-              />
-            </div>
-            
-            <div className="form-row">
+            <form onSubmit={handleSubmit} className="referral-form">
               <div className="form-group">
-                <label>Priority</label>
-                <select name="priority" value={formData.priority} onChange={handleChange}>
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
+                <label><Users size={14} /> Select Patient *</label>
+                <select
+                  name="patientId"
+                  value={formData.patientId}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select a patient</option>
+                  {patients?.filter(p => p.assignedDoctor?._id === doctorId || p.assignedDoctor === doctorId).map(patient => {
+                    const firstName = patient.user?.profile?.firstName || '';
+                    const lastName = patient.user?.profile?.lastName || '';
+                    const fullName = `${firstName} ${lastName}`.trim() || 'Unknown Patient';
+                    return (
+                      <option key={patient._id} value={patient._id}>
+                        {fullName} - {patient.bloodType || 'No blood type'}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
+              
+              <div className="form-group">
+                <label><Stethoscope size={14} /> Refer To *</label>
+                <select
+                  name="toDoctorId"
+                  value={formData.toDoctorId}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select a doctor</option>
+                  {availableDoctors.length === 0 ? (
+                    <option disabled>No other doctors available</option>
+                  ) : (
+                    availableDoctors.map(doctor => (
+                      <option key={doctor._id} value={doctor._id}>
+                        Dr. {doctor.profile?.firstName} {doctor.profile?.lastName} - {doctor.specialization || 'General'}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label>Reason for Referral *</label>
+                <textarea
+                  name="reason"
+                  value={formData.reason}
+                  onChange={handleChange}
+                  placeholder="Explain why you are referring this patient..."
+                  rows="3"
+                  required
+                />
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Priority</label>
+                  <select name="priority" value={formData.priority} onChange={handleChange}>
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>Additional Notes (Optional)</label>
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    placeholder="Additional notes..."
+                    rows="3"
+                  />
+                </div>
+              </div>
+            
+              <button type="submit" className="send-btn" disabled={submitting || availableDoctors.length === 0}>
+                <Send size={16} />
+                {submitting ? 'Sending...' : 'Send Referral'}
+              </button>
+            </form>
+          </div>
+
+          {/* Received Referrals Table */}
+          <div className="referrals-table-card">
+            <div className="card-header">
+              <Share2 size={18} />
+              <h3>Received Referrals</h3>
+              <span className="badge">{receivedReferrals.length}</span>
             </div>
             
-            <div className="form-group">
-              <label>Additional Notes (Optional)</label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Any additional information for the receiving doctor..."
-                rows="2"
-              />
+            <div className="table-wrapper">
+              {receivedReferrals.length === 0 ? (
+                <div className="empty-state">
+                  <Share2 size={32} />
+                  <p>No pending referrals</p>
+                  <span>When other doctors refer patients to you, they will appear here</span>
+                </div>
+              ) : (
+                <table className="referrals-table">
+                  <thead>
+                    <tr>
+                      <th>Patient</th>
+                      <th>From Doctor</th>
+                      <th>Reason</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {receivedReferrals.map(ref => (
+                      <tr key={ref._id}>
+                        <td data-label="Patient">
+                          <div className="patient-name">
+                            {ref.patient?.user?.profile?.firstName} {ref.patient?.user?.profile?.lastName}
+                          </div>
+                          <div className="patient-detail">
+                            {ref.patient?.bloodType ? `Blood Type: ${ref.patient.bloodType}` : 'Blood type not specified'}
+                          </div>
+                        </td>
+                        <td data-label="From Doctor">
+                          <div className="doctor-name">
+                            Dr. {ref.fromDoctor?.profile?.firstName} {ref.fromDoctor?.profile?.lastName}
+                          </div>
+                          <div className="doctor-detail">{ref.fromDoctor?.email}</div>
+                        </td>
+                        <td data-label="Reason" className="reason-cell" title={ref.reason}>
+                          {ref.reason.length > 50 ? ref.reason.substring(0, 50) + '...' : ref.reason}
+                        </td>
+                        <td data-label="Priority">
+                          <span className={`priority-badge ${getPriorityClass(ref.priority)}`}>
+                            {ref.priority}
+                          </span>
+                        </td>
+                        <td data-label="Status">
+                          <div className={`status-badge ${getStatusClass(ref.status)}`}>
+                            {getStatusIcon(ref.status)}
+                            <span>{ref.status}</span>
+                          </div>
+                        </td>
+                        <td data-label="Date" className="date-cell">
+                          {formatDate(ref.createdAt)}
+                        </td>
+                        <td data-label="Actions" className="actions-cell">
+                          <button 
+                            className="action-btn accept" 
+                            onClick={() => handleRespond(ref._id, 'accepted', 'Accept')}
+                            disabled={responding === ref._id}
+                            title="Accept"
+                          >
+                            <CheckCircle size={16} />
+                          </button>
+                          <button 
+                            className="action-btn deny" 
+                            onClick={() => handleRespond(ref._id, 'denied', 'Deny')}
+                            disabled={responding === ref._id}
+                            title="Deny"
+                          >
+                            <XCircle size={16} />
+                          </button>
+                          <button 
+                            className="action-btn view" 
+                            onClick={() => handleViewDetails(ref)}
+                            title="View Details"
+                          >
+                            <AlertCircle size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+          {/* Sent Referrals Table */}
+          <div className="referrals-table-card">
+            <div className="card-header">
+              <Send size={18} />
+              <h3>Sent Referrals</h3>
+              <span className="badge">{sentReferrals.length}</span>
             </div>
             
-            <button type="submit" className="send-btn" disabled={submitting || availableDoctors.length === 0}>
-              <Send size={16} />
-              {submitting ? 'Sending...' : 'Send Referral'}
-            </button>
-          </form>
-        </div>
-
-        {/* Received Referrals */}
-        <div className="referral-card received-card">
-          <div className="card-header">
-            <Share2 size={18} />
-            <h3>Received Referrals</h3>
-            <span className="badge">{receivedReferrals.length}</span>
-          </div>
-          
-          <div className="referrals-list">
-            {receivedReferrals.length === 0 ? (
-              <div className="empty-state">
-                <Share2 size={32} />
-                <p>No pending referrals</p>
-                <span>When other doctors refer patients to you, they will appear here</span>
-              </div>
-            ) : (
-              receivedReferrals.map(ref => (
-                <div key={ref._id} className="referral-item received">
-                  <div className="referral-header-info">
-                    <div className="referral-patient">
-                      <strong>
-                        {ref.patient?.user?.profile?.firstName} {ref.patient?.user?.profile?.lastName}
-                      </strong>
-                      <span className={`priority-badge ${getPriorityClass(ref.priority)}`}>
-                        {ref.priority}
-                      </span>
-                    </div>
-                    <div className="referral-status">
-                      {getStatusIcon(ref.status)}
-                      <span>{ref.status}</span>
-                    </div>
-                  </div>
-                  <div className="referral-doctor-info">
-                    <User size={12} />
-                    <span>From: Dr. {ref.fromDoctor?.profile?.firstName} {ref.fromDoctor?.profile?.lastName}</span>
-                    <Mail size={12} />
-                    <span>{ref.fromDoctor?.email}</span>
-                  </div>
-                  <div className="referral-reason">
-                    <p><strong>Reason:</strong> {ref.reason}</p>
-                  </div>
-                  {ref.notes && (
-                    <div className="referral-notes">
-                      <p><strong>Notes:</strong> {ref.notes}</p>
-                    </div>
-                  )}
-                  <div className="referral-actions">
-                    <button 
-                      className="accept-btn" 
-                      onClick={() => handleRespond(ref._id, 'accepted', 'Accept')}
-                      disabled={responding === ref._id}
-                    >
-                      <CheckCircle size={14} />
-                      Accept
-                    </button>
-                    <button 
-                      className="deny-btn" 
-                      onClick={() => handleRespond(ref._id, 'denied', 'Deny')}
-                      disabled={responding === ref._id}
-                    >
-                      <XCircle size={14} />
-                      Deny
-                    </button>
-                  </div>
-                  <div className="referral-date">
-                    Received: {new Date(ref.createdAt).toLocaleDateString()}
-                  </div>
+            <div className="table-wrapper">
+              {sentReferrals.length === 0 ? (
+                <div className="empty-state">
+                  <Send size={32} />
+                  <p>No sent referrals</p>
+                  <span>Referrals you send to other doctors will appear here</span>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Sent Referrals */}
-        <div className="referral-card sent-card">
-          <div className="card-header">
-            <Send size={18} />
-            <h3>Sent Referrals</h3>
-            <span className="badge">{sentReferrals.length}</span>
-          </div>
-          
-          <div className="referrals-list">
-            {sentReferrals.length === 0 ? (
-              <div className="empty-state">
-                <Send size={32} />
-                <p>No sent referrals</p>
-                <span>Referrals you send to other doctors will appear here</span>
-              </div>
-            ) : (
-              sentReferrals.map(ref => (
-                <div key={ref._id} className="referral-item sent">
-                  <div className="referral-header-info">
-                    <div className="referral-patient">
-                      <strong>
-                        {ref.patient?.user?.profile?.firstName} {ref.patient?.user?.profile?.lastName}
-                      </strong>
-                      <span className={`priority-badge ${getPriorityClass(ref.priority)}`}>
-                        {ref.priority}
-                      </span>
-                    </div>
-                    <div className="referral-status">
-                      {getStatusIcon(ref.status)}
-                      <span>{ref.status}</span>
-                    </div>
-                  </div>
-                  <div className="referral-doctor-info">
-                    <User size={12} />
-                    <span>To: Dr. {ref.toDoctor?.profile?.firstName} {ref.toDoctor?.profile?.lastName}</span>
-                    <Mail size={12} />
-                    <span>{ref.toDoctor?.email}</span>
-                  </div>
-                  <div className="referral-reason">
-                    <p><strong>Reason:</strong> {ref.reason}</p>
-                  </div>
-                  {ref.notes && (
-                    <div className="referral-notes">
-                      <p><strong>Notes:</strong> {ref.notes}</p>
-                    </div>
-                  )}
-                  {ref.responseNotes && ref.status !== 'pending' && (
-                    <div className="referral-response">
-                      <p><strong>Response:</strong> {ref.responseNotes}</p>
-                    </div>
-                  )}
-                  <div className="referral-date">
-                    Sent: {new Date(ref.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
-              ))
-            )}
+              ) : (
+                <table className="referrals-table">
+                  <thead>
+                    <tr>
+                      <th>Patient</th>
+                      <th>To Doctor</th>
+                      <th>Reason</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sentReferrals.map(ref => (
+                      <tr key={ref._id}>
+                        <td data-label="Patient">
+                          <div className="patient-name">
+                            {ref.patient?.user?.profile?.firstName} {ref.patient?.user?.profile?.lastName}
+                          </div>
+                        </td>
+                        <td data-label="To Doctor">
+                          <div className="doctor-name">
+                            Dr. {ref.toDoctor?.profile?.firstName} {ref.toDoctor?.profile?.lastName}
+                          </div>
+                          <div className="doctor-detail">{ref.toDoctor?.email}</div>
+                        </td>
+                        <td data-label="Reason" className="reason-cell" title={ref.reason}>
+                          {ref.reason.length > 50 ? ref.reason.substring(0, 50) + '...' : ref.reason}
+                        </td>
+                        <td data-label="Priority">
+                          <span className={`priority-badge ${getPriorityClass(ref.priority)}`}>
+                            {ref.priority}
+                          </span>
+                        </td>
+                        <td data-label="Status">
+                          <div className={`status-badge ${getStatusClass(ref.status)}`}>
+                            {getStatusIcon(ref.status)}
+                            <span>{ref.status}</span>
+                          </div>
+                        </td>
+                        <td data-label="Date" className="date-cell">
+                          {formatDate(ref.createdAt)}
+                        </td>
+                        <td data-label="Actions" className="actions-cell">
+                          <button 
+                            className="action-btn view" 
+                            onClick={() => handleViewDetails(ref)}
+                            title="View Details"
+                          >
+                            <AlertCircle size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedReferral && (
+        <div className="referral-modal-overlay" onClick={() => setShowDetailsModal(false)}>
+          <div className="referral-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3><Share2 size={18} /> Referral Details</h3>
+              <button className="close-btn" onClick={() => setShowDetailsModal(false)}>
+                <XCircle size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-row">
+                <span className="detail-label">Patient:</span>
+                <span className="detail-value">
+                  {selectedReferral.patient?.user?.profile?.firstName} {selectedReferral.patient?.user?.profile?.lastName}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">From Doctor:</span>
+                <span className="detail-value">
+                  Dr. {selectedReferral.fromDoctor?.profile?.firstName} {selectedReferral.fromDoctor?.profile?.lastName}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">To Doctor:</span>
+                <span className="detail-value">
+                  Dr. {selectedReferral.toDoctor?.profile?.firstName} {selectedReferral.toDoctor?.profile?.lastName}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Priority:</span>
+                <span className={`priority-badge ${getPriorityClass(selectedReferral.priority)}`}>
+                  {selectedReferral.priority}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Status:</span>
+                <div className={`status-badge ${getStatusClass(selectedReferral.status)}`}>
+                  {getStatusIcon(selectedReferral.status)}
+                  <span>{selectedReferral.status}</span>
+                </div>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Date:</span>
+                <span className="detail-value">{formatDate(selectedReferral.createdAt)}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Reason:</span>
+                <span className="detail-value reason-text">{selectedReferral.reason}</span>
+              </div>
+              {selectedReferral.notes && (
+                <div className="detail-row">
+                  <span className="detail-label">Notes:</span>
+                  <span className="detail-value notes-text">{selectedReferral.notes}</span>
+                </div>
+              )}
+              {selectedReferral.responseNotes && (
+                <div className="detail-row">
+                  <span className="detail-label">Response:</span>
+                  <span className="detail-value response-text">{selectedReferral.responseNotes}</span>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="close-modal-btn" onClick={() => setShowDetailsModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

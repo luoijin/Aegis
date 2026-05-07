@@ -1,9 +1,7 @@
 /* frontend/src/components/features/Doctor/ReferralSystem/ReferralSystem.css */
 
 .referral-system {
-  padding: 24px;
-  background: #f8fafc;
-  min-height: calc(100vh - 200px);
+  padding: 0;
 }
 
 .referral-header {
@@ -26,26 +24,27 @@
   margin: 0;
 }
 
-.referral-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* Layout */
+.referral-layout {
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
-.referral-card {
+/* Form Card */
+.referral-form-card {
   background: white;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
-.send-card {
-  grid-column: span 1;
-}
-
-.received-card,
-.sent-card {
-  grid-column: span 1;
+/* Tables Card */
+.referrals-table-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
 }
 
 .card-header {
@@ -126,13 +125,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-}
-
-.warning-text {
-  color: #f59e0b;
-  font-size: 11px;
-  margin-top: 6px;
-  display: block;
+  margin-bottom: 16px;
 }
 
 /* Send Button */
@@ -151,7 +144,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .send-btn:hover:not(:disabled) {
@@ -163,101 +156,88 @@
   cursor: not-allowed;
 }
 
-/* Referrals List */
-.referrals-list {
-  padding: 16px;
-  max-height: 500px;
-  overflow-y: auto;
+/* Table Wrapper */
+.table-wrapper {
+  overflow-x: auto;
 }
 
-.referral-item {
-  padding: 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  transition: all 0.2s;
-}
-
-.referral-item:last-child {
-  margin-bottom: 0;
-}
-
-.referral-item:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.referral-header-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.referral-patient {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.referral-patient strong {
-  font-size: 14px;
-  color: #0f172a;
-}
-
-.referral-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.referral-doctor-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  color: #64748b;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-}
-
-.referral-reason p,
-.referral-notes p,
-.referral-response p {
-  margin: 0 0 8px 0;
+.referrals-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 13px;
-  color: #334155;
-  line-height: 1.4;
+  min-width: 900px;
 }
 
-.referral-date {
-  font-size: 10px;
+.referrals-table th {
+  background: #f8fafc;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.referrals-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.referrals-table tr:last-child td {
+  border-bottom: none;
+}
+
+.referrals-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* Cell Styles */
+.patient-name {
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.patient-detail {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.doctor-name {
+  font-weight: 500;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.doctor-detail {
+  font-size: 11px;
   color: #94a3b8;
-  margin-top: 8px;
-  text-align: right;
+}
+
+.reason-cell {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #475569;
+}
+
+.date-cell {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 /* Priority Badges */
 .priority-badge {
-  font-size: 10px;
-  font-weight: 500;
-  padding: 2px 8px;
+  display: inline-block;
+  padding: 4px 10px;
   border-radius: 20px;
-}
-
-.priority-normal {
-  background: #e2e8f0;
-  color: #475569;
-}
-
-.priority-high {
-  background: #fef3c7;
-  color: #d97706;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .priority-urgent {
@@ -265,68 +245,114 @@
   color: #dc2626;
 }
 
-/* Status Icons */
-.status-icon.accepted {
-  color: #10b981;
+.priority-high {
+  background: #fef3c7;
+  color: #d97706;
 }
 
-.status-icon.denied {
-  color: #ef4444;
+.priority-normal {
+  background: #e2e8f0;
+  color: #475569;
 }
 
-.status-icon.pending {
-  color: #f59e0b;
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-accepted {
+  background: #dcfce7;
+  color: #059669;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-denied {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 /* Action Buttons */
-.referral-actions {
+.actions-cell {
   display: flex;
-  gap: 12px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid #e2e8f0;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.accept-btn,
-.deny-btn {
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
+  justify-content: center;
   cursor: pointer;
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
   transition: all 0.2s;
-  border: none;
 }
 
-.accept-btn {
+.action-btn:hover {
+  background: #f1f5f9;
+}
+
+.action-btn.accept:hover {
   background: #dcfce7;
-  color: #166534;
+  border-color: #bbf7d0;
+  color: #059669;
 }
 
-.accept-btn:hover:not(:disabled) {
-  background: #bbf7d0;
-}
-
-.deny-btn {
+.action-btn.deny:hover {
   background: #fee2e2;
-  color: #991b1b;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
-.deny-btn:hover:not(:disabled) {
-  background: #fecaca;
+.action-btn.view:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #3b82f6;
 }
 
-.accept-btn:disabled,
-.deny-btn:disabled {
+.action-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+}
+
+.empty-state svg {
+  margin-bottom: 12px;
+  color: #cbd5e1;
+}
+
+.empty-state p {
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.empty-state span {
+  font-size: 12px;
+}
+
 /* Messages */
-.error-message.global {
+.error-message.global,
+.success-message.global {
   margin-bottom: 20px;
 }
 
@@ -338,7 +364,6 @@
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 13px;
-  margin-bottom: 16px;
 }
 
 .error-message {
@@ -353,38 +378,13 @@
   color: #059669;
 }
 
-/* Empty State */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-  color: #94a3b8;
-}
-
-.empty-state svg {
-  color: #cbd5e1;
-  margin-bottom: 12px;
-}
-
-.empty-state p {
-  font-size: 14px;
-  margin: 0 0 4px 0;
-}
-
-.empty-state span {
-  font-size: 12px;
-}
-
 /* Loading */
 .referral-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 400px;
+  padding: 60px;
   color: #94a3b8;
 }
 
@@ -402,95 +402,133 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .referral-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .send-card,
-  .received-card,
-  .sent-card {
-    grid-column: span 1;
-  }
-  
-  .referral-system {
-    padding: 16px;
-  }
+/* Details Modal */
+.referral-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
 }
 
-@media (max-width: 640px) {
+.referral-modal {
+  background: white;
+  border-radius: 20px;
+  width: 550px;
+  max-width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  padding: 6px;
+  border-radius: 8px;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  background: #f8fafc;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.detail-label {
+  width: 100px;
+  color: #64748b;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  flex: 1;
+  color: #0f172a;
+}
+
+.reason-text,
+.notes-text,
+.response-text {
+  line-height: 1.5;
+  color: #475569;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  background: white;
+}
+
+.close-modal-btn {
+  padding: 8px 24px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
     gap: 0;
   }
   
-  .referral-header-info {
-    flex-direction: column;
-    align-items: flex-start;
+  .referrals-table {
+    min-width: 700px;
   }
   
-  .referral-actions {
+  .detail-row {
     flex-direction: column;
-  }
-  
-  .accept-btn,
-  .deny-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .referral-doctor-info {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 4px;
   }
-}
-
-/* Add to ReferralSystem.css */
-
-.success-message.global {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #dcfce7;
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-  color: #166534;
-  font-size: 13px;
-  z-index: 1000;
-  animation: slideInRight 0.3s ease-out;
-}
-
-.error-message.global {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: 12px;
-  color: #dc2626;
-  font-size: 13px;
-  z-index: 1000;
-  animation: slideInRight 0.3s ease-out;
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
+  
+  .detail-label {
+    width: auto;
   }
-  to {
-    transform: translateX(0);
-    opacity: 1;
+  
+  .actions-cell {
+    flex-wrap: wrap;
   }
 }

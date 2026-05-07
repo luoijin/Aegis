@@ -630,16 +630,15 @@ exports.createReferral = async (req, res) => {
 exports.getSentReferrals = async (req, res) => {
   try {
     const referrals = await Referral.find({ fromDoctor: req.user._id })
-      .populate('patient', 'user bloodType')
+      .populate({
+        path: 'patient',
+        populate: {
+          path: 'user',
+          select: 'email profile'
+        }
+      })
       .populate('toDoctor', 'email profile specialization')
       .sort({ createdAt: -1 });
-    
-    // Populate patient user details
-    for (let ref of referrals) {
-      if (ref.patient) {
-        await ref.patient.populate('user', 'email profile');
-      }
-    }
     
     res.json(referrals);
   } catch (error) {
@@ -648,19 +647,22 @@ exports.getSentReferrals = async (req, res) => {
   }
 };
 
+
 exports.getReceivedReferrals = async (req, res) => {
   try {
-    const referrals = await Referral.find({ toDoctor: req.user._id, status: 'pending' })
-      .populate('patient', 'user bloodType')
+    const referrals = await Referral.find({ 
+      toDoctor: req.user._id,
+      status: 'pending'
+    })
+      .populate({
+        path: 'patient',
+        populate: {
+          path: 'user',
+          select: 'email profile'
+        }
+      })
       .populate('fromDoctor', 'email profile specialization')
       .sort({ createdAt: -1 });
-    
-    // Populate patient user details
-    for (let ref of referrals) {
-      if (ref.patient) {
-        await ref.patient.populate('user', 'email profile');
-      }
-    }
     
     res.json(referrals);
   } catch (error) {
@@ -677,16 +679,16 @@ exports.getReferrals = async (req, res) => {
         { toDoctor: req.user._id }
       ]
     })
-      .populate('patient', 'user bloodType')
-      .populate('fromDoctor', 'email profile')
-      .populate('toDoctor', 'email profile')
+      .populate({
+        path: 'patient',
+        populate: {
+          path: 'user',
+          select: 'email profile'
+        }
+      })
+      .populate('fromDoctor', 'email profile specialization')
+      .populate('toDoctor', 'email profile specialization')
       .sort({ createdAt: -1 });
-    
-    for (let ref of referrals) {
-      if (ref.patient) {
-        await ref.patient.populate('user', 'email profile');
-      }
-    }
     
     res.json(referrals);
   } catch (error) {

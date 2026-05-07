@@ -1,8 +1,9 @@
 /* frontend/src/components/features/Doctor/DashboardSidebar/DashboardSidebar.css */
+
 .dashboard-sidebar {
-  width: 260px;
+  width: 280px;
   background: white;
-  border-right: 1px solid #E2E8F0;
+  border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -12,7 +13,7 @@
 
 .sidebar-header {
   padding: 20px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
@@ -26,7 +27,7 @@
 .sidebar-header-top h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #0A0F1D;
+  color: #0f172a;
   margin: 0;
 }
 
@@ -36,7 +37,7 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: #3B82F6;
+  background: #3b82f6;
   border: none;
   border-radius: 8px;
   color: white;
@@ -45,35 +46,56 @@
 }
 
 .add-patient-sidebar-btn:hover {
-  background: #2563EB;
+  background: #2563eb;
 }
 
 .patient-search {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 13px;
-  background: #F8FAFC;
+  background: #f8fafc;
+  transition: all 0.2s;
 }
 
 .patient-search:focus {
   outline: none;
-  border-color: #3B82F6;
+  border-color: #3b82f6;
+  background: white;
 }
 
 .sidebar-patients-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 12px;
   min-height: 0;
+}
+
+/* Custom scrollbar for patient list */
+.sidebar-patients-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-patients-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.sidebar-patients-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.sidebar-patients-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .sidebar-patient-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
@@ -81,30 +103,35 @@
 }
 
 .sidebar-patient-item:hover {
-  background: #F1F5F9;
+  background: #f1f5f9;
 }
 
 .sidebar-patient-item.active {
-  background: #EFF6FF;
+  background: #eff6ff;
 }
 
 .patient-name {
   font-weight: 500;
   font-size: 14px;
-  color: #1E293B;
+  color: #1e293b;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .patient-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .remove-patient-btn {
   background: none;
   border: none;
   cursor: pointer;
-  color: #94A3B8;
+  color: #94a3b8;
   padding: 4px;
   border-radius: 6px;
   display: flex;
@@ -118,8 +145,8 @@
 }
 
 .remove-patient-btn:hover {
-  background: #FEE2E2;
-  color: #EF4444;
+  background: #fee2e2;
+  color: #ef4444;
 }
 
 .remove-patient-btn:disabled {
@@ -128,9 +155,10 @@
 }
 
 .patient-chevron {
-  color: #94A3B8;
+  color: #94a3b8;
   opacity: 0;
   transition: opacity 0.2s;
+  flex-shrink: 0;
 }
 
 .sidebar-patient-item:hover .patient-chevron {
@@ -138,13 +166,14 @@
 }
 
 .sidebar-patient-item.active .patient-chevron {
-  color: #3B82F6;
+  color: #3b82f6;
   opacity: 1;
 }
 
-.loading, .empty {
+.loading,
+.empty {
   text-align: center;
-  padding: 40px;
-  color: #94A3B8;
+  padding: 40px 20px;
+  color: #94a3b8;
   font-size: 13px;
 }

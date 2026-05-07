@@ -293,9 +293,8 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
             sortedDates.map(dateKey => (
               <div key={dateKey} className="date-group">
                 <div className="date-header">
-                  <Calendar size={16} />
                   <span>{formatDate(dateKey)}</span>
-                  <span className="appointment-count">{groupedAppointments[dateKey].length} appointments</span>
+                  <span className="appointment-count"> {groupedAppointments[dateKey].length} </span>
                 </div>
                 <div className="appointments-grid">
                   {groupedAppointments[dateKey].map(appointment => {

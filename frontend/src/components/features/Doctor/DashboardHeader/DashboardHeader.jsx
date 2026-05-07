@@ -1,5 +1,6 @@
+// frontend/src/components/features/Doctor/DashboardHeader/DashboardHeader.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { Stethoscope, LogOut, Users, Calendar, FileText, Share2, TrendingUp, User, Settings, Menu, X } from 'lucide-react';
+import { LogOut, Users, Calendar, FileText, Share2, TrendingUp, User, Settings, Menu, X, Bell } from 'lucide-react';
 import { NotificationBell } from '../../../common/NotificationBell/NotificationBell';
 import { AccountModal } from '../AccountModal/AccountModal';
 import './DashboardHeader.css';
@@ -24,7 +25,6 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
   const doctorName = `Dr. ${user?.profile?.firstName || ''} ${user?.profile?.lastName || ''}`.trim();
   const doctorSpecialization = user?.specialization || 'Not specified';
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -38,9 +38,21 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (showMobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showMobileMenu]);
+
   const handleAccountClick = () => {
     setShowAccountMenu(false);
-    setShowMobileMenu(false); // Close mobile menu if open
+    setShowMobileMenu(false);
     setShowAccountModal(true);
   };
 
@@ -53,14 +65,14 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
     <>
       <header className="doctor-header">
         <div className="header-container">
-          {/* Logo */}
+          {/* Logo - Left Side */}
           <div className="logo">
             <img src={logo} alt="AEGIS Logo" className="logo-image" />
             <span className="logo-text">AEGIS</span>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="nav-menu desktop-only">
+          {/* Desktop Navigation - Hidden on mobile */}
+          <nav className="nav-menu">
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -73,15 +85,16 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
             ))}
           </nav>
 
-          {/* Right Actions */}
+          {/* Right Side Actions */}
           <div className="header-actions">
             <NotificationBell />
             
-            {/* Account Dropdown */}
+            {/* Account Dropdown - Desktop */}
             <div className="account-dropdown" ref={menuRef}>
               <button 
                 className="account-btn"
                 onClick={() => setShowAccountMenu(!showAccountMenu)}
+                aria-label="Account"
               >
                 <User size={18} />
               </button>
@@ -106,10 +119,11 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
               )}
             </div>
 
-            {/* Mobile Menu Toggle */}
+            {/* Hamburger Menu Button - Mobile only */}
             <button 
               className="mobile-menu-btn"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
+              aria-label="Menu"
             >
               {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -117,24 +131,48 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
         </div>
       </header>
 
-      {/* Mobile Navigation Overlay */}
+      {/* Mobile Navigation Drawer */}
       {showMobileMenu && (
-        <div className="mobile-nav-overlay" ref={mobileMenuRef}>
-          <nav className="mobile-nav-menu">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                className={`mobile-nav-link ${activeTab === tab.id ? 'active' : ''}`}
-                onClick={() => {
-                  onTabChange(tab.id);
-                  setShowMobileMenu(false);
-                }}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
+        <div className="mobile-nav-overlay" onClick={() => setShowMobileMenu(false)}>
+          <div className="mobile-nav-drawer" ref={mobileMenuRef} onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-nav-header">
+              <div className="mobile-user-info">
+                <div className="mobile-user-name">{doctorName}</div>
+                <div className="mobile-user-email">{user?.email}</div>
+                <div className="mobile-user-specialty">{doctorSpecialization}</div>
+              </div>
+              <button className="mobile-nav-close" onClick={() => setShowMobileMenu(false)}>
+                <X size={20} />
               </button>
-            ))}
-          </nav>
+            </div>
+            
+            <div className="mobile-nav-list">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  className={`mobile-nav-link ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => {
+                    onTabChange(tab.id);
+                    setShowMobileMenu(false);
+                  }}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+            
+            <div className="mobile-nav-footer">
+              <button className="mobile-nav-footer-item" onClick={handleAccountClick}>
+                <Settings size={18} />
+                Account Settings
+              </button>
+              <button className="mobile-nav-footer-item" onClick={handleLogout}>
+                <LogOut size={18} />
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

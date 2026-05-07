@@ -167,7 +167,6 @@ export const ConditionManager = ({ patient, onUpdate }) => {
     <div className="condition-manager-card">
       <div className="card-header">
         <div className="header-title">
-          <Activity size={20} />
           <h3>Medical Conditions</h3>
           <span className="condition-count">{activeConditions.length}</span>
           {refreshing && <span className="refreshing-badge">Syncing...</span>}
