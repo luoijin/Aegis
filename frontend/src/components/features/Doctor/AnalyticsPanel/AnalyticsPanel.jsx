@@ -4,7 +4,17 @@ import { Activity, Users, TrendingUp, AlertCircle } from 'lucide-react';
 import api from '../../../../services/api';
 import './AnalyticsPanel.css';
 
-const COLORS = ['#8B0000', '#C41E3A', '#DC143C', '#B22234', '#A52A2A', '#800020', '#9B111E'];
+// Use a blue gradient from your theme
+const BLUE_COLORS = [
+  'var(--accent)',
+  'var(--accent-light)',
+  '#1e40af',
+  '#3b82f6',
+  '#60a5fa',
+  '#93c5fd',
+  '#bfdbfe',
+  '#dbeafe'
+];
 
 export const AnalyticsPanel = ({ doctorId }) => {
   const [analytics, setAnalytics] = useState(null);
@@ -73,9 +83,7 @@ export const AnalyticsPanel = ({ doctorId }) => {
         <div className="stat-card">
           <TrendingUp size={20} />
           <div>
-            <div className="stat-value">
-              {analytics?.conditions?.length || 0}
-            </div>
+            <div className="stat-value">{analytics?.conditions?.length || 0}</div>
             <div className="stat-label">Condition Types</div>
           </div>
         </div>
@@ -99,7 +107,7 @@ export const AnalyticsPanel = ({ doctorId }) => {
                 {analytics.conditions.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]}
+                    fill={BLUE_COLORS[index % BLUE_COLORS.length]}
                     stroke="white"
                     strokeWidth={2}
                   />
@@ -110,6 +118,7 @@ export const AnalyticsPanel = ({ doctorId }) => {
                 verticalAlign="bottom" 
                 height={36}
                 formatter={(value) => <span className="legend-label">{value}</span>}
+                wrapperStyle={{ fontSize: '12px' }}
               />
             </PieChart>
           </ResponsiveContainer>

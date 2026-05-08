@@ -1,6 +1,7 @@
 // frontend/src/components/features/Doctor/HealthHistory/HealthHistory.jsx
+
 import React, { useState } from 'react';
-import { History, Eye, X, Clock, Activity, Thermometer, Droplet, AlertCircle, CheckCircle, FileText, User, Stethoscope } from 'lucide-react';
+import { FileText, Eye, X, Clock, Activity, Thermometer, Droplet, AlertCircle, CheckCircle, Stethoscope } from 'lucide-react';
 import './HealthHistory.css';
 
 export const HealthHistory = ({ healthLogs }) => {
@@ -27,7 +28,6 @@ export const HealthHistory = ({ healthLogs }) => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Get doctor name - same styling as vitals
   const getDoctorName = (recordedBy) => {
     if (!recordedBy) return 'Unknown';
     const firstName = recordedBy.profile?.firstName || '';
@@ -124,7 +124,6 @@ export const HealthHistory = ({ healthLogs }) => {
         </div>
       </div>
 
-      {/* Record Details Modal */}
       {selectedRecord && (
         <div className="modal-overlay" onClick={() => setSelectedRecord(null)}>
           <div className="record-modal" onClick={(e) => e.stopPropagation()}>

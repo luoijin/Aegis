@@ -21,7 +21,7 @@
 - [Login Credentials](#login-credentials)
 - [API Documentation](#api-documentation)
 - [Project Structure](#project-structure)
-- [Screenshots](#screenshots)
+- [Screenshots](#screenshots)a
 - [Contributing](#contributing)
 - [License](#license)
 

@@ -1,50 +1,37 @@
-/* PatientCard.css */
-.patient-item {
+/* frontend/src/components/features/Doctor/PatientList/PatientCard.css */
+
+.patient-card-item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.2s;
   margin-bottom: 4px;
 }
 
-.patient-item:hover {
-  background: #F1F5F9;
+.patient-card-item:hover {
+  background: var(--gray-100);
 }
 
-.patient-item.active {
-  background: #EFF6FF;
-  border-left: 3px solid #3B82F6;
+.patient-card-item.active {
+  background: var(--info-bg);
+  border-left: 3px solid var(--accent);
 }
 
-.patient-avatar {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: white;
-  flex-shrink: 0;
-}
-
-.patient-info {
+.patient-card-info {
   flex: 1;
   min-width: 0;
 }
 
-.patient-name {
+.patient-card-name {
   font-weight: 600;
-  color: #1E293B;
+  color: var(--gray-900);
   margin-bottom: 4px;
   font-size: 14px;
 }
 
 .patient-last-visit {
   font-size: 11px;
-  color: #64748B;
+  color: var(--gray-500);
 }

@@ -1,113 +1,202 @@
 /* frontend/src/components/features/Doctor/ReferralSystem/SendReferralModal.css */
-.send-referral-modal {
+
+.doctor-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.doctor-modal-container {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   width: 500px;
   max-width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
 }
 
-.modal-header {
+.doctor-modal-md {
+  width: 500px;
+}
+
+.doctor-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--gray-200);
 }
 
-.modal-header h3 {
+.doctor-modal-header h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #0A0F1D;
+  color: var(--gray-900);
+  margin: 0;
 }
 
-.close-btn {
+.doctor-close-btn {
   background: none;
   border: none;
   cursor: pointer;
-  color: #64748B;
+  color: var(--gray-500);
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
-.close-btn:hover {
-  background: #F1F5F9;
+.doctor-close-btn:hover {
+  background: var(--gray-100);
 }
 
-.send-referral-modal form {
+.doctor-modal-form {
   padding: 24px;
 }
 
-.form-group {
+.doctor-form-group {
   margin-bottom: 20px;
 }
 
-.form-group label {
+.doctor-form-group label {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: #475569;
+  color: var(--gray-600);
   margin-bottom: 8px;
 }
 
-.form-group select,
-.form-group textarea {
+.doctor-required {
+  color: var(--danger);
+}
+
+.doctor-form-group select,
+.doctor-form-group textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
   font-size: 14px;
   font-family: inherit;
+  background: white;
 }
 
-.form-group select:focus,
-.form-group textarea:focus {
+.doctor-form-group select:focus,
+.doctor-form-group textarea:focus {
   outline: none;
-  border-color: #3B82F6;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-group textarea {
-  resize: vertical;
+.doctor-form-group select:disabled,
+.doctor-form-group textarea:disabled {
+  background: var(--gray-50);
+  cursor: not-allowed;
 }
 
-.modal-actions {
+.doctor-priority-options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.doctor-priority-option {
+  padding: 8px 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.doctor-priority-option.selected {
+  border-color: transparent;
+}
+
+.doctor-priority-option.selected.normal {
+  background: var(--info-bg);
+  color: var(--info);
+  border-color: var(--info);
+}
+
+.doctor-priority-option.selected.urgent {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: var(--warning);
+}
+
+.doctor-priority-option.selected.emergency {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.doctor-priority-option:hover:not(:disabled) {
+  background: var(--gray-100);
+}
+
+.doctor-priority-option:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.doctor-error-message {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.doctor-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   margin-top: 24px;
 }
 
-.cancel-btn, .submit-btn {
+.doctor-cancel-btn,
+.doctor-submit-btn {
   padding: 8px 20px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.cancel-btn {
+.doctor-cancel-btn {
   background: none;
-  border: 1px solid #E2E8F0;
-  color: #64748B;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
 }
 
-.cancel-btn:hover {
-  background: #F1F5F9;
+.doctor-cancel-btn:hover {
+  background: var(--gray-100);
 }
 
-.submit-btn {
-  background: #3B82F6;
+.doctor-submit-btn {
+  background: var(--accent);
   border: none;
   color: white;
 }
 
-.submit-btn:hover:not(:disabled) {
-  background: #2563EB;
+.doctor-submit-btn:hover:not(:disabled) {
+  background: var(--accent-dark);
 }
 
-.submit-btn:disabled {
+.doctor-submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

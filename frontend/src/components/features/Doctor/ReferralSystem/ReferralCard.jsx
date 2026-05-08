@@ -1,9 +1,10 @@
 // frontend/src/components/features/Doctor/ReferralSystem/ReferralCard.jsx
+
 import React from 'react';
 import { CheckCircle, XCircle, Clock, User, Stethoscope, AlertCircle } from 'lucide-react';
 import './ReferralCard.css';
 
-export const ReferralCard = ({ referral, onRespond }) => {
+export const ReferralCard = ({ referral, onRespond, isOffline = false }) => {
   const getPriorityConfig = (priority) => {
     switch(priority) {
       case 'emergency':
@@ -28,6 +29,13 @@ export const ReferralCard = ({ referral, onRespond }) => {
 
   const priority = getPriorityConfig(referral.priority);
   const status = getStatusConfig(referral.status);
+
+  const handleAccept = () => {
+    if (!isOffline) onRespond(referral._id, 'accepted');
+  };
+  const handleDecline = () => {
+    if (!isOffline) onRespond(referral._id, 'denied');
+  };
 
   return (
     <div className="referral-card">
@@ -70,10 +78,10 @@ export const ReferralCard = ({ referral, onRespond }) => {
 
       {referral.status === 'pending' && (
         <div className="referral-card-actions">
-          <button className="accept-btn" onClick={() => onRespond(referral._id, 'accepted')}>
+          <button className="accept-btn" onClick={handleAccept} disabled={isOffline}>
             <CheckCircle size={16} /> Accept
           </button>
-          <button className="decline-btn" onClick={() => onRespond(referral._id, 'denied')}>
+          <button className="decline-btn" onClick={handleDecline} disabled={isOffline}>
             <XCircle size={16} /> Decline
           </button>
         </div>

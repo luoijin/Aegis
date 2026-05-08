@@ -1,26 +1,100 @@
-/* AppointmentForm.css - Only custom styles, modal styles come from modal.css */
-.conflict-warning {
-  background: #FEF3C7;
-  border: 1px solid #FDE68A;
-  border-radius: 10px;
+/* frontend/src/components/features/Doctor/AppointmentScheduler/AppointmentForm.css */
+
+.offline-banner-modal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--warning-bg);
+  color: var(--warning);
+  padding: 10px 16px;
+  margin: -4px 0 12px 0;
+  font-size: 13px;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+}
+
+.doctor-conflict-warning {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
   padding: 10px 14px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  color: #D97706;
+  color: var(--warning);
 }
 
-.conflict-details {
-  background: #F8FAFC;
+.loading-indicator {
+  color: var(--gray-500);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.hospital-info-static {
+  display: flex;
+  gap: 12px;
   padding: 12px;
-  border-radius: 10px;
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+}
+
+.hospital-info-static svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.hospital-details {
+  flex: 1;
+}
+
+.hospital-name {
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.hospital-address,
+.hospital-phone {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.hospital-note {
+  font-size: 11px;
+  color: var(--gray-400);
+  align-self: center;
+}
+
+.field-note {
+  font-size: 11px;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
+.conflict-details-static {
+  background: var(--gray-50);
+  padding: 12px;
+  border-radius: var(--radius-md);
   margin: 12px 0;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .conflict-suggestion {
-  color: #D97706;
+  color: var(--warning);
+  font-size: 13px;
+  margin: 8px 0;
 }
 
-/* Remove duplicate modal styles - they come from modal.css */
+.doctor-type-options button:disabled,
+.doctor-form-group select:disabled,
+.doctor-form-group input:disabled,
+.doctor-form-group textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

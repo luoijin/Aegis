@@ -1,9 +1,10 @@
 // frontend/src/components/features/Doctor/ReferralSystem/SendReferralModal.jsx
+
 import React, { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
-import '../../../../styles/doctor-modal.css';
+import './SendReferralModal.css';
 
-export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
+export const SendReferralModal = ({ patients, doctors, onClose, onSend, isOffline = false }) => {
   const [formData, setFormData] = useState({
     patientId: '',
     toDoctorId: '',
@@ -16,10 +17,20 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isOffline) {
+      setError('You are offline. Cannot send referral.');
+      return;
+    }
     setLoading(true);
     setError('');
-    await onSend(formData);
-    setLoading(false);
+    try {
+      await onSend(formData);
+      onClose(); // close modal on success
+    } catch (err) {
+      setError(err.message || 'Failed to send referral');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,6 +52,7 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
               value={formData.patientId}
               onChange={(e) => setFormData({...formData, patientId: e.target.value})}
               required
+              disabled={isOffline}
             >
               <option value="">Choose a patient</option>
               {patients.map(patient => {
@@ -60,6 +72,7 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
               value={formData.toDoctorId}
               onChange={(e) => setFormData({...formData, toDoctorId: e.target.value})}
               required
+              disabled={isOffline}
             >
               <option value="">Choose a doctor</option>
               {doctors.map(doctor => (
@@ -77,6 +90,7 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
                 type="button"
                 className={`doctor-priority-option ${formData.priority === 'normal' ? 'selected normal' : ''}`}
                 onClick={() => setFormData({...formData, priority: 'normal'})}
+                disabled={isOffline}
               >
                 Normal
               </button>
@@ -84,6 +98,7 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
                 type="button"
                 className={`doctor-priority-option ${formData.priority === 'urgent' ? 'selected urgent' : ''}`}
                 onClick={() => setFormData({...formData, priority: 'urgent'})}
+                disabled={isOffline}
               >
                 Urgent
               </button>
@@ -91,6 +106,7 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
                 type="button"
                 className={`doctor-priority-option ${formData.priority === 'emergency' ? 'selected emergency' : ''}`}
                 onClick={() => setFormData({...formData, priority: 'emergency'})}
+                disabled={isOffline}
               >
                 Emergency
               </button>
@@ -105,6 +121,7 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
               required
               rows="3"
               placeholder="Explain why you're referring this patient..."
+              disabled={isOffline}
             />
           </div>
 
@@ -115,12 +132,13 @@ export const SendReferralModal = ({ patients, doctors, onClose, onSend }) => {
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               rows="2"
               placeholder="Any additional information for the receiving doctor..."
+              disabled={isOffline}
             />
           </div>
 
           <div className="doctor-modal-actions">
             <button type="button" className="doctor-cancel-btn" onClick={onClose}>Cancel</button>
-            <button type="submit" className="doctor-submit-btn" disabled={loading}>
+            <button type="submit" className="doctor-submit-btn" disabled={loading || isOffline}>
               {loading ? 'Sending...' : 'Send Referral'}
             </button>
           </div>

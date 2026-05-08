@@ -1,6 +1,7 @@
 // frontend/src/components/features/Doctor/AppointmentScheduler/AppointmentScheduler.jsx
+
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Video, Phone, MapPin, CheckCircle, XCircle, AlertCircle, Plus, ChevronLeft, ChevronRight, Building } from 'lucide-react';
+import { Calendar, Clock, User, Video, Phone, MapPin, CheckCircle, XCircle, AlertCircle, Plus, ChevronLeft, ChevronRight, Building, WifiOff } from 'lucide-react';
 import { AppointmentForm } from './AppointmentForm';
 import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
@@ -16,10 +17,22 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
     fetchAppointments();
     fetchStats();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, [filter]);
 
   const showSuccess = (message) => {
@@ -37,8 +50,17 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
       setLoading(true);
       const response = await api.get(`/doctor/appointments?status=${filter}`);
       setAppointments(response.data);
+      localStorage.setItem(`cachedAppointments_${filter}`, JSON.stringify(response.data));
     } catch (error) {
       console.error('Error fetching appointments:', error);
+      // Offline fallback
+      const cached = localStorage.getItem(`cachedAppointments_${filter}`);
+      if (cached) {
+        setAppointments(JSON.parse(cached));
+        if (!isOffline) showError('Failed to load appointments. Showing cached data.');
+      } else {
+        showError('Failed to load appointments');
+      }
     } finally {
       setLoading(false);
     }
@@ -48,12 +70,19 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
     try {
       const response = await api.get('/doctor/appointments/stats');
       setStats(response.data);
+      localStorage.setItem('cachedAppointmentStats', JSON.stringify(response.data));
     } catch (error) {
       console.error('Error fetching stats:', error);
+      const cached = localStorage.getItem('cachedAppointmentStats');
+      if (cached) setStats(JSON.parse(cached));
     }
   };
 
   const handleCreateAppointment = async (appointmentData) => {
+    if (isOffline) {
+      showError('You are offline. Cannot schedule appointment.');
+      return;
+    }
     try {
       await api.post('/doctor/appointments', appointmentData);
       setShowForm(false);
@@ -67,6 +96,10 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
   };
 
   const handleUpdateStatus = async (appointmentId, status, actionName) => {
+    if (isOffline) {
+      showError('You are offline. Cannot update appointment.');
+      return;
+    }
     const confirmed = await confirmDialog(
       `${actionName} Appointment`,
       `Are you sure you want to mark this appointment as ${actionName.toLowerCase()}?`,
@@ -89,6 +122,10 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
   };
 
   const handleDeleteAppointment = async (appointmentId) => {
+    if (isOffline) {
+      showError('You are offline. Cannot cancel appointment.');
+      return;
+    }
     const confirmed = await confirmDialog(
       'Cancel Appointment',
       'Are you sure you want to cancel this appointment?',
@@ -207,6 +244,14 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
 
   return (
     <div className="appointment-scheduler">
+      {/* Offline banner */}
+      {isOffline && (
+        <div className="offline-banner">
+          <WifiOff size={16} />
+          <span>You are offline. Appointments are read‑only.</span>
+        </div>
+      )}
+
       {successMessage && <div className="success-message">{successMessage}</div>}
       {errorMessage && <div className="error-message">{errorMessage}</div>}
 
@@ -220,7 +265,9 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
             <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>List View</button>
             <button className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`} onClick={() => setViewMode('calendar')}>Calendar View</button>
           </div>
-          <button className="schedule-btn" onClick={() => setShowForm(true)}><Plus size={18} /> New Appointment</button>
+          <button className="schedule-btn" onClick={() => setShowForm(true)} disabled={isOffline}>
+            <Plus size={18} /> New Appointment
+          </button>
         </div>
       </div>
 
@@ -234,20 +281,20 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
       </div>
 
       <div className="filter-tabs">
-        <button className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All ({stats?.total || 0})</button>
-        <button className={`filter-tab ${filter === 'scheduled' ? 'active' : ''}`} onClick={() => setFilter('scheduled')}>Scheduled ({stats?.scheduled || 0})</button>
-        <button className={`filter-tab ${filter === 'confirmed' ? 'active' : ''}`} onClick={() => setFilter('confirmed')}>Confirmed ({stats?.confirmed || 0})</button>
-        <button className={`filter-tab ${filter === 'completed' ? 'active' : ''}`} onClick={() => setFilter('completed')}>Completed ({stats?.completed || 0})</button>
-        <button className={`filter-tab ${filter === 'cancelled' ? 'active' : ''}`} onClick={() => setFilter('cancelled')}>Cancelled ({stats?.cancelled || 0})</button>
-        <button className={`filter-tab ${filter === 'no-show' ? 'active' : ''}`} onClick={() => setFilter('no-show')}>No Show ({stats?.['no-show'] || 0})</button>
+        <button className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')} disabled={isOffline}>All ({stats?.total || 0})</button>
+        <button className={`filter-tab ${filter === 'scheduled' ? 'active' : ''}`} onClick={() => setFilter('scheduled')} disabled={isOffline}>Scheduled ({stats?.scheduled || 0})</button>
+        <button className={`filter-tab ${filter === 'confirmed' ? 'active' : ''}`} onClick={() => setFilter('confirmed')} disabled={isOffline}>Confirmed ({stats?.confirmed || 0})</button>
+        <button className={`filter-tab ${filter === 'completed' ? 'active' : ''}`} onClick={() => setFilter('completed')} disabled={isOffline}>Completed ({stats?.completed || 0})</button>
+        <button className={`filter-tab ${filter === 'cancelled' ? 'active' : ''}`} onClick={() => setFilter('cancelled')} disabled={isOffline}>Cancelled ({stats?.cancelled || 0})</button>
+        <button className={`filter-tab ${filter === 'no-show' ? 'active' : ''}`} onClick={() => setFilter('no-show')} disabled={isOffline}>No Show ({stats?.['no-show'] || 0})</button>
       </div>
 
       {viewMode === 'calendar' && (
         <div className="calendar-view">
           <div className="calendar-header">
-            <button className="month-nav" onClick={() => changeMonth(-1)}><ChevronLeft size={20} /></button>
+            <button className="month-nav" onClick={() => changeMonth(-1)} disabled={isOffline}><ChevronLeft size={20} /></button>
             <h3>{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h3>
-            <button className="month-nav" onClick={() => changeMonth(1)}><ChevronRight size={20} /></button>
+            <button className="month-nav" onClick={() => changeMonth(1)} disabled={isOffline}><ChevronRight size={20} /></button>
           </div>
           <div className="calendar-grid">
             {daysOfWeek.map(day => <div key={day} className="calendar-weekday">{day}</div>)}
@@ -294,7 +341,7 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
               <div key={dateKey} className="date-group">
                 <div className="date-header">
                   <span>{formatDate(dateKey)}</span>
-                  <span className="appointment-count"> {groupedAppointments[dateKey].length} </span>
+                  <span className="appointment-count">{groupedAppointments[dateKey].length}</span>
                 </div>
                 <div className="appointments-grid">
                   {groupedAppointments[dateKey].map(appointment => {
@@ -350,20 +397,20 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
 
                         {appointment.status === 'scheduled' && (
                           <div className="card-actions">
-                            <button className="confirm-btn" onClick={() => handleUpdateStatus(appointment._id, 'confirmed', 'Confirm')}>
+                            <button className="confirm-btn" onClick={() => handleUpdateStatus(appointment._id, 'confirmed', 'Confirm')} disabled={isOffline}>
                               <CheckCircle size={14} /> Confirm
                             </button>
-                            <button className="cancel-btn" onClick={() => handleDeleteAppointment(appointment._id)}>
+                            <button className="cancel-btn" onClick={() => handleDeleteAppointment(appointment._id)} disabled={isOffline}>
                               <XCircle size={14} /> Cancel
                             </button>
                           </div>
                         )}
                         {appointment.status === 'confirmed' && (
                           <div className="card-actions">
-                            <button className="complete-btn" onClick={() => handleUpdateStatus(appointment._id, 'completed', 'Complete')}>
+                            <button className="complete-btn" onClick={() => handleUpdateStatus(appointment._id, 'completed', 'Complete')} disabled={isOffline}>
                               <CheckCircle size={14} /> Mark Completed
                             </button>
-                            <button className="noshow-btn" onClick={() => handleUpdateStatus(appointment._id, 'no-show', 'No Show')}>
+                            <button className="noshow-btn" onClick={() => handleUpdateStatus(appointment._id, 'no-show', 'No Show')} disabled={isOffline}>
                               <AlertCircle size={14} /> No Show
                             </button>
                           </div>
@@ -384,6 +431,7 @@ export const AppointmentScheduler = ({ doctorId, patients }) => {
           appointments={appointments}
           onClose={() => setShowForm(false)}
           onSubmit={handleCreateAppointment}
+          isOffline={isOffline}
         />
       )}
     </div>

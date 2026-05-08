@@ -1,6 +1,7 @@
 // frontend/src/components/features/Doctor/PatientChart/PatientChartModal.jsx
+
 import React, { useState, useEffect } from 'react';
-import { X, User, Calendar, Phone, Mail, Droplet, AlertCircle, Pill, Activity, Share2, FileText, Heart, Stethoscope, Thermometer, Droplets, Clock, CheckCircle, XCircle, Syringe, History, MapPin, Home, Briefcase } from 'lucide-react';
+import { X, User, Calendar, Phone, Mail, Droplet, AlertCircle, Pill, Activity, Share2, FileText, Heart, Stethoscope, Thermometer, Clock, CheckCircle, XCircle, Syringe, History, MapPin, Home, Briefcase, WifiOff } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../../../../services/api';
 import './PatientChartModal.css';
@@ -13,9 +14,19 @@ const PatientChartModal = ({ patient, onClose }) => {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
     if (patient?._id) fetchAllData();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, [patient]);
 
   const fetchAllData = async () => {
@@ -27,37 +38,60 @@ const PatientChartModal = ({ patient, onClose }) => {
 
       const profileRes = await api.get(`/doctor/patients/${patient._id}`, { headers });
       setProfile(profileRes.data);
+      localStorage.setItem(`cachedPatientProfile_${patient._id}`, JSON.stringify(profileRes.data));
 
       try {
         const logsRes = await api.get(`/doctor/patients/${patient._id}/health-logs`, { headers });
         setHealthLogs(logsRes.data || []);
+        localStorage.setItem(`cachedHealthLogs_${patient._id}`, JSON.stringify(logsRes.data || []));
       } catch (err) {
-        setHealthLogs([]);
+        const cached = localStorage.getItem(`cachedHealthLogs_${patient._id}`);
+        if (cached) setHealthLogs(JSON.parse(cached));
+        else setHealthLogs([]);
       }
 
       try {
         const prescriptionsRes = await api.get('/doctor/prescriptions', { headers });
-        setPrescriptions(prescriptionsRes.data.filter(p => p.patient?._id === patient._id));
+        const filtered = prescriptionsRes.data.filter(p => p.patient?._id === patient._id);
+        setPrescriptions(filtered);
+        localStorage.setItem(`cachedPrescriptions_${patient._id}`, JSON.stringify(filtered));
       } catch (err) {
-        setPrescriptions([]);
+        const cached = localStorage.getItem(`cachedPrescriptions_${patient._id}`);
+        if (cached) setPrescriptions(JSON.parse(cached));
+        else setPrescriptions([]);
       }
 
       try {
         const appointmentsRes = await api.get('/doctor/appointments', { headers });
-        setAppointments(appointmentsRes.data.filter(a => a.patient?._id === patient._id));
+        const filtered = appointmentsRes.data.filter(a => a.patient?._id === patient._id);
+        setAppointments(filtered);
+        localStorage.setItem(`cachedAppointments_${patient._id}`, JSON.stringify(filtered));
       } catch (err) {
-        setAppointments([]);
+        const cached = localStorage.getItem(`cachedAppointments_${patient._id}`);
+        if (cached) setAppointments(JSON.parse(cached));
+        else setAppointments([]);
       }
 
       try {
         const referralsRes = await api.get('/doctor/referrals', { headers });
-        setReferrals(referralsRes.data.filter(r => r.patient?._id === patient._id));
+        const filtered = referralsRes.data.filter(r => r.patient?._id === patient._id);
+        setReferrals(filtered);
+        localStorage.setItem(`cachedReferrals_${patient._id}`, JSON.stringify(filtered));
       } catch (err) {
-        setReferrals([]);
+        const cached = localStorage.getItem(`cachedReferrals_${patient._id}`);
+        if (cached) setReferrals(JSON.parse(cached));
+        else setReferrals([]);
       }
     } catch (err) {
       console.error('Error fetching patient chart data:', err);
-      setError('Failed to load patient chart. Please try again later.');
+      // Try to load from cache
+      const cachedProfile = localStorage.getItem(`cachedPatientProfile_${patient._id}`);
+      if (cachedProfile) {
+        setProfile(JSON.parse(cachedProfile));
+        setError('Using cached data (offline mode)');
+      } else {
+        setError('Failed to load patient chart. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
@@ -101,20 +135,20 @@ const PatientChartModal = ({ patient, onClose }) => {
     return (
       <div className="doctor-modal-overlay" onClick={onClose}>
         <div className="patient-chart-modal" style={{ textAlign: 'center', padding: '40px' }}>
-          <div className="loading-spinner"></div>
-          <p style={{ color: '#64748b', marginTop: '16px' }}>Loading Electronic Health Record...</p>
+          <div className="loading-spinner-static"></div>
+          <p style={{ color: 'var(--gray-500)', marginTop: '16px' }}>Loading Electronic Health Record...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !profile) {
     return (
       <div className="doctor-modal-overlay" onClick={onClose}>
         <div className="patient-chart-modal" style={{ textAlign: 'center', padding: '40px' }}>
-          <AlertCircle size={48} color="#ef4444" />
-          <p style={{ color: '#ef4444', marginTop: '16px' }}>{error}</p>
-          <button onClick={onClose} style={{ marginTop: '20px', padding: '8px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Close</button>
+          <AlertCircle size={48} color="var(--danger)" />
+          <p style={{ color: 'var(--danger)', marginTop: '16px' }}>{error}</p>
+          <button onClick={onClose} className="close-error-btn">Close</button>
         </div>
       </div>
     );
@@ -136,75 +170,80 @@ const PatientChartModal = ({ patient, onClose }) => {
           <button className="close-btn" onClick={onClose}><X size={20} /></button>
         </div>
 
+        {isOffline && (
+          <div className="offline-banner-modal-chart">
+            <WifiOff size={14} />
+            <span>Offline – displaying cached data</span>
+          </div>
+        )}
+
         <div className="modal-body">
-          {/* Section 1: Demographics - Improved Layout */}
-        <div className="demographics-wrapper">
-        {/* Column 1: Personal Information */}
-        <div className="demographics-column">
-            <div className="demographics-subheader">
-            <User size={14} />
-            <span>Personal Information</span>
+          {/* Section 1: Demographics */}
+          <div className="demographics-wrapper">
+            <div className="demographics-column">
+              <div className="demographics-subheader">
+                <User size={14} />
+                <span>Personal Information</span>
+              </div>
+              <div className="demographic-item">
+                <span className="demographic-label">Full Name</span>
+                <span className="demographic-value">{user.profile?.firstName || patientData.firstName} {user.profile?.lastName || patientData.lastName}</span>
+              </div>
+              <div className="demographic-item">
+                <span className="demographic-label">Date of Birth</span>
+                <span className="demographic-value">{user.profile?.dateOfBirth ? formatDate(user.profile.dateOfBirth) : 'N/A'}</span>
+              </div>
+              <div className="demographic-item">
+                <span className="demographic-label">Age</span>
+                <span className="demographic-value">{calculateAge(user.profile?.dateOfBirth)} years</span>
+              </div>
+              <div className="demographic-item">
+                <span className="demographic-label">Gender</span>
+                <span className="demographic-value">{user.profile?.gender || patientData.gender || 'Not specified'}</span>
+              </div>
             </div>
-            <div className="demographic-item">
-            <span className="demographic-label">Full Name</span>
-            <span className="demographic-value">{user.profile?.firstName || patientData.firstName} {user.profile?.lastName || patientData.lastName}</span>
-            </div>
-            <div className="demographic-item">
-            <span className="demographic-label">Date of Birth</span>
-            <span className="demographic-value">{user.profile?.dateOfBirth ? formatDate(user.profile.dateOfBirth) : 'N/A'}</span>
-            </div>
-            <div className="demographic-item">
-            <span className="demographic-label">Age</span>
-            <span className="demographic-value">{calculateAge(user.profile?.dateOfBirth)} years</span>
-            </div>
-            <div className="demographic-item">
-            <span className="demographic-label">Gender</span>
-            <span className="demographic-value">{user.profile?.gender || patientData.gender || 'Not specified'}</span>
-            </div>
-        </div>
 
-        {/* Column 2: Medical Information */}
-        <div className="demographics-column">
-            <div className="demographics-subheader">
-            <Heart size={14} />
-            <span>Medical Information</span>
+            <div className="demographics-column">
+              <div className="demographics-subheader">
+                <Heart size={14} />
+                <span>Medical Information</span>
+              </div>
+              <div className="demographic-item">
+                <span className="demographic-label">Blood Type</span>
+                <span className="demographic-value">{patientData.bloodType || 'Not specified'}</span>
+              </div>
+              <div className="demographic-item">
+                <span className="demographic-label">Phone Number</span>
+                <span className="demographic-value">{user.profile?.phone || patientData.phone || 'Not provided'}</span>
+              </div>
+              <div className="demographic-item">
+                <span className="demographic-label">Email Address</span>
+                <span className="demographic-value">{user.email || patientData.email || 'Not provided'}</span>
+              </div>
             </div>
-            <div className="demographic-item">
-            <span className="demographic-label">Blood Type</span>
-            <span className="demographic-value">{patientData.bloodType || 'Not specified'}</span>
-            </div>
-            <div className="demographic-item">
-            <span className="demographic-label">Phone Number</span>
-            <span className="demographic-value">{user.profile?.phone || patientData.phone || 'Not provided'}</span>
-            </div>
-            <div className="demographic-item">
-            <span className="demographic-label">Email Address</span>
-            <span className="demographic-value">{user.email || patientData.email || 'Not provided'}</span>
-            </div>
-        </div>
-        </div>
+          </div>
 
-{/* Emergency Contact Section */}
-<div className="emergency-contact-section">
-  <div className="emergency-header">
-    <AlertCircle size={14} />
-    <span>Emergency Contact</span>
-  </div>
-  <div className="emergency-grid">
-    <div className="emergency-item">
-      <span className="emergency-label">Name</span>
-      <span className="emergency-value">{patientData.emergencyContact?.name || 'Not provided'}</span>
-    </div>
-    <div className="emergency-item">
-      <span className="emergency-label">Relationship</span>
-      <span className="emergency-value">{patientData.emergencyContact?.relationship || 'Not specified'}</span>
-    </div>
-    <div className="emergency-item">
-      <span className="emergency-label">Phone Number</span>
-      <span className="emergency-value">{patientData.emergencyContact?.phone || 'Not provided'}</span>
-    </div>
-  </div>
-</div>
+          {/* Emergency Contact Section */}
+          <div className="emergency-contact-section">
+            <div className="emergency-header">
+              <AlertCircle size={14} />
+              <span>Emergency Contact</span>
+            </div>
+            <div className="emergency-grid">
+              <div className="emergency-item">
+                <span className="emergency-label">Name</span>
+                <span className="emergency-value">{patientData.emergencyContact?.name || 'Not provided'}</span>
+              </div>
+              <div className="emergency-item">
+                <span className="emergency-label">Relationship</span>
+                <span className="emergency-value">{patientData.emergencyContact?.relationship || 'Not specified'}</span>
+              </div>
+              <div className="emergency-item">
+                <span className="emergency-label">Phone Number</span>
+                <span className="emergency-value">{patientData.emergencyContact?.phone || 'Not provided'}</span>
+              </div>
+            </div>
+          </div>
 
           {/* Section 2: Medical Summary */}
           <section className="chart-section">
@@ -300,131 +339,122 @@ const PatientChartModal = ({ patient, onClose }) => {
           </section>
 
           {/* Section 4: Vitals History */}
-<section className="chart-section">
-  <h4><Activity size={18} /> Vitals History & Trend</h4>
-  {chartData.length > 0 ? (
-    <>
-      <div className="vitals-chart-container">
-        <div className="chart-header">
-          <Heart size={14} />
-          <span>Heart Rate Trend (Last 30 days)</span>
-        </div>
-        <ResponsiveContainer width="100%" height={250}>
-          <AreaChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} />
-            <YAxis stroke="#94a3b8" fontSize={11} />
-            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-            <Area type="monotone" dataKey="heartRate" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} name="Heart Rate (bpm)" />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-      
-      <div className="latest-vitals-card">
-        <div className="latest-vitals-header">
-          <Activity size={14} />
-          <span>Latest Vitals</span>
-        </div>
-        <div className="latest-vitals-grid">
-          {healthLogs[0] ? (
-            <>
-              <div className="vital-item">
-                <Droplets size={16} />
-                <div>
-                  <span className="vital-label">Blood Pressure</span>
-                  <span className="vital-value">{healthLogs[0].vitals?.bloodPressure?.systolic || '--'}/{healthLogs[0].vitals?.bloodPressure?.diastolic || '--'}</span>
+          <section className="chart-section">
+            <h4><Activity size={18} /> Vitals History & Trend</h4>
+            {chartData.length > 0 ? (
+              <>
+                <div className="vitals-chart-container">
+                  <div className="chart-header">
+                    <Heart size={14} />
+                    <span>Heart Rate Trend (Last 30 days)</span>
+                  </div>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <AreaChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-200)" />
+                      <XAxis dataKey="date" stroke="var(--gray-400)" fontSize={11} />
+                      <YAxis stroke="var(--gray-400)" fontSize={11} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)' }} />
+                      <Area type="monotone" dataKey="heartRate" stroke="var(--accent)" fill="var(--accent)" fillOpacity={0.1} name="Heart Rate (bpm)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
-              </div>
-              <div className="vital-item">
-                <Heart size={16} />
-                <div>
-                  <span className="vital-label">Heart Rate</span>
-                  <span className="vital-value">{healthLogs[0].vitals?.heartRate || '--'} bpm</span>
-                </div>
-              </div>
-              <div className="vital-item">
-                <Thermometer size={16} />
-                <div>
-                  <span className="vital-label">Temperature</span>
-                  <span className="vital-value">{healthLogs[0].vitals?.temperature || '--'} °C</span>
-                </div>
-              </div>
-              <div className="vital-item">
-                <Droplets size={16} />
-                <div>
-                  <span className="vital-label">O₂ Saturation</span>
-                  <span className="vital-value">{healthLogs[0].vitals?.oxygenSaturation || '--'}%</span>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="empty-message">No vitals recorded</div>
-          )}
-        </div>
-      </div>
-    </>
-  ) : (
-    <div className="empty-state">
-      <Activity size={32} strokeWidth={1.5} />
-      <p>No vitals recorded yet</p>
-    </div>
-  )}
 
-  {/* Recent Health Logs Table - WITH RECORDED BY COLUMN */}
-  <div className="health-logs-section">
-    <div className="section-subheader">
-      <Clock size={14} />
-      <span>Recent Health Logs</span>
-    </div>
-    <div className="health-logs-table">
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Heart Rate</th>
-            <th>Blood Pressure</th>
-            <th>Temperature</th>
-            <th>O₂ Sat</th>
-            <th>Recorded By</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {healthLogs.length === 0 ? (
-            <tr>
-              <td colSpan="7" className="empty-table-message">No health records available</td>
-            </tr>
-          ) : (
-            healthLogs.slice(0, 10).map(log => {
-              // Get recorded by doctor name
-              const recordedBy = log.recordedBy;
-              let doctorName = 'Unknown';
-              if (recordedBy) {
-                if (recordedBy.profile?.firstName && recordedBy.profile?.lastName) {
-                  doctorName = `Dr. ${recordedBy.profile.firstName} ${recordedBy.profile.lastName}`;
-                } else if (recordedBy.email) {
-                  doctorName = recordedBy.email.split('@')[0];
-                }
-              }
-              
-              return (
-                <tr key={log._id}>
-                  <td className="log-date">{formatDate(log.createdAt)}</td>
-                  <td>{log.vitals?.heartRate || '--'} <span className="unit">bpm</span></td>
-                  <td>{log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'}</td>
-                  <td>{log.vitals?.temperature || '--'} <span className="unit">°C</span></td>
-                  <td>{log.vitals?.oxygenSaturation || '--'} <span className="unit">%</span></td>
-                  <td className="recorded-by-cell">{doctorName}</td>
-                  <td className="log-notes">{log.notes || '-'}</td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
+                <div className="latest-vitals-grid">
+                  {healthLogs[0] ? (
+                    <>
+                      <div className="vital-item">
+                        <Droplet size={16} />   {/* Changed from Droplets */}
+                        <div>
+                          <span className="vital-label">Blood Pressure</span>
+                          <span className="vital-value">{healthLogs[0].vitals?.bloodPressure?.systolic || '--'}/{healthLogs[0].vitals?.bloodPressure?.diastolic || '--'}</span>
+                        </div>
+                      </div>
+                      <div className="vital-item">
+                        <Heart size={16} />
+                        <div>
+                          <span className="vital-label">Heart Rate</span>
+                          <span className="vital-value">{healthLogs[0].vitals?.heartRate || '--'} bpm</span>
+                        </div>
+                      </div>
+                      <div className="vital-item">
+                        <Thermometer size={16} />
+                        <div>
+                          <span className="vital-label">Temperature</span>
+                          <span className="vital-value">{healthLogs[0].vitals?.temperature || '--'} °C</span>
+                        </div>
+                      </div>
+                      <div className="vital-item">
+                        <Droplet size={16} />   {/* Changed from Droplets */}
+                        <div>
+                          <span className="vital-label">O₂ Saturation</span>
+                          <span className="vital-value">{healthLogs[0].vitals?.oxygenSaturation || '--'}%</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="empty-message">No vitals recorded</div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="empty-state">
+                <Activity size={32} strokeWidth={1.5} />
+                <p>No vitals recorded yet</p>
+              </div>
+            )}
+
+            {/* Health Logs Table */}
+            <div className="health-logs-section">
+              <div className="section-subheader">
+                <Clock size={14} />
+                <span>Recent Health Logs</span>
+              </div>
+              <div className="health-logs-table">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Heart Rate</th>
+                      <th>Blood Pressure</th>
+                      <th>Temperature</th>
+                      <th>O₂ Sat</th>
+                      <th>Recorded By</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {healthLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="empty-table-message">No health records available</td>
+                      </tr>
+                    ) : (
+                      healthLogs.slice(0, 10).map(log => {
+                        let doctorName = 'Unknown';
+                        if (log.recordedBy) {
+                          if (log.recordedBy.profile?.firstName && log.recordedBy.profile?.lastName) {
+                            doctorName = `Dr. ${log.recordedBy.profile.firstName} ${log.recordedBy.profile.lastName}`;
+                          } else if (log.recordedBy.email) {
+                            doctorName = log.recordedBy.email.split('@')[0];
+                          }
+                        }
+                        return (
+                          <tr key={log._id}>
+                            <td className="log-date">{formatDate(log.createdAt)}</td>
+                            <td>{log.vitals?.heartRate || '--'} <span className="unit">bpm</span></td>
+                            <td>{log.vitals?.bloodPressure?.systolic || '--'}/{log.vitals?.bloodPressure?.diastolic || '--'}</td>
+                            <td>{log.vitals?.temperature || '--'} <span className="unit">°C</span></td>
+                            <td>{log.vitals?.oxygenSaturation || '--'} <span className="unit">%</span></td>
+                            <td className="recorded-by-cell">{doctorName}</td>
+                            <td className="log-notes">{log.notes || '-'}</td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
 
           {/* Section 5: Appointments */}
           <section className="chart-section">

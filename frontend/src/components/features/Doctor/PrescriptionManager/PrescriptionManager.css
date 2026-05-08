@@ -1,9 +1,23 @@
-/* PrescriptionManager.css - No tabs */
+/* PrescriptionManager.css - No animations, no avatars, blue theme */
 
 .prescription-manager {
   padding: 24px;
-  background: #F8FAFC;
+  background: var(--gray-50);
   min-height: 100%;
+}
+
+/* Offline banner */
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--warning-bg);
+  color: var(--warning);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  font-size: 13px;
+  border: 1px solid var(--warning);
 }
 
 /* Header */
@@ -12,17 +26,19 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .prescription-header h2 {
   font-size: 24px;
   font-weight: 700;
-  color: #0A0F1D;
+  color: var(--gray-900);
   margin-bottom: 8px;
 }
 
 .prescription-header p {
-  color: #64748B;
+  color: var(--gray-500);
   font-size: 14px;
 }
 
@@ -31,18 +47,22 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #3B82F6;
+  background: var(--accent);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   color: white;
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.create-btn:hover {
-  background: #2563EB;
+.create-btn:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.create-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Stats Grid */
@@ -55,77 +75,59 @@
 
 .stat-card {
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--gray-200);
 }
 
 .stat-icon {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.total-icon {
-  background: #EFF6FF;
-  color: #3B82F6;
-}
 
-.active-icon {
-  background: #D1FAE5;
-  color: #059669;
-}
 
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #0A0F1D;
+  color: var(--gray-900);
 }
 
 .stat-label {
   font-size: 12px;
-  color: #64748B;
+  color: var(--gray-500);
 }
 
-/* Prescriptions List */
-.prescriptions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Prescription Card */
+/* Prescription card */
 .prescription-card {
   background: white;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
   overflow: hidden;
-  transition: all 0.2s;
-}
-
-.prescription-card:hover {
-  border-color: #CBD5E1;
 }
 
 .prescription-card.inactive {
-  background: #F8FAFC;
+  background: var(--gray-50);
   opacity: 0.85;
 }
 
-/* Card Header */
+/* Card header */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .patient-info {
@@ -134,51 +136,33 @@
   gap: 12px;
 }
 
-.patient-initial {
-  width: 40px;
-  height: 40px;
-  background: #EFF6FF;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: #3B82F6;
-}
-
+/* No avatar styles - only patient name */
 .patient-name {
   font-weight: 600;
   font-size: 15px;
-  color: #0A0F1D;
+  color: var(--gray-900);
   margin-bottom: 4px;
 }
 
 .prescription-date {
-  font-size: 11px;
-  color: #64748B;
-}
-
-.card-badges {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--gray-400);
 }
 
-.status-badge {
-  padding: 4px 12px;
+/* Badges & actions */
+.completed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--gray-100);
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
-}
-
-.status-badge.active {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-.status-badge.inactive {
-  background: #E2E8F0;
-  color: #64748B;
+  color: var(--gray-500);
 }
 
 .card-actions {
@@ -187,28 +171,25 @@
 }
 
 .action-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  color: #64748B;
-  transition: all 0.2s;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: white;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-500);
 }
 
-.action-btn:hover {
-  background: #EFF6FF;
-  color: #3B82F6;
+.action-btn.download:hover {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
 }
 
-.action-btn.send:hover {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-/* Card Body */
+/* Card body */
 .card-body {
   padding: 16px 20px;
 }
@@ -225,71 +206,97 @@
   gap: 12px;
   font-size: 13px;
   padding: 6px 0;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--gray-100);
+  flex-wrap: wrap;
 }
 
 .med-name {
   font-weight: 600;
-  color: #0A0F1D;
+  color: var(--gray-900);
   min-width: 120px;
 }
 
 .med-dosage {
-  color: #475569;
+  color: var(--gray-600);
   min-width: 80px;
 }
 
 .med-frequency {
-  color: #64748B;
+  color: var(--gray-500);
 }
 
 .more-meds {
   font-size: 12px;
-  color: #3B82F6;
+  color: var(--accent);
   margin-top: 4px;
 }
 
 .prescription-notes {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid var(--gray-100);
   font-size: 13px;
-  color: #64748B;
+  color: var(--gray-500);
 }
 
-/* Card Footer */
+/* Card footer */
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: #F8FAFC;
-  border-top: 1px solid #E2E8F0;
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
   font-size: 12px;
 }
 
 .refills {
-  color: #64748B;
+  color: var(--gray-500);
 }
 
-.completed-badge {
-  color: #10B981;
+.doctor-name {
+  color: var(--accent);
   font-weight: 500;
 }
 
-/* Empty State */
+/* Empty state */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
   background: white;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  color: #94A3B8;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-400);
 }
 
 .empty-state svg {
   margin-bottom: 12px;
-  color: #CBD5E1;
+  color: var(--gray-300);
+}
+
+/* Toast notifications - no animations */
+.success-toast,
+.error-toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  z-index: 1000;
+  box-shadow: var(--shadow-md);
+}
+
+.success-toast {
+  background: var(--success-bg);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.error-toast {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: var(--danger);
 }
 
 /* Responsive */
@@ -297,216 +304,22 @@
   .prescription-manager {
     padding: 16px;
   }
-  
-  .prescription-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
   .card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
   }
-  
   .card-badges {
     width: 100%;
     justify-content: space-between;
   }
-  
   .medication-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-}
-
-/* Add to PrescriptionManager.css */
-
-/* Toast Notifications */
-.success-toast {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #dcfce7;
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-  color: #166534;
-  font-size: 13px;
-  z-index: 1000;
-  animation: slideInRight 0.3s ease-out;
-}
-
-.error-toast {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: 12px;
-  color: #dc2626;
-  font-size: 13px;
-  z-index: 1000;
-  animation: slideInRight 0.3s ease-out;
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Improve Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.stat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.total-icon {
-  background: #eff6ff;
-  color: #3b82f6;
-}
-
-.active-icon {
-  background: #dcfce7;
-  color: #10b981;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #64748b;
-}
-
-/* Action Buttons */
-.card-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background: white;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
-  transition: all 0.2s;
-}
-
-.action-btn:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-}
-
-.action-btn.send:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #3b82f6;
-}
-
-.action-btn.download:hover {
-  background: #dcfce7;
-  border-color: #10b981;
-  color: #10b981;
-}
-
-/* Completed Badge */
-.completed-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: #f1f5f9;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-  color: #64748b;
-}
-
-/* Card Footer */
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
-  font-size: 12px;
-}
-
-.refills {
-  color: #64748b;
-}
-
-.card-footer .doctor-name {
-  color: #3b82f6;
-  font-weight: 500;
-}
-
-/* Prescription Date with Icon */
-.prescription-date {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-/* Responsive */
-@media (max-width: 640px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .success-toast,
   .error-toast {
     left: 20px;

@@ -1,6 +1,7 @@
 // frontend/src/components/features/Doctor/ReferralSystem/ReferralSystem.jsx
+
 import React, { useState, useEffect } from 'react';
-import { Send, Share2, Users, AlertCircle, CheckCircle, XCircle, Clock, User, Stethoscope, Mail, Calendar } from 'lucide-react';
+import { Send, Share2, Users, AlertCircle, CheckCircle, XCircle, Clock, User, Stethoscope, Mail, Calendar, Eye, WifiOff } from 'lucide-react';
 import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
 import './ReferralSystem.css';
@@ -16,6 +17,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
   const [responding, setResponding] = useState(null);
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const [formData, setFormData] = useState({
     patientId: '',
@@ -27,6 +29,17 @@ const ReferralSystem = ({ doctorId, patients }) => {
 
   useEffect(() => {
     fetchAllData();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const showSuccess = (message) => {
@@ -61,8 +74,17 @@ const ReferralSystem = ({ doctorId, patients }) => {
       ]);
       setSentReferrals(sentRes.data);
       setReceivedReferrals(receivedRes.data);
+      // Cache referrals
+      localStorage.setItem('cachedSentReferrals', JSON.stringify(sentRes.data));
+      localStorage.setItem('cachedReceivedReferrals', JSON.stringify(receivedRes.data));
     } catch (error) {
       console.error('Error fetching referrals:', error);
+      // Offline fallback
+      const cachedSent = localStorage.getItem('cachedSentReferrals');
+      const cachedReceived = localStorage.getItem('cachedReceivedReferrals');
+      if (cachedSent) setSentReferrals(JSON.parse(cachedSent));
+      if (cachedReceived) setReceivedReferrals(JSON.parse(cachedReceived));
+      if (!cachedSent && !cachedReceived) showError('Failed to load referrals');
     }
   };
 
@@ -70,8 +92,11 @@ const ReferralSystem = ({ doctorId, patients }) => {
     try {
       const response = await api.get('/doctor/doctors');
       setAvailableDoctors(response.data);
+      localStorage.setItem('cachedDoctors', JSON.stringify(response.data));
     } catch (error) {
       console.error('Error fetching doctors:', error);
+      const cached = localStorage.getItem('cachedDoctors');
+      if (cached) setAvailableDoctors(JSON.parse(cached));
     }
   };
 
@@ -82,6 +107,10 @@ const ReferralSystem = ({ doctorId, patients }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isOffline) {
+      showError('You are offline. Cannot send referral.');
+      return;
+    }
     setSubmitting(true);
     setError('');
     setSuccess('');
@@ -91,13 +120,11 @@ const ReferralSystem = ({ doctorId, patients }) => {
       setSubmitting(false);
       return;
     }
-    
     if (!formData.toDoctorId) {
       setError('Please select a doctor');
       setSubmitting(false);
       return;
     }
-
     if (!formData.reason.trim()) {
       setError('Please provide a reason for referral');
       setSubmitting(false);
@@ -132,6 +159,10 @@ const ReferralSystem = ({ doctorId, patients }) => {
   };
 
   const handleRespond = async (referralId, status, actionName) => {
+    if (isOffline) {
+      showError('You are offline. Cannot respond to referral.');
+      return;
+    }
     const confirmed = await confirmDialog(
       `${actionName} Referral`,
       `Are you sure you want to ${actionName.toLowerCase()} this referral?`,
@@ -204,6 +235,14 @@ const ReferralSystem = ({ doctorId, patients }) => {
   return (
     <>
       <div className="referral-system">
+        {/* Offline banner */}
+        {isOffline && (
+          <div className="offline-banner">
+            <WifiOff size={16} />
+            <span>You are offline. Referrals are read‑only.</span>
+          </div>
+        )}
+
         {error && (
           <div className="error-message global">
             <AlertCircle size={16} />
@@ -238,6 +277,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
                   value={formData.patientId}
                   onChange={handleChange}
                   required
+                  disabled={isOffline}
                 >
                   <option value="">Select a patient</option>
                   {patients?.filter(p => p.assignedDoctor?._id === doctorId || p.assignedDoctor === doctorId).map(patient => {
@@ -260,6 +300,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
                   value={formData.toDoctorId}
                   onChange={handleChange}
                   required
+                  disabled={isOffline}
                 >
                   <option value="">Select a doctor</option>
                   {availableDoctors.length === 0 ? (
@@ -283,13 +324,14 @@ const ReferralSystem = ({ doctorId, patients }) => {
                   placeholder="Explain why you are referring this patient..."
                   rows="3"
                   required
+                  disabled={isOffline}
                 />
               </div>
               
               <div className="form-row">
                 <div className="form-group">
                   <label>Priority</label>
-                  <select name="priority" value={formData.priority} onChange={handleChange}>
+                  <select name="priority" value={formData.priority} onChange={handleChange} disabled={isOffline}>
                     <option value="normal">Normal</option>
                     <option value="high">High</option>
                     <option value="urgent">Urgent</option>
@@ -304,11 +346,12 @@ const ReferralSystem = ({ doctorId, patients }) => {
                     onChange={handleChange}
                     placeholder="Additional notes..."
                     rows="3"
+                    disabled={isOffline}
                   />
                 </div>
               </div>
             
-              <button type="submit" className="send-btn" disabled={submitting || availableDoctors.length === 0}>
+              <button type="submit" className="send-btn" disabled={submitting || availableDoctors.length === 0 || isOffline}>
                 <Send size={16} />
                 {submitting ? 'Sending...' : 'Send Referral'}
               </button>
@@ -381,7 +424,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
                           <button 
                             className="action-btn accept" 
                             onClick={() => handleRespond(ref._id, 'accepted', 'Accept')}
-                            disabled={responding === ref._id}
+                            disabled={responding === ref._id || isOffline}
                             title="Accept"
                           >
                             <CheckCircle size={16} />
@@ -389,7 +432,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
                           <button 
                             className="action-btn deny" 
                             onClick={() => handleRespond(ref._id, 'denied', 'Deny')}
-                            disabled={responding === ref._id}
+                            disabled={responding === ref._id || isOffline}
                             title="Deny"
                           >
                             <XCircle size={16} />
@@ -399,7 +442,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
                             onClick={() => handleViewDetails(ref)}
                             title="View Details"
                           >
-                            <AlertCircle size={16} />
+                            <Eye size={16} />
                           </button>
                         </td>
                       </tr>
@@ -475,7 +518,7 @@ const ReferralSystem = ({ doctorId, patients }) => {
                             onClick={() => handleViewDetails(ref)}
                             title="View Details"
                           >
-                            <AlertCircle size={16} />
+                            <Eye size={16} />
                           </button>
                         </td>
                       </tr>

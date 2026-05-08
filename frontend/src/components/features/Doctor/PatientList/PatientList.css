@@ -1,8 +1,9 @@
-/* PatientList.css */
+/* frontend/src/components/features/Doctor/PatientList/PatientList.css */
+
 .patient-sidebar {
   width: 280px;
   background: white;
-  border-right: 1px solid #E2E8F0;
+  border-right: 1px solid var(--gray-200);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -10,13 +11,13 @@
 
 .sidebar-header {
   padding: 20px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .sidebar-header h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #0A0F1D;
+  color: var(--gray-900);
   margin: 0 0 12px 0;
 }
 
@@ -25,9 +26,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: #F8FAFC;
-  border-radius: 8px;
-  border: 1px solid #E2E8F0;
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
 }
 
 .search-box input {
@@ -39,10 +40,9 @@
 }
 
 .search-box input::placeholder {
-  color: #94A3B8;
+  color: var(--gray-400);
 }
 
-/* Patients List - Simple name only */
 .patients-list {
   flex: 1;
   overflow-y: auto;
@@ -54,30 +54,28 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s;
   margin-bottom: 2px;
 }
 
 .patient-item:hover {
-  background: #F1F5F9;
+  background: var(--gray-100);
 }
 
 .patient-item.active {
-  background: #EFF6FF;
+  background: var(--info-bg);
 }
 
 .patient-name {
   font-weight: 500;
-  color: #1E293B;
+  color: var(--gray-800);
   font-size: 14px;
 }
 
 .patient-chevron {
-  color: #94A3B8;
+  color: var(--gray-400);
   opacity: 0;
-  transition: opacity 0.2s;
 }
 
 .patient-item:hover .patient-chevron {
@@ -85,37 +83,35 @@
 }
 
 .patient-item.active .patient-chevron {
-  color: #3B82F6;
+  color: var(--accent);
   opacity: 1;
 }
 
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: #94A3B8;
+  color: var(--gray-400);
   font-size: 13px;
 }
 
-/* Scrollbar */
+/* Scrollbar – static, no transition */
 .patients-list::-webkit-scrollbar {
   width: 4px;
 }
-
 .patients-list::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: var(--gray-100);
   border-radius: 4px;
 }
-
 .patients-list::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: var(--gray-300);
   border-radius: 4px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .patient-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid #E2E8F0;
+    border-bottom: 1px solid var(--gray-200);
   }
 }

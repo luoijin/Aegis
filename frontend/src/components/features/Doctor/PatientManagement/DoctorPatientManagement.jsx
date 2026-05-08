@@ -1,10 +1,11 @@
+// frontend/src/components/features/Doctor/DoctorPatientManagement.jsx
+
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, UserPlus, Trash2, X } from 'lucide-react';
+import { Plus, Search, UserPlus, Trash2, X, WifiOff } from 'lucide-react';
 import api from '../../../../services/api';
-// Import your existing Button and Modal components
 import Button from '../../../common/Button/Button';
 import Input from '../../../common/Input/Input';
-// If you don't have a Modal component, we'll use a simple div for now
+import './DoctorPatientManagement.css';
 
 export const DoctorPatientManagement = ({ doctorId, onPatientChange }) => {
   const [patients, setPatients] = useState([]);
@@ -13,18 +14,34 @@ export const DoctorPatientManagement = ({ doctorId, onPatientChange }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
     fetchPatients();
     fetchAvailablePatients();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const fetchPatients = async () => {
     try {
       const response = await api.get('/doctor/patients');
       setPatients(response.data);
+      localStorage.setItem('cachedMyPatients', JSON.stringify(response.data));
     } catch (error) {
       console.error('Error fetching patients:', error);
+      const cached = localStorage.getItem('cachedMyPatients');
+      if (cached) {
+        setPatients(JSON.parse(cached));
+        if (!isOffline) console.warn('Using cached patient list');
+      }
     }
   };
 
@@ -32,12 +49,19 @@ export const DoctorPatientManagement = ({ doctorId, onPatientChange }) => {
     try {
       const response = await api.get('/patients/all/for-selection');
       setAllPatients(response.data);
+      localStorage.setItem('cachedAvailablePatients', JSON.stringify(response.data));
     } catch (error) {
       console.error('Error fetching available patients:', error);
+      const cached = localStorage.getItem('cachedAvailablePatients');
+      if (cached) setAllPatients(JSON.parse(cached));
     }
   };
 
   const addPatient = async (patientId) => {
+    if (isOffline) {
+      alert('You are offline. Cannot add patient.');
+      return;
+    }
     setLoading(true);
     try {
       await api.post(`/patients/${patientId}/assign-doctor`);
@@ -53,6 +77,10 @@ export const DoctorPatientManagement = ({ doctorId, onPatientChange }) => {
   };
 
   const removePatient = async (patientId) => {
+    if (isOffline) {
+      alert('You are offline. Cannot remove patient.');
+      return;
+    }
     setLoading(true);
     try {
       await api.delete(`/patients/${patientId}/remove-from-list`);
@@ -75,42 +103,50 @@ export const DoctorPatientManagement = ({ doctorId, onPatientChange }) => {
   );
 
   return (
-    <div style={{ background: 'white', borderRadius: '12px', padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #E2E8F0' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>My Patients ({patients.length})</h3>
-        <Button size="sm" onClick={() => setShowAddModal(true)}>
+    <div className="doctor-patient-management">
+      {isOffline && (
+        <div className="offline-banner">
+          <WifiOff size={16} />
+          <span>You are offline. Patient list is read‑only.</span>
+        </div>
+      )}
+
+      <div className="management-header">
+        <h3>My Patients ({patients.length})</h3>
+        <Button size="sm" onClick={() => setShowAddModal(true)} disabled={isOffline}>
           <UserPlus size={16} /> Add Patient
         </Button>
       </div>
 
-      <div style={{ overflowX: 'auto' }}>
+      <div className="patients-table-container">
         {patients.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94A3B8' }}>
+          <div className="empty-state">
             <p>No patients assigned yet</p>
-            <Button variant="outline" size="sm" onClick={() => setShowAddModal(true)}>
+            <Button variant="outline" size="sm" onClick={() => setShowAddModal(true)} disabled={isOffline}>
               Add Your First Patient
             </Button>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="patients-table">
             <thead>
-              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <th style={{ padding: '12px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#64748B' }}>Patient Name</th>
-                <th style={{ padding: '12px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#64748B' }}>Email</th>
-                <th style={{ padding: '12px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#64748B' }}>Blood Type</th>
-                <th style={{ padding: '12px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#64748B' }}>Actions</th>
+              <tr>
+                <th>Patient Name</th>
+                <th>Email</th>
+                <th>Blood Type</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {patients.map(patient => (
-                <tr key={patient._id} style={{ borderBottom: '1px solid #E2E8F0' }}>
-                  <td style={{ padding: '12px', fontSize: '14px' }}>{patient.user?.profile?.firstName} {patient.user?.profile?.lastName}</td>
-                  <td style={{ padding: '12px', fontSize: '14px', color: '#64748B' }}>{patient.user?.email}</td>
-                  <td style={{ padding: '12px', fontSize: '14px' }}>{patient.bloodType || 'Not specified'}</td>
-                  <td style={{ padding: '12px' }}>
+                <tr key={patient._id}>
+                  <td>{patient.user?.profile?.firstName} {patient.user?.profile?.lastName}</td>
+                  <td>{patient.user?.email}</td>
+                  <td>{patient.bloodType || 'Not specified'}</td>
+                  <td>
                     <button 
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '6px', color: '#EF4444' }}
+                      className="action-btn danger"
                       onClick={() => setShowRemoveConfirm(patient)}
+                      disabled={isOffline}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -122,59 +158,65 @@ export const DoctorPatientManagement = ({ doctorId, onPatientChange }) => {
         )}
       </div>
 
-      {/* Simple Add Patient Modal */}
+      {/* Add Patient Modal */}
       {showAddModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAddModal(false)}>
-          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', maxWidth: '500px', width: '90%', maxHeight: '90vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Add Patient</h3>
-              <button style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }} onClick={() => setShowAddModal(false)}>×</button>
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-container modal-md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Add Patient</h3>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}><X size={20} /></button>
             </div>
-            
-            <div style={{ marginBottom: '20px' }}>
-              <Input
-                placeholder="Search patients by name or email..."
-                icon={<Search size={16} />}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {filteredAvailablePatients.length === 0 ? (
-                <p style={{ textAlign: 'center', padding: '40px', color: '#94A3B8' }}>No available patients found</p>
-              ) : (
-                filteredAvailablePatients.map(patient => (
-                  <div key={patient._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', border: '1px solid #E2E8F0', borderRadius: '8px', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', color: 'white' }}>
-                        {patient.user?.profile?.firstName?.[0]}{patient.user?.profile?.lastName?.[0]}
+            <div className="modal-body">
+              <div className="search-section">
+                <Input
+                  placeholder="Search patients by name or email..."
+                  icon={<Search size={16} />}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={isOffline}
+                />
+              </div>
+              <div className="available-patients-list">
+                {filteredAvailablePatients.length === 0 ? (
+                  <div className="no-results">No available patients found</div>
+                ) : (
+                  filteredAvailablePatients.map(patient => (
+                    <div key={patient._id} className="available-patient-item">
+                      <div className="patient-info">
+                        <div>
+                          <div className="patient-name">
+                            {patient.user?.profile?.firstName} {patient.user?.profile?.lastName}
+                          </div>
+                          <div className="patient-email">{patient.user?.email}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div style={{ fontWeight: '600' }}>{patient.user?.profile?.firstName} {patient.user?.profile?.lastName}</div>
-                        <div style={{ fontSize: '12px', color: '#64748B' }}>{patient.user?.email}</div>
-                      </div>
+                      <Button size="sm" onClick={() => addPatient(patient._id)} loading={loading} disabled={isOffline}>
+                        Add to My List
+                      </Button>
                     </div>
-                    <Button size="sm" onClick={() => addPatient(patient._id)} loading={loading}>
-                      Add to My List
-                    </Button>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Simple Remove Confirmation Modal */}
+      {/* Remove Confirmation Modal */}
       {showRemoveConfirm && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowRemoveConfirm(null)}>
-          <div style={{ background: 'white', borderRadius: '20px', padding: '28px', maxWidth: '400px', width: '90%', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-            <p>Are you sure you want to remove <strong>{showRemoveConfirm.user?.profile?.firstName} {showRemoveConfirm.user?.profile?.lastName}</strong> from your patient list?</p>
-            <p style={{ fontSize: '13px', color: '#F59E0B', background: 'rgba(245,158,11,0.1)', padding: '10px', borderRadius: '8px' }}>This patient will no longer appear in your dashboard.</p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '24px' }}>
-              <Button variant="outline" onClick={() => setShowRemoveConfirm(null)}>Cancel</Button>
-              <Button variant="danger" onClick={() => removePatient(showRemoveConfirm._id)} loading={loading}>Remove</Button>
+        <div className="modal-overlay" onClick={() => setShowRemoveConfirm(null)}>
+          <div className="modal-container modal-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Remove Patient</h3>
+              <button className="modal-close" onClick={() => setShowRemoveConfirm(null)}><X size={20} /></button>
+            </div>
+            <div className="modal-body confirm-modal-body">
+              <p>Are you sure you want to remove <strong>{showRemoveConfirm.user?.profile?.firstName} {showRemoveConfirm.user?.profile?.lastName}</strong> from your patient list?</p>
+              <div className="warning-text">This patient will no longer appear in your dashboard.</div>
+              <div className="confirm-actions">
+                <Button variant="outline" onClick={() => setShowRemoveConfirm(null)}>Cancel</Button>
+                <Button variant="danger" onClick={() => removePatient(showRemoveConfirm._id)} loading={loading}>Remove</Button>
+              </div>
             </div>
           </div>
         </div>

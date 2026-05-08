@@ -1,6 +1,7 @@
 // frontend/src/components/features/Doctor/DashboardHeader/DashboardHeader.jsx
+
 import React, { useState, useRef, useEffect } from 'react';
-import { LogOut, Users, Calendar, FileText, Share2, TrendingUp, User, Settings, Menu, X, Bell } from 'lucide-react';
+import { LogOut, Users, Calendar, FileText, Share2, TrendingUp, User, Settings, Menu, X, Bell, WifiOff } from 'lucide-react';
 import { NotificationBell } from '../../../common/NotificationBell/NotificationBell';
 import { AccountModal } from '../AccountModal/AccountModal';
 import './DashboardHeader.css';
@@ -9,10 +10,22 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const menuRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
   const logo = '/images/logo-dark.png';
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const tabs = [
     { id: 'patients', label: 'Patients', icon: <Users size={18} /> },
@@ -71,7 +84,7 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
             <span className="logo-text">AEGIS</span>
           </div>
 
-          {/* Desktop Navigation - Hidden on mobile */}
+          {/* Desktop Navigation */}
           <nav className="nav-menu">
             {tabs.map(tab => (
               <button
@@ -88,7 +101,14 @@ export const DashboardHeader = ({ user, onLogout, activeTab, onTabChange, onUser
           {/* Right Side Actions */}
           <div className="header-actions">
             <NotificationBell />
-            
+
+            {/* Offline indicator */}
+            {isOffline && (
+              <div className="offline-indicator" title="You are offline">
+                <WifiOff size={16} />
+              </div>
+            )}
+
             {/* Account Dropdown - Desktop */}
             <div className="account-dropdown" ref={menuRef}>
               <button 

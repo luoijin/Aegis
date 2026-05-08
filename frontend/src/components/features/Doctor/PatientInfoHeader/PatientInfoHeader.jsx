@@ -1,11 +1,12 @@
 // frontend/src/components/features/Doctor/PatientInfoHeader/PatientInfoHeader.jsx
+
 import React, { useState } from 'react';
-import { Droplet, Check, X, FileText, Mail, Phone, Calendar, User } from 'lucide-react';
+import { Droplet, Check, X, FileText, Mail, Phone, Calendar, User, WifiOff } from 'lucide-react';
 import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
 import './PatientInfoHeader.css';
 
-export const PatientInfoHeader = ({ patient, onRecordVitals, onPatientUpdate, onViewChart }) => {
+export const PatientInfoHeader = ({ patient, onRecordVitals, onPatientUpdate, onViewChart, isOffline = false }) => {
   const [isEditingBloodType, setIsEditingBloodType] = useState(false);
   const [selectedBloodType, setSelectedBloodType] = useState(patient?.bloodType || '');
   const [updating, setUpdating] = useState(false);
@@ -19,6 +20,10 @@ export const PatientInfoHeader = ({ patient, onRecordVitals, onPatientUpdate, on
   };
 
   const handleUpdateBloodType = async () => {
+    if (isOffline) {
+      showNotification('You are offline. Cannot update blood type.', 'error');
+      return;
+    }
     const confirmed = await confirmDialog(
       'Update Blood Type',
       `Are you sure you want to change blood type to ${selectedBloodType || 'Not specified'}?`,
@@ -50,29 +55,22 @@ export const PatientInfoHeader = ({ patient, onRecordVitals, onPatientUpdate, on
 
   const bloodTypeDisplay = patient?.bloodType && patient.bloodType !== '' ? patient.bloodType : 'Not specified';
 
-  // Calculate age from date of birth
-  const calculateAge = (dob) => {
-    if (!dob) return null;
-    const birthDate = new Date(dob);
-    const diff = Date.now() - birthDate.getTime();
-    const ageDate = new Date(diff);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
-  };
-
-  const formatDate = (date) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString();
-  };
-
   const userProfile = patient?.user?.profile || {};
   const patientName = `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim() || 'Unknown Patient';
 
   return (
     <>
-      {/* Notification Toast */}
+      {/* Notification Toast – no animation */}
       {notification.show && (
         <div className={`patient-info-toast ${notification.type}`}>
           {notification.type === 'success' ? '✓' : '✗'} {notification.message}
+        </div>
+      )}
+
+      {isOffline && (
+        <div className="offline-banner-header">
+          <WifiOff size={14} />
+          <span>Offline – blood type editing disabled</span>
         </div>
       )}
 
@@ -93,14 +91,14 @@ export const PatientInfoHeader = ({ patient, onRecordVitals, onPatientUpdate, on
                   value={selectedBloodType}
                   onChange={(e) => setSelectedBloodType(e.target.value)}
                   className="blood-type-select"
-                  disabled={updating}
+                  disabled={updating || isOffline}
                 >
                   <option value="">Not specified</option>
                   {bloodTypes.filter(bt => bt !== '').map(bt => (
                     <option key={bt} value={bt}>{bt}</option>
                   ))}
                 </select>
-                <button className="blood-type-action save" onClick={handleUpdateBloodType} disabled={updating}>
+                <button className="blood-type-action save" onClick={handleUpdateBloodType} disabled={updating || isOffline}>
                   <Check size={14} />
                 </button>
                 <button className="blood-type-action cancel" onClick={handleCancel} disabled={updating}>
@@ -110,7 +108,7 @@ export const PatientInfoHeader = ({ patient, onRecordVitals, onPatientUpdate, on
             ) : (
               <div className="blood-type-display">
                 <span className="blood-type-value">{bloodTypeDisplay}</span>
-                <button className="edit-blood-type-btn" onClick={() => setIsEditingBloodType(true)}>
+                <button className="edit-blood-type-btn" onClick={() => setIsEditingBloodType(true)} disabled={isOffline}>
                   Edit
                 </button>
               </div>
@@ -119,10 +117,10 @@ export const PatientInfoHeader = ({ patient, onRecordVitals, onPatientUpdate, on
         </div>
         
         <div className="patient-header-buttons">
-          <button className="view-chart-btn" onClick={onViewChart} title="View Full Electronic Health Record">
+          <button className="view-chart-btn" onClick={onViewChart} disabled={isOffline}>
             <FileText size={16} /> View Full Chart
           </button>
-          <button className="record-vitals-btn" onClick={onRecordVitals}>
+          <button className="record-vitals-btn" onClick={onRecordVitals} disabled={isOffline}>
             + Record Vitals
           </button>
         </div>

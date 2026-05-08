@@ -1,3 +1,5 @@
+// frontend/src/components/features/Doctor/PatientList/PatientList.jsx
+
 import React from 'react';
 import { Search, ChevronRight } from 'lucide-react';
 import './PatientList.css';

@@ -1,14 +1,10 @@
 /* frontend/src/components/features/Doctor/ReferralSystem/ReferralCard.css */
+
 .referral-card {
   background: white;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
   overflow: hidden;
-  transition: all 0.2s;
-}
-
-.referral-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .referral-card-header {
@@ -16,19 +12,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .patient-info {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .patient-name {
   font-weight: 600;
-  color: #0A0F1D;
+  color: var(--gray-900);
 }
 
 .priority-badge {
@@ -36,24 +33,24 @@
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 600;
 }
 
 .priority-emergency {
-  background: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .priority-urgent {
-  background: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 
 .priority-normal {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3B82F6;
+  background: var(--info-bg);
+  color: var(--info);
 }
 
 .status-badge {
@@ -64,9 +61,15 @@
   font-weight: 500;
 }
 
-.status-accepted { color: #10B981; }
-.status-denied { color: #EF4444; }
-.status-pending { color: #F59E0B; }
+.status-accepted {
+  color: var(--success);
+}
+.status-denied {
+  color: var(--danger);
+}
+.status-pending {
+  color: var(--warning);
+}
 
 .referral-card-body {
   padding: 16px 20px;
@@ -75,9 +78,12 @@
   gap: 12px;
 }
 
-.doctor-info, .reason, .notes, .date {
+.doctor-info,
+.reason,
+.notes,
+.date {
   font-size: 14px;
-  color: #475569;
+  color: var(--gray-600);
 }
 
 .doctor-info {
@@ -87,51 +93,57 @@
 }
 
 .notes {
-  background: #F8FAFC;
+  background: var(--gray-50);
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .date {
   font-size: 12px;
-  color: #94A3B8;
+  color: var(--gray-400);
 }
 
 .referral-card-actions {
   display: flex;
   gap: 12px;
   padding: 16px 20px;
-  background: #F8FAFC;
-  border-top: 1px solid #E2E8F0;
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
 }
 
-.accept-btn, .decline-btn {
+.accept-btn,
+.decline-btn {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
-  transition: all 0.2s;
 }
 
 .accept-btn {
-  background: #10B981;
+  background: var(--success);
   color: white;
 }
 
-.accept-btn:hover {
-  background: #059669;
+.accept-btn:hover:not(:disabled) {
+  background: var(--success-dark, #059669);
 }
 
 .decline-btn {
-  background: #EF4444;
+  background: var(--danger);
   color: white;
 }
 
-.decline-btn:hover {
-  background: #DC2626;
+.decline-btn:hover:not(:disabled) {
+  background: var(--danger-dark, #dc2626);
+}
+
+.accept-btn:disabled,
+.decline-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

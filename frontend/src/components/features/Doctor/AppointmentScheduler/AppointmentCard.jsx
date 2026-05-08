@@ -1,8 +1,10 @@
+// frontend/src/components/features/Doctor/AppointmentScheduler/AppointmentCard.jsx
+
 import React from 'react';
 import { Calendar, Clock, User, MapPin, Video, Phone, CheckCircle, XCircle, AlertCircle, Building } from 'lucide-react';
 import './AppointmentCard.css';
 
-export const AppointmentCard = ({ appointment, onUpdateStatus }) => {
+export const AppointmentCard = ({ appointment, onUpdateStatus, isOffline = false }) => {
   const getStatusConfig = (status) => {
     switch(status) {
       case 'confirmed': return { icon: <CheckCircle size={12} />, class: 'confirmed', label: 'Confirmed' };
@@ -38,6 +40,11 @@ export const AppointmentCard = ({ appointment, onUpdateStatus }) => {
   const formattedDate = appointmentDate.toLocaleDateString();
   const formattedTime = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+  const handleConfirm = () => onUpdateStatus(appointment._id, 'confirmed');
+  const handleCancel = () => onUpdateStatus(appointment._id, 'cancelled');
+  const handleComplete = () => onUpdateStatus(appointment._id, 'completed');
+  const handleNoShow = () => onUpdateStatus(appointment._id, 'no-show');
+
   return (
     <div className="appointment-card">
       <div className="card-header">
@@ -45,7 +52,9 @@ export const AppointmentCard = ({ appointment, onUpdateStatus }) => {
           <User size={16} />
           <span className="patient-name">{patientName || 'Unknown Patient'}</span>
         </div>
-        <div className={`status-badge ${statusConfig.class}`}>{statusConfig.icon}{statusConfig.label}</div>
+        <div className={`status-badge ${statusConfig.class}`}>
+          {statusConfig.icon}{statusConfig.label}
+        </div>
       </div>
 
       <div className="card-body">
@@ -55,7 +64,9 @@ export const AppointmentCard = ({ appointment, onUpdateStatus }) => {
           <span className="duration-badge">{appointment.duration || 30} min</span>
         </div>
         
-        <div className="info-row">{getTypeIcon(appointment.type)}<span>{getTypeLabel(appointment.type)}</span></div>
+        <div className="info-row">
+          {getTypeIcon(appointment.type)}<span>{getTypeLabel(appointment.type)}</span>
+        </div>
 
         {appointment.type === 'in-person' && (
           <div className="info-row location-row">
@@ -72,20 +83,32 @@ export const AppointmentCard = ({ appointment, onUpdateStatus }) => {
           </div>
         )}
 
-        {appointment.reason && <div className="reason-row"><strong>Reason:</strong> {appointment.reason}</div>}
+        {appointment.reason && (
+          <div className="reason-row">
+            <strong>Reason:</strong> {appointment.reason}
+          </div>
+        )}
       </div>
 
       {appointment.status === 'scheduled' && (
         <div className="card-actions">
-          <button className="confirm-btn" onClick={() => onUpdateStatus(appointment._id, 'confirmed')}><CheckCircle size={14} /> Confirm</button>
-          <button className="cancel-btn" onClick={() => onUpdateStatus(appointment._id, 'cancelled')}><XCircle size={14} /> Cancel</button>
+          <button className="confirm-btn" onClick={handleConfirm} disabled={isOffline}>
+            <CheckCircle size={14} /> Confirm
+          </button>
+          <button className="cancel-btn" onClick={handleCancel} disabled={isOffline}>
+            <XCircle size={14} /> Cancel
+          </button>
         </div>
       )}
 
       {appointment.status === 'confirmed' && (
         <div className="card-actions">
-          <button className="complete-btn" onClick={() => onUpdateStatus(appointment._id, 'completed')}><CheckCircle size={14} /> Mark Completed</button>
-          <button className="noshow-btn" onClick={() => onUpdateStatus(appointment._id, 'no-show')}><AlertCircle size={14} /> No Show</button>
+          <button className="complete-btn" onClick={handleComplete} disabled={isOffline}>
+            <CheckCircle size={14} /> Mark Completed
+          </button>
+          <button className="noshow-btn" onClick={handleNoShow} disabled={isOffline}>
+            <AlertCircle size={14} /> No Show
+          </button>
         </div>
       )}
     </div>
