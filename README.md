@@ -428,30 +428,19 @@ Aegis/
 
 ---
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
 ## 📄 License
 
 This project is for educational purposes as part of a school project.
 
 ---
 
-## 👥 Team
+## Contributions
 
-**Group 5** - Health Monitoring & Health API System
+Health Monitoring & Health API System
 
 | Avatar | Name | GitHub | Contributions |
 |--------|------|--------|---------------|
-| <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Anne Loraine Pardillo** | [@luoijin](https://github.com/luoijin) | Project Manager, Developer, Tester, Documentation |
-| <img src="https://github.com/La4ca.png" width="50" height="50"/> | **Laica Cabatana** | [@La4ca](https://github.com/La4ca) | Developer |
+| <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Anne Loraine Pardillo** | [@luoijin](https://github.com/luoijin) | Developer, Tester, Documentation |
 
 
 ---
@@ -460,4 +449,3 @@ This project is for educational purposes as part of a school project.
 <div align="center">
   <strong>INTPROG Group 5</strong>
 </div>
-```
