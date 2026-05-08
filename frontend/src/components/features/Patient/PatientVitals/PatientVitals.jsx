@@ -10,7 +10,7 @@ export const PatientVitals = ({ latestVitals }) => {
       label: 'Heart Rate',
       value: latestVitals?.heartRate || '--',
       unit: 'bpm',
-      color: '#EF4444'
+      color: '#3B82F6'
     },
     {
       icon: <Activity size={22} />,
@@ -26,14 +26,14 @@ export const PatientVitals = ({ latestVitals }) => {
       label: 'Temperature',
       value: latestVitals?.temperature || '--',
       unit: '°C',
-      color: '#F59E0B'
+      color: '#3B82F6'
     },
     {
       icon: <Droplet size={22} />,
       label: 'O₂ Saturation',
       value: latestVitals?.oxygenSaturation || '--',
       unit: '%',
-      color: '#10B981'
+      color: '#3B82F6'
     }
   ];
 

@@ -1,6 +1,7 @@
 // frontend/src/components/features/Patient/PatientDashboard/PatientDashboard.jsx
+
 import React, { useState, useEffect } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, WifiOff } from 'lucide-react';
 import { PatientHeader } from '../PatientHeader/PatientHeader';
 import { PatientWelcome } from '../PatientWelcome/PatientWelcome';
 import { PatientInfoCard } from '../PatientInfoCard/PatientInfoCard';
@@ -27,6 +28,7 @@ const PatientDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEHR, setShowEHR] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -35,6 +37,15 @@ const PatientDashboard = () => {
       setUser(parsed);
     }
     fetchPatientData();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const fetchPatientData = async () => {
@@ -42,56 +53,83 @@ const PatientDashboard = () => {
       setLoading(true);
       setError(null);
       
+      // Try to fetch all data with caching fallback
       const [patientRes, logsRes, prescriptionsRes, appointmentsRes, referralsRes] = await Promise.all([
-        api.get('/patient/profile'),
-        api.get('/patient/my-health-logs'),
-        api.get('/patient/my-prescriptions'),
-        api.get('/patient/my-appointments'),
-        api.get('/patient/my-referrals')
+        api.get('/patient/profile').catch(() => null),
+        api.get('/patient/my-health-logs').catch(() => null),
+        api.get('/patient/my-prescriptions').catch(() => null),
+        api.get('/patient/my-appointments').catch(() => null),
+        api.get('/patient/my-referrals').catch(() => null)
       ]);
       
-      setPatientData(patientRes.data);
-      setDoctor(patientRes.data.assignedDoctor);
-      setHealthLogs(logsRes.data || []);
-      setPrescriptions(prescriptionsRes.data || []);
-      setAppointments(appointmentsRes.data || []);
-      setReferrals(referralsRes.data || []);
+      if (patientRes?.data) {
+        setPatientData(patientRes.data);
+        setDoctor(patientRes.data.assignedDoctor);
+        localStorage.setItem('cachedPatientData', JSON.stringify(patientRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedPatientData');
+        if (cached) setPatientData(JSON.parse(cached));
+      }
+
+      if (logsRes?.data) {
+        setHealthLogs(logsRes.data);
+        localStorage.setItem('cachedHealthLogs', JSON.stringify(logsRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedHealthLogs');
+        if (cached) setHealthLogs(JSON.parse(cached));
+      }
+
+      if (prescriptionsRes?.data) {
+        setPrescriptions(prescriptionsRes.data);
+        localStorage.setItem('cachedPrescriptions', JSON.stringify(prescriptionsRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedPrescriptions');
+        if (cached) setPrescriptions(JSON.parse(cached));
+      }
+
+      if (appointmentsRes?.data) {
+        setAppointments(appointmentsRes.data);
+        localStorage.setItem('cachedAppointments', JSON.stringify(appointmentsRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedAppointments');
+        if (cached) setAppointments(JSON.parse(cached));
+      }
+
+      if (referralsRes?.data) {
+        setReferrals(referralsRes.data);
+        localStorage.setItem('cachedReferrals', JSON.stringify(referralsRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedReferrals');
+        if (cached) setReferrals(JSON.parse(cached));
+      }
+
+      if (!patientRes?.data && !logsRes?.data && !prescriptionsRes?.data && !appointmentsRes?.data && !referralsRes?.data) {
+        setError('Unable to load data. Please check your connection.');
+      }
     } catch (error) {
       console.error('Error fetching patient data:', error);
-      setError(error.response?.data?.message || 'Failed to load patient data');
+      setError('Failed to load patient data. Using cached data if available.');
     } finally {
       setLoading(false);
     }
   };
 
   const refreshPatientProfile = async () => {
+    if (isOffline) return false;
     try {
       const [patientRes, userRes] = await Promise.all([
         api.get('/patient/profile'),
         api.get('/auth/profile')
       ]);
-      
       setPatientData(patientRes.data);
       setDoctor(patientRes.data.assignedDoctor);
-      
       const updatedUser = userRes.data;
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      
       return true;
     } catch (error) {
       console.error('Error refreshing profile:', error);
       return false;
-    }
-  };
-
-  const refreshPatientData = async () => {
-    try {
-      const patientRes = await api.get('/patient/profile');
-      setPatientData(patientRes.data);
-      setDoctor(patientRes.data.assignedDoctor);
-    } catch (error) {
-      console.error('Error refreshing patient data:', error);
     }
   };
 
@@ -107,7 +145,6 @@ const PatientDashboard = () => {
     await refreshPatientProfile();
   };
 
-  // Prepare chart data from health logs
   const chartData = healthLogs.slice().reverse().slice(0, 30).map(log => ({
     date: new Date(log.createdAt).toLocaleDateString(),
     heartRate: log.vitals?.heartRate || 0,
@@ -116,7 +153,7 @@ const PatientDashboard = () => {
   }));
 
   const renderContent = () => {
-    if (error) {
+    if (error && !patientData && !healthLogs.length) {
       return (
         <div className="error-state">
           <p>{error}</p>
@@ -130,7 +167,6 @@ const PatientDashboard = () => {
         return (
           <>
             <PatientInfoCard patient={patientData} doctor={doctor} user={user} />
-            
             <div className="overview-grid">
               <div className="overview-left">
                 <PatientVitals latestVitals={healthLogs[0]?.vitals} />
@@ -140,7 +176,6 @@ const PatientDashboard = () => {
                 <PatientConditions conditions={patientData?.conditions || []} />
               </div>
             </div>
-            
             <PatientHealthHistory healthLogs={healthLogs.slice(0, 5)} />
           </>
         );
@@ -160,7 +195,7 @@ const PatientDashboard = () => {
   if (loading) {
     return (
       <div className="patient-dashboard loading">
-        <div className="spinner"></div>
+        <div className="loading-spinner-static"></div>
         <p>Loading your health data...</p>
       </div>
     );
@@ -179,10 +214,16 @@ const PatientDashboard = () => {
         />
         
         <div className="patient-dashboard-container">
+          {isOffline && (
+            <div className="offline-banner-dashboard">
+              <WifiOff size={16} />
+              <span>You are offline. Showing cached data.</span>
+            </div>
+          )}
           <div className="patient-dashboard-content">
             <div className="dashboard-header-actions">
               <PatientWelcome user={user} />
-              <button className="view-ehr-btn" onClick={() => setShowEHR(true)}>
+              <button className="view-ehr-btn" onClick={() => setShowEHR(true)} disabled={isOffline}>
                 <FileText size={16} /> View My Health Record
               </button>
             </div>
@@ -191,7 +232,6 @@ const PatientDashboard = () => {
         </div>
       </div>
 
-      {/* Patient EHR Modal */}
       {showEHR && (
         <PatientEHRModal onClose={() => setShowEHR(false)} />
       )}

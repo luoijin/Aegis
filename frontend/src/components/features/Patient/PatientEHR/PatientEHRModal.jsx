@@ -1,9 +1,10 @@
 // frontend/src/components/features/Patient/PatientEHR/PatientEHRModal.jsx
+
 import React, { useState, useEffect } from 'react';
 import { 
   X, User, Calendar, Phone, Mail, Droplet, AlertCircle, Pill, Activity, 
   Clock, Share2, FileText, Heart, Stethoscope, Thermometer, Droplets, 
-  Syringe, History, Briefcase, CheckCircle, Award, Building, MapPin
+  Syringe, History, Briefcase, CheckCircle, Award, Building, MapPin, WifiOff
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../../../../services/api';
@@ -17,9 +18,19 @@ const PatientEHRModal = ({ onClose }) => {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
     fetchAllData();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const fetchAllData = async () => {
@@ -29,23 +40,61 @@ const PatientEHRModal = ({ onClose }) => {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const profileRes = await api.get('/patient/profile', { headers });
-      setProfile(profileRes.data);
+      // Try to fetch all, fallback to cache
+      const [profileRes, logsRes, prescriptionsRes, appointmentsRes, referralsRes] = await Promise.all([
+        api.get('/patient/profile', { headers }).catch(() => null),
+        api.get('/patient/my-health-logs', { headers }).catch(() => null),
+        api.get('/patient/my-prescriptions', { headers }).catch(() => null),
+        api.get('/patient/my-appointments', { headers }).catch(() => null),
+        api.get('/patient/my-referrals', { headers }).catch(() => null)
+      ]);
 
-      const logsRes = await api.get('/patient/my-health-logs', { headers });
-      setHealthLogs(logsRes.data || []);
+      if (profileRes?.data) {
+        setProfile(profileRes.data);
+        localStorage.setItem('cachedPatientProfile', JSON.stringify(profileRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedPatientProfile');
+        if (cached) setProfile(JSON.parse(cached));
+      }
 
-      const prescriptionsRes = await api.get('/patient/my-prescriptions', { headers });
-      setPrescriptions(prescriptionsRes.data || []);
+      if (logsRes?.data) {
+        setHealthLogs(logsRes.data);
+        localStorage.setItem('cachedHealthLogs', JSON.stringify(logsRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedHealthLogs');
+        if (cached) setHealthLogs(JSON.parse(cached));
+      }
 
-      const appointmentsRes = await api.get('/patient/my-appointments', { headers });
-      setAppointments(appointmentsRes.data || []);
+      if (prescriptionsRes?.data) {
+        setPrescriptions(prescriptionsRes.data);
+        localStorage.setItem('cachedPrescriptions', JSON.stringify(prescriptionsRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedPrescriptions');
+        if (cached) setPrescriptions(JSON.parse(cached));
+      }
 
-      const referralsRes = await api.get('/patient/my-referrals', { headers });
-      setReferrals(referralsRes.data || []);
+      if (appointmentsRes?.data) {
+        setAppointments(appointmentsRes.data);
+        localStorage.setItem('cachedAppointments', JSON.stringify(appointmentsRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedAppointments');
+        if (cached) setAppointments(JSON.parse(cached));
+      }
+
+      if (referralsRes?.data) {
+        setReferrals(referralsRes.data);
+        localStorage.setItem('cachedReferrals', JSON.stringify(referralsRes.data));
+      } else {
+        const cached = localStorage.getItem('cachedReferrals');
+        if (cached) setReferrals(JSON.parse(cached));
+      }
+
+      if (!profileRes?.data && !logsRes?.data && !prescriptionsRes?.data && !appointmentsRes?.data && !referralsRes?.data) {
+        setError('Unable to load data. Please check your connection.');
+      }
     } catch (err) {
       console.error('Error fetching patient chart data:', err);
-      setError('Failed to load your health record. Please try again later.');
+      setError('Failed to load your health record. Using cached data if available.');
     } finally {
       setLoading(false);
     }
@@ -77,20 +126,20 @@ const PatientEHRModal = ({ onClose }) => {
     return (
       <div className="patient-ehr-overlay" onClick={onClose}>
         <div className="patient-ehr-modal" style={{ textAlign: 'center', padding: '40px' }}>
-          <div className="loading-spinner"></div>
-          <p style={{ color: '#64748b', marginTop: '16px' }}>Loading your health record...</p>
+          <div className="loading-spinner-static"></div>
+          <p style={{ color: 'var(--gray-500)', marginTop: '16px' }}>Loading your health record...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !profile) {
     return (
       <div className="patient-ehr-overlay" onClick={onClose}>
-        <div className="patient-ehr-modal" style={{ textAlign: 'center', padding: '40px', color: '#ef4444' }}>
-          <AlertCircle size={48} />
-          <p style={{ marginTop: '16px' }}>{error}</p>
-          <button onClick={onClose} style={{ marginTop: '20px', padding: '8px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Close</button>
+        <div className="patient-ehr-modal" style={{ textAlign: 'center', padding: '40px' }}>
+          <AlertCircle size={48} color="var(--danger)" />
+          <p style={{ marginTop: '16px', color: 'var(--danger)' }}>{error}</p>
+          <button onClick={onClose} style={{ marginTop: '20px', padding: '8px 20px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Close</button>
         </div>
       </div>
     );
@@ -113,6 +162,13 @@ const PatientEHRModal = ({ onClose }) => {
           </h3>
           <button className="close-btn" onClick={onClose}><X size={20} /></button>
         </div>
+
+        {isOffline && (
+          <div className="offline-banner-ehr">
+            <WifiOff size={14} />
+            <span>Offline – displaying cached data</span>
+          </div>
+        )}
 
         <div className="modal-body unified-chart">
           {/* Demographics Section */}
@@ -162,7 +218,6 @@ const PatientEHRModal = ({ onClose }) => {
               </div>
             </div>
 
-            {/* Emergency Contact Section */}
             <div className="emergency-contact-section">
               <div className="emergency-header">
                 <AlertCircle size={14} />
@@ -248,10 +303,7 @@ const PatientEHRModal = ({ onClose }) => {
               <div className="medications-list">
                 {activePrescriptions.map(p => (
                   <div key={p._id} className="medication-card">
-                    <div className="medication-date">
-                      <Calendar size={14} />
-                      <span>Issued {formatDate(p.issuedDate)}</span>
-                    </div>
+                    <div className="medication-date"><Calendar size={14} /><span>Issued {formatDate(p.issuedDate)}</span></div>
                     <div className="medication-items">
                       {p.medications?.map((m, idx) => (
                         <div key={idx} className="medication-item">
@@ -265,12 +317,7 @@ const PatientEHRModal = ({ onClose }) => {
                         </div>
                       ))}
                     </div>
-                    {p.notes && (
-                      <div className="medication-notes">
-                        <FileText size={14} />
-                        <span>{p.notes}</span>
-                      </div>
-                    )}
+                    {p.notes && <div className="medication-notes"><FileText size={14} /><span>{p.notes}</span></div>}
                   </div>
                 ))}
               </div>
@@ -283,95 +330,40 @@ const PatientEHRModal = ({ onClose }) => {
             {chartData.length > 0 ? (
               <>
                 <div className="vitals-chart-container">
-                  <div className="chart-header">
-                    <Heart size={14} />
-                    <span>Heart Rate Trend (Last 30 days)</span>
-                  </div>
+                  <div className="chart-header"><Heart size={14} /><span>Heart Rate Trend (Last 30 days)</span></div>
                   <ResponsiveContainer width="100%" height={250}>
                     <AreaChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} />
-                      <YAxis stroke="#94a3b8" fontSize={11} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                      <Area type="monotone" dataKey="heartRate" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} name="Heart Rate (bpm)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-200)" />
+                      <XAxis dataKey="date" stroke="var(--gray-400)" fontSize={11} />
+                      <YAxis stroke="var(--gray-400)" fontSize={11} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)' }} />
+                      <Area type="monotone" dataKey="heartRate" stroke="var(--accent)" fill="var(--accent)" fillOpacity={0.1} name="Heart Rate (bpm)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                
                 <div className="latest-vitals-card">
-                  <div className="latest-vitals-header">
-                    <Activity size={14} />
-                    <span>Latest Vitals</span>
-                  </div>
+                  <div className="latest-vitals-header"><Activity size={14} /><span>Latest Vitals</span></div>
                   <div className="latest-vitals-grid">
                     {healthLogs[0] ? (
                       <>
-                        <div className="vital-item">
-                          <Droplets size={16} />
-                          <div>
-                            <span className="vital-label">Blood Pressure</span>
-                            <span className="vital-value">{healthLogs[0].vitals?.bloodPressure?.systolic || '--'}/{healthLogs[0].vitals?.bloodPressure?.diastolic || '--'}</span>
-                          </div>
-                        </div>
-                        <div className="vital-item">
-                          <Heart size={16} />
-                          <div>
-                            <span className="vital-label">Heart Rate</span>
-                            <span className="vital-value">{healthLogs[0].vitals?.heartRate || '--'} bpm</span>
-                          </div>
-                        </div>
-                        <div className="vital-item">
-                          <Thermometer size={16} />
-                          <div>
-                            <span className="vital-label">Temperature</span>
-                            <span className="vital-value">{healthLogs[0].vitals?.temperature || '--'} °C</span>
-                          </div>
-                        </div>
-                        <div className="vital-item">
-                          <Droplets size={16} />
-                          <div>
-                            <span className="vital-label">O₂ Saturation</span>
-                            <span className="vital-value">{healthLogs[0].vitals?.oxygenSaturation || '--'}%</span>
-                          </div>
-                        </div>
+                        <div className="vital-item"><Droplets size={16} /><div><span className="vital-label">Blood Pressure</span><span className="vital-value">{healthLogs[0].vitals?.bloodPressure?.systolic || '--'}/{healthLogs[0].vitals?.bloodPressure?.diastolic || '--'}</span></div></div>
+                        <div className="vital-item"><Heart size={16} /><div><span className="vital-label">Heart Rate</span><span className="vital-value">{healthLogs[0].vitals?.heartRate || '--'} bpm</span></div></div>
+                        <div className="vital-item"><Thermometer size={16} /><div><span className="vital-label">Temperature</span><span className="vital-value">{healthLogs[0].vitals?.temperature || '--'} °C</span></div></div>
+                        <div className="vital-item"><Droplets size={16} /><div><span className="vital-label">O₂ Saturation</span><span className="vital-value">{healthLogs[0].vitals?.oxygenSaturation || '--'}%</span></div></div>
                       </>
-                    ) : (
-                      <div className="empty-message">No vitals recorded</div>
-                    )}
+                    ) : <div className="empty-message">No vitals recorded</div>}
                   </div>
                 </div>
               </>
-            ) : (
-              <div className="empty-state">
-                <Activity size={32} strokeWidth={1.5} />
-                <p>No vitals recorded yet</p>
-              </div>
-            )}
+            ) : <div className="empty-state"><Activity size={32} strokeWidth={1.5} /><p>No vitals recorded yet</p></div>}
 
             <div className="health-logs-section">
-              <div className="section-subheader">
-                <Clock size={14} />
-                <span>Recent Health Logs</span>
-              </div>
+              <div className="section-subheader"><Clock size={14} /><span>Recent Health Logs</span></div>
               <div className="health-logs-table">
                 <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Heart Rate</th>
-                      <th>Blood Pressure</th>
-                      <th>Temperature</th>
-                      <th>O₂ Sat</th>
-                      <th>Recorded By</th>
-                      <th>Notes</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th>Date</th><th>Heart Rate</th><th>Blood Pressure</th><th>Temperature</th><th>O₂ Sat</th><th>Recorded By</th><th>Notes</th></tr></thead>
                   <tbody>
-                    {healthLogs.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="empty-table-message">No health records available</td>
-                      </tr>
-                    ) : (
+                    {healthLogs.length === 0 ? <tr><td colSpan="7" className="empty-table-message">No health records available</td></tr> :
                       healthLogs.slice(0, 10).map(log => {
                         const doctorName = log.recordedBy?.profile?.firstName && log.recordedBy?.profile?.lastName
                           ? `Dr. ${log.recordedBy.profile.firstName} ${log.recordedBy.profile.lastName}`
@@ -388,7 +380,7 @@ const PatientEHRModal = ({ onClose }) => {
                           </tr>
                         );
                       })
-                    )}
+                    }
                   </tbody>
                 </table>
               </div>
@@ -431,12 +423,7 @@ const PatientEHRModal = ({ onClose }) => {
                   ))}
                 </div>
               )}
-              {appointments.length === 0 && (
-                <div className="empty-state">
-                  <Calendar size={32} strokeWidth={1.5} />
-                  <p>No appointments scheduled</p>
-                </div>
-              )}
+              {appointments.length === 0 && <div className="empty-state"><Calendar size={32} strokeWidth={1.5} /><p>No appointments scheduled</p></div>}
             </div>
           </section>
 
@@ -444,10 +431,7 @@ const PatientEHRModal = ({ onClose }) => {
           <section className="chart-section">
             <h4><Share2 size={18} /> Referrals</h4>
             {referrals.length === 0 ? (
-              <div className="empty-state">
-                <Share2 size={32} strokeWidth={1.5} />
-                <p>No referral records</p>
-              </div>
+              <div className="empty-state"><Share2 size={32} strokeWidth={1.5} /><p>No referral records</p></div>
             ) : (
               <div className="referrals-container">
                 {referrals.filter(r => r.status === 'pending').length > 0 && (
@@ -488,25 +472,12 @@ const PatientEHRModal = ({ onClose }) => {
             <h4><Stethoscope size={18} /> Your Primary Care Physician</h4>
             {patientData.assignedDoctor ? (
               <div className="doctor-info-grid">
-                <div className="doctor-info-item">
-                  <span className="doctor-info-label">Name</span>
-                  <span className="doctor-info-value">Dr. {patientData.assignedDoctor?.profile?.firstName} {patientData.assignedDoctor?.profile?.lastName}</span>
-                </div>
-                <div className="doctor-info-item">
-                  <span className="doctor-info-label">Specialization</span>
-                  <span className="doctor-info-value">{patientData.assignedDoctor?.specialization || 'General Medicine'}</span>
-                </div>
-                <div className="doctor-info-item">
-                  <span className="doctor-info-label">Email</span>
-                  <span className="doctor-info-value"><Mail size={12} /> {patientData.assignedDoctor?.email}</span>
-                </div>
+                <div className="doctor-info-item"><span className="doctor-info-label">Name</span><span className="doctor-info-value">Dr. {patientData.assignedDoctor?.profile?.firstName} {patientData.assignedDoctor?.profile?.lastName}</span></div>
+                <div className="doctor-info-item"><span className="doctor-info-label">Specialization</span><span className="doctor-info-value">{patientData.assignedDoctor?.specialization || 'General Medicine'}</span></div>
+                <div className="doctor-info-item"><span className="doctor-info-label">Email</span><span className="doctor-info-value"><Mail size={12} /> {patientData.assignedDoctor?.email}</span></div>
               </div>
             ) : (
-              <div className="empty-state">
-                <Stethoscope size={32} strokeWidth={1.5} />
-                <p>No doctor assigned yet</p>
-                <span>Please contact the admin to assign a primary care physician</span>
-              </div>
+              <div className="empty-state"><Stethoscope size={32} strokeWidth={1.5} /><p>No doctor assigned yet</p><span>Please contact the admin to assign a primary care physician</span></div>
             )}
           </section>
         </div>
