@@ -8,6 +8,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
+const statsRoutes = require('./routes/stats.routes');
 const authRoutes = require('./routes/auth.routes');
 const patientRoutes = require('./routes/patient.routes');
 const healthLogRoutes = require('./routes/healthLog.routes');
@@ -18,6 +19,7 @@ const hospitalRoutes = require('./routes/hospital.routes');
 const Prescription = require('./models/Prescription.model');
 const Appointment = require('./models/Appointment.model');
 const Referral = require('./models/Referral.model');
+
 
 
 const app = express();
@@ -59,6 +61,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
+app.use('/api/stats', statsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/patient', patientRoutes);

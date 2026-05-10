@@ -1,6 +1,6 @@
 // frontend/src/components/features/Patient/PatientAccountModal/PatientAccountModal.jsx
 import React, { useState } from 'react';
-import { X, User, Lock, Save, Eye, EyeOff, Phone, Mail, Droplet, Calendar, Heart, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, User, Lock, Save, Eye, EyeOff, Mail, Droplet, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
 import { confirmDialog } from '../../../../utils/confirmDialog';
 import api from '../../../../services/api';
 import '../../../../styles/modal.css';
@@ -233,7 +233,7 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
                 
                 <div className="form-row">
                   <div className="form-group">
-                    <label><Phone size={12} /> Phone Number</label>
+                    <label>Phone Number</label>
                     <input
                       type="tel"
                       name="phone"
@@ -243,7 +243,7 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
                     />
                   </div>
                   <div className="form-group">
-                    <label><Calendar size={12} /> Date of Birth</label>
+                    <label>Date of Birth</label>
                     <input
                       type="date"
                       name="dateOfBirth"
@@ -255,7 +255,7 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
                 
                 {age && (
                   <div className="info-note">
-                    <Heart size={14} />
+                    <Calendar size={14} />
                     <span>Age: {age} years</span>
                   </div>
                 )}
@@ -280,7 +280,7 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
                 </div>
                 
                 <div className="form-group">
-                  <label><Mail size={12} /> Email Address</label>
+                  <label>Email Address</label>
                   <input
                     type="email"
                     value={formData.email}
@@ -299,7 +299,7 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
                 
                 <div className="form-row">
                   <div className="form-group">
-                    <label><Droplet size={12} /> Blood Type</label>
+                    <label>Blood Type</label>
                     <input
                       type="text"
                       value={formData.bloodType || 'Not specified'}
@@ -309,7 +309,7 @@ export const PatientAccountModal = ({ user, patientData, onClose, onUpdate }) =>
                     <small>Blood type can only be updated by your doctor</small>
                   </div>
                   <div className="form-group">
-                    <label><User size={12} /> Primary Physician</label>
+                    <label>Primary Physician</label>
                     <input
                       type="text"
                       value={formData.assignedDoctor}

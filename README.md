@@ -440,7 +440,7 @@ Health Monitoring & Health API System
 
 | Avatar | Name | GitHub | Contributions |
 |--------|------|--------|---------------|
-| <img src="https://github.com/luoijin.png" width="50" height="50"/> | **Anne Loraine Pardillo** | [@luoijin](https://github.com/luoijin) | Developer, Tester, Documentation |
+| <img src="https://github.com/luoijin.png" width="50" hei+++++++++++++++ght="50"/> | **Anne Loraine Pardillo** | [@luoijin](https://github.com/luoijin) | Developer, Tester, Documentation |
 
 
 ---

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Shield, FileText, Heart, Lock } from 'lucide-react';
+import { X, Shield, FileText, Heart, Lock, Mail, Phone, MapPin, MessageCircle, AlertTriangle } from 'lucide-react';
 import './LegalModal.css';
 
 const LegalModal = ({ type, onClose }) => {
@@ -241,7 +241,7 @@ const LegalModal = ({ type, onClose }) => {
                 
                 <div className="contact-methods">
                   <div className="contact-method">
-                    <h4>📧 Email Support</h4>
+                    <h4><Mail size={18} style={{ display: 'inline', marginRight: '8px' }} /> Email Support</h4>
                     <p>General Inquiries: support@aegishealth.com</p>
                     <p>Technical Support: tech@aegishealth.com</p>
                     <p>Billing Questions: billing@aegishealth.com</p>
@@ -249,34 +249,15 @@ const LegalModal = ({ type, onClose }) => {
                   </div>
 
                   <div className="contact-method">
-                    <h4>📞 Phone Support</h4>
+                    <h4><Phone size={18} style={{ display: 'inline', marginRight: '8px' }} /> Phone Support</h4>
                     <p>Main Line: (555) 123-4567</p>
                     <p>Toll-Free: (888) 555-0123</p>
                     <p>Emergency Support: (555) 123-4568</p>
-                    <p>Hours: 24/7/365</p>
-                  </div>
-
-                  <div className="contact-method">
-                    <h4>📍 Office Locations</h4>
-                    <p><strong>Headquarters:</strong><br />
-                    123 Healthcare Boulevard<br />
-                    Medical District, NY 10001</p>
-                    
-                    <p><strong>West Coast Office:</strong><br />
-                    456 Innovation Drive<br />
-                    San Francisco, CA 94105</p>
-                  </div>
-
-                  <div className="contact-method">
-                    <h4>💬 Live Chat</h4>
-                    <p>Available directly in the Aegis platform</p>
-                    <p>Hours: 8 AM - 10 PM EST, 7 days/week</p>
-                    <p>Average wait time: Less than 2 minutes</p>
-                  </div>
+=                  </div>
                 </div>
 
                 <div className="emergency-note">
-                  <h4>⚠️ Medical Emergencies</h4>
+                  <h4><AlertTriangle size={18} style={{ display: 'inline', marginRight: '8px' }} /> Medical Emergencies</h4>
                   <p>If you are experiencing a medical emergency, please call 911 immediately. Do not use email or chat for emergency situations.</p>
                 </div>
               </section>

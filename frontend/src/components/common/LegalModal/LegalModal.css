@@ -101,7 +101,6 @@
   background: var(--warning-bg);
   padding: 16px;
   border-radius: var(--radius-lg);
-  border-left: 3px solid var(--warning);
   margin-top: 16px;
 }
 
@@ -130,7 +129,6 @@
   padding: 20px;
   border-radius: var(--radius-lg);
   margin-top: 24px;
-  border-left: 3px solid var(--danger);
 }
 
 .emergency-note h4 {

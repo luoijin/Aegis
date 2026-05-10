@@ -100,7 +100,6 @@ const Auth = () => {
             <Heart size={32} strokeWidth={1.5} />
             <h1 className="auth-title">AEGIS</h1>
           </div>
-          <p className="auth-subtitle">Health Monitoring System</p>
         </div>
 
         {/* Toggle Buttons */}

@@ -15,8 +15,7 @@ const Footer = () => {
       <footer className="footer">
         <div className="footer-container">
           <div className="footer-brand">
-            <Heart size={24} strokeWidth={1.5} />
-            <span>AEGIS Health</span>
+            <span>AEGIS</span>
           </div>
           <div className="footer-links">
             <button onClick={() => openModal('privacy')} className="footer-link-btn">

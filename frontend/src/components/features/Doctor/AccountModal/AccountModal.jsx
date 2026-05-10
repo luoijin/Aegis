@@ -136,7 +136,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
             <form onSubmit={handleUpdateProfile}>
               <div className="form-row">
                 <div className="form-group">
-                  <label><User size={12} /> First Name</label>
+                  <label>First Name</label>
                   <input
                     type="text"
                     name="firstName"
@@ -146,7 +146,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label><User size={12} /> Last Name</label>
+                  <label>Last Name</label>
                   <input
                     type="text"
                     name="lastName"
@@ -159,7 +159,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
               
               <div className="form-row">
                 <div className="form-group">
-                  <label><Phone size={12} /> Phone Number</label>
+                  <label>Phone Number</label>
                   <input
                     type="tel"
                     name="phone"
@@ -169,7 +169,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label><Mail size={12} /> Email</label>
+                  <label>Email</label>
                   <input
                     type="email"
                     value={formData.email}
@@ -182,7 +182,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
               
               <div className="form-row">
                 <div className="form-group">
-                  <label><Calendar size={12} /> Date of Birth</label>
+                  <label>Date of Birth</label>
                   <input
                     type="date"
                     name="dateOfBirth"
@@ -191,7 +191,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label><Users size={12} /> Gender</label>
+                  <label>Gender</label>
                   <select name="gender" value={formData.gender} onChange={handleChange}>
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
@@ -210,7 +210,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
               
               <div className="form-row">
                 <div className="form-group">
-                  <label><Award size={12} /> Specialization</label>
+                  <label>Specialization</label>
                   <input
                     type="text"
                     value={formData.specialization || 'Not specified'}
@@ -220,7 +220,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
                   <small>Contact admin to change specialization</small>
                 </div>
                 <div className="form-group">
-                  <label><Building size={12} /> Hospital Affiliation</label>
+                  <label>Hospital Affiliation</label>
                   <input
                     type="text"
                     value={formData.hospital || 'Not assigned'}
@@ -232,7 +232,7 @@ export const AccountModal = ({ user, onClose, onUpdate }) => {
               
               {formData.licenseNumber && (
                 <div className="form-group">
-                  <label><Award size={12} /> License Number</label>
+                  <label>License Number</label>
                   <input
                     type="text"
                     value={formData.licenseNumber}

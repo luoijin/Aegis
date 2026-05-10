@@ -50,7 +50,6 @@ const Login = () => {
         <div className="login-header">
           <span className="login-icon">⚕️</span>
           <h1 className="login-title">AEGIS</h1>
-          <p className="login-subtitle">Health Monitoring System</p>
         </div>
 
         <h2 className="login-heading">{isRegister ? 'Create Account' : 'Welcome Back'}</h2>

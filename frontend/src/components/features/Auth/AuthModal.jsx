@@ -1,9 +1,10 @@
+// frontend/src/components/features/Auth/AuthModal.jsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Heart, Mail, Lock, User, X, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '../../../utils/api';
-import './AuthModal.css';
+import styles from './AuthModal.module.css';
 
 const AuthModal = ({ mode, onClose, onSwitchMode }) => {
   const [isLogin, setIsLogin] = useState(mode === 'login');
@@ -31,7 +32,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
     try {
       let response;
       if (isLogin) {
-        // Login - role is determined by backend
         response = await api.post('/auth/login', {
           email: formData.email,
           password: formData.password
@@ -43,7 +43,6 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
           localStorage.setItem('userRole', response.data.user.role);
           onClose();
           
-          // Redirect based on role
           if (response.data.user.role === 'admin') {
             navigate('/admin/dashboard');
           } else if (response.data.user.role === 'doctor') {
@@ -53,11 +52,10 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
           }
         }
       } else {
-        // Register - always creates a patient account (no role selection)
         response = await api.post('/auth/register', {
           email: formData.email,
           password: formData.password,
-          role: 'patient',  // Force role to patient
+          role: 'patient',
           profile: {
             firstName: formData.firstName,
             lastName: formData.lastName,
@@ -67,9 +65,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
         
         if (response.data.token) {
           setSuccess('Account created successfully! Please sign in.');
-          // Clear form
           setFormData({ firstName: '', lastName: '', email: '', password: '' });
-          // Switch to login mode after 2 seconds
           setTimeout(() => {
             setIsLogin(true);
             onSwitchMode('login');
@@ -92,29 +88,21 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <motion.div 
-        className="auth-modal"
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ duration: 0.3 }}
-      >
-        <button className="modal-close" onClick={onClose}>
+    <div className={styles.overlay} onClick={handleOverlayClick}>
+      <div className={styles.modal}>
+        <button className={styles.closeBtn} onClick={onClose}>
           <X size={24} />
         </button>
         
-        <div className="modal-header">
-          <div className="logo-wrapper">
-            <Heart size={32} strokeWidth={1.5} />
-            <h2 className="modal-title">AEGIS</h2>
+        <div className={styles.header}>
+          <div className={styles.logoWrapper}>
+            <h2 className={styles.title}>AEGIS</h2>
           </div>
-          <p className="modal-subtitle">Health Monitoring System</p>
         </div>
 
-        <div className="auth-toggle-modal">
+        <div className={styles.toggle}>
           <button 
-            className={`toggle-btn-modal ${isLogin ? 'active' : ''}`} 
+            className={`${styles.toggleBtn} ${isLogin ? styles.active : ''}`} 
             onClick={() => {
               setIsLogin(true);
               onSwitchMode('login');
@@ -125,7 +113,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
             Sign In
           </button>
           <button 
-            className={`toggle-btn-modal ${!isLogin ? 'active' : ''}`} 
+            className={`${styles.toggleBtn} ${!isLogin ? styles.active : ''}`} 
             onClick={() => {
               setIsLogin(false);
               onSwitchMode('register');
@@ -139,28 +127,28 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
 
         <form onSubmit={handleSubmit}>
           {error && (
-            <div className="alert-error-modal">
+            <div className={styles.alertError}>
               <AlertCircle size={16} />
               {error}
             </div>
           )}
           
           {success && (
-            <div className="alert-success-modal">
+            <div className={styles.alertSuccess}>
               <CheckCircle size={16} />
               {success}
             </div>
           )}
 
           {!isLogin && (
-            <div className="name-row-modal">
+            <div className={styles.nameRow}>
               <input 
                 type="text" 
                 name="firstName" 
                 placeholder="First Name" 
                 value={formData.firstName}
                 onChange={handleChange}
-                className="input-field-modal"
+                className={styles.input}
                 required
               />
               <input 
@@ -169,15 +157,15 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
                 placeholder="Last Name" 
                 value={formData.lastName}
                 onChange={handleChange}
-                className="input-field-modal"
+                className={styles.input}
                 required
               />
             </div>
           )}
 
-          <div className="input-group-modal">
+          <div className={styles.inputGroup}>
             <label>Email Address</label>
-            <div className="input-with-icon">
+            <div className={styles.inputIcon}>
               <Mail size={18} />
               <input 
                 type="email" 
@@ -185,15 +173,15 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
                 placeholder="your@email.com" 
                 value={formData.email}
                 onChange={handleChange}
-                className="input-field-modal"
+                className={styles.input}
                 required
               />
             </div>
           </div>
 
-          <div className="input-group-modal">
+          <div className={styles.inputGroup}>
             <label>Password</label>
-            <div className="input-with-icon">
+            <div className={styles.inputIcon}>
               <Lock size={18} />
               <input 
                 type="password" 
@@ -201,7 +189,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
                 placeholder="••••••••" 
                 value={formData.password}
                 onChange={handleChange}
-                className="input-field-modal"
+                className={styles.input}
                 required
                 minLength="6"
               />
@@ -209,7 +197,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
           </div>
 
           {!isLogin && (
-            <p className="register-note-modal">
+            <p className={styles.registerNote}>
               By creating an account, you'll be able to:
               <br />• View your health records
               <br />• Track your vitals over time
@@ -217,17 +205,17 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
             </p>
           )}
 
-          <button type="submit" className="btn-submit" disabled={loading}>
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
             {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Patient Account')}
           </button>
         </form>
 
-        <div className="modal-footer">
+        <div className={styles.footer}>
           <p>
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button 
               type="button"
-              className="switch-mode-btn"
+              className={styles.switchBtn}
               onClick={() => {
                 setIsLogin(!isLogin);
                 onSwitchMode(!isLogin ? 'login' : 'register');
@@ -239,7 +227,7 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
             </button>
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

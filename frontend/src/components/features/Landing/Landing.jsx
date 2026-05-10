@@ -1,33 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Activity, 
-  Lock, 
-  TrendingUp, 
-  Users, 
-  Smartphone, 
-  Code,
-  Shield,
-  Eye,
-  Key,
-  FileText,
-  Database,
-  Server,
-  Heart,
-  Award,
-  Clock
+  Activity, Lock, TrendingUp, Users, Smartphone, Code,
+  Shield, Eye, Key, FileText, Database, Server, Heart, Award, Clock
 } from 'lucide-react';
 import Header from '../../layout/Header/Header';
 import Footer from '../../layout/Footer/Footer';
 import Button from '../../common/Button/Button';
 import AuthModal from '../Auth/AuthModal';
+import api from '../../../services/api';
 import './Landing.css';
 
-const logo = '/images/logo-dark.png'; 
+const logo = '/images/logo-dark.png';
+
 
 const Landing = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [modalMode, setModalMode] = useState('login');
+  const [stats, setStats] = useState({ totalActiveUsers: 0, totalAppointments: 0 });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    fetchPlatformStats();
+  }, []);
+
+  const fetchPlatformStats = async () => {
+    try {
+      const response = await api.get('/stats/platform');
+      setStats(response.data);
+    } catch (error) {
+      console.error('Failed to fetch platform stats:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  const formatVagueCount = (count) => {
+    if (count >= 100) return '100+';
+    if (count >= 50) return '50+';
+    if (count >= 20) return '20+';
+    if (count >= 10) return '10+';
+    return count.toString();
+  };
 
   const openAuthModal = (mode) => {
     setModalMode(mode);
@@ -75,26 +89,6 @@ const Landing = () => {
                 >
                   Access Portal
                 </Button>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              className="hero-stats"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <div className="stat-card">
-                <div className="stat-value">10K+</div>
-                <div className="stat-label">Active Users</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">99.9%</div>
-                <div className="stat-label">Uptime</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">HIPAA</div>
-                <div className="stat-label">Compliant</div>
               </div>
             </motion.div>
           </div>
@@ -157,11 +151,11 @@ const Landing = () => {
                     <div className="about-stat-label">Founded</div>
                   </div>
                   <div className="about-stat">
-                    <div className="about-stat-number">50+</div>
+                    <div className="about-stat-number">{!loadingStats ? formatVagueCount(stats.totalHospitals) : '...'}</div>
                     <div className="about-stat-label">Hospitals</div>
                   </div>
                   <div className="about-stat">
-                    <div className="about-stat-number">100K+</div>
+                    <div className="about-stat-number">{!loadingStats ? formatVagueCount(stats.totalPatients) : '...'}</div>
                     <div className="about-stat-label">Patients Served</div>
                   </div>
                 </div>
@@ -173,10 +167,11 @@ const Landing = () => {
                 </p>
               </div>
               <div className="about-image">
-                <div className="about-image-placeholder">
-                  <Heart size={80} strokeWidth={1} />
-                  <p>Healthcare Reimagined</p>
-                </div>
+                <img 
+                  src="/images/logo-light.png" 
+                  alt="AEGIS Logo" 
+                  className="about-logo" 
+                />
               </div>
             </div>
           </div>
